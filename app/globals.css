@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  /* Paleta: crema / rosa palido con acento vino tinto */
+  --color-crema: #fbf6f1;
+  --color-crema-oscuro: #f4ebe3;
+  --color-rosa: #f8e9e6;
+  --color-rosa-medio: #efd6d0;
+  --color-vino: #7b2e3e;
+  --color-vino-oscuro: #5d2130;
+  --color-vino-suave: #f3e4e6;
+  --color-tinta: #2b2523;
+  --color-tinta-suave: #7c6d68;
+  --color-borde: #e7dbd3;
+
+  --font-display: var(--font-cormorant), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-suave: 1.25rem;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-crema);
+    color: var(--color-tinta);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Los anclas no quedan pegadas al header fijo */
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
+
+  ::selection {
+    background-color: var(--color-vino);
+    color: var(--color-crema);
+  }
+}
+
+@layer components {
+  .contenedor {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+}
+
+/* Aparicion suave de secciones al cargar */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animar-entrada {
+  animation: aparecer 0.6s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animar-entrada {
+    animation: none;
+  }
+}
