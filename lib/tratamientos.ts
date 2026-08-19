@@ -4,81 +4,67 @@ export type Tratamiento = {
   nombreCorto: string;
   precio: number;
   duracion: string;
+  /** Lo que suma por encima de los pasos base. Vacio = solo los pasos base. */
+  extras: string[];
   destacado?: boolean;
-  descripcion: string;
-  pasos: string[];
 };
 
-const PASOS_HFP = [
+/**
+ * Los 7 pasos que incluyen TODOS los tratamientos.
+ * Se muestran una sola vez en la pagina: asi cada tratamiento
+ * se lee en un renglon y se comparan de un vistazo.
+ */
+export const PASOS_BASE = [
   "Preparación de la piel",
   "Exfoliación mecánica",
   "Máscara de ácidos o enzimática",
   "Extracciones",
-  "Descongestión + Alta frecuencia",
+  "Descongestión y alta frecuencia",
   "Hidratación",
-  "Protector solar (FPS)",
+  "Protector solar",
 ];
 
 export const TRATAMIENTOS: Tratamiento[] = [
   {
     id: "hfp",
     nombre: "Higiene Facial Profunda",
-    nombreCorto: "HFP",
+    nombreCorto: "Higiene Facial",
     precio: 34000,
-    duracion: "1.5 a 2 hs",
-    descripcion:
-      "El protocolo base: limpieza profunda, extracciones y descongestión para una piel más sana y luminosa.",
-    pasos: PASOS_HFP,
+    duracion: "1.5 a 2 horas",
+    extras: [],
   },
   {
     id: "hfp-acidos",
-    nombre: "HFP con Ácidos",
-    nombreCorto: "HFP + Ácidos",
+    nombre: "Higiene Facial con Ácidos",
+    nombreCorto: "Con Ácidos",
     precio: 37000,
-    duracion: "1.5 a 2 hs",
-    descripcion:
-      "Suma topicación de ácidos para renovar la piel y trabajar textura, manchas y marcas.",
-    pasos: [...PASOS_HFP, "Topicación de ácidos"],
+    duracion: "1.5 a 2 horas",
+    extras: ["Ácidos"],
   },
   {
     id: "hf-dermaplaning",
-    nombre: "HF con Dermaplaning",
-    nombreCorto: "HF + Dermaplaning",
+    nombre: "Higiene Facial con Dermaplaning",
+    nombreCorto: "Con Dermaplaning",
     precio: 39500,
-    duracion: "1.5 a 2 hs",
-    descripcion:
-      "Incorpora dermaplaning: remueve vello y células muertas, dejando la piel uniforme y con efecto glow inmediato.",
-    pasos: [...PASOS_HFP, "Dermaplaning", "Topicación de ácidos"],
+    duracion: "1.5 a 2 horas",
+    extras: ["Dermaplaning", "Ácidos"],
   },
   {
     id: "hf-microneedling",
-    nombre: "HF con Microneedling",
-    nombreCorto: "HF + Microneedling",
+    nombre: "Higiene Facial con Microneedling",
+    nombreCorto: "Con Microneedling",
     precio: 42000,
-    duracion: "1.5 a 2 hs",
-    descripcion:
-      "Suma microneedling para potenciar la penetración de activos y estimular la producción de colágeno.",
-    pasos: [
-      ...PASOS_HFP,
-      "Topicación de ácidos",
-      "Activos con Microneedling",
-    ],
+    duracion: "1.5 a 2 horas",
+    extras: ["Ácidos", "Microneedling"],
   },
   {
     id: "full-glow",
     nombre: "Full Glow",
     nombreCorto: "Full Glow",
     precio: 47000,
-    duracion: "1.5 a 2 hs",
+    duracion: "1.5 a 2 horas",
+    extras: ["Dermaplaning", "Ácidos", "Microneedling"],
     destacado: true,
-    descripcion:
-      "El tratamiento más completo: combina todos los pasos en una sola sesión para el máximo resultado.",
-    pasos: [
-      ...PASOS_HFP,
-      "Dermaplaning",
-      "Topicación de ácidos",
-      "Activos con Microneedling",
-    ],
   },
 ];
 

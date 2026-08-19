@@ -1,15 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import { CONSULTORIO } from "@/lib/config";
 import "./globals.css";
 
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  variable: "--font-cormorant",
-  display: "swap",
-});
-
+/**
+ * Inter es el plan B para Windows y Android.
+ * En iPhone y Mac la pagina usa San Francisco, la tipografia del sistema.
+ */
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -37,7 +34,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fbf6f1",
+  themeColor: "#fbf8f5",
 };
 
 export default function RootLayout({
@@ -46,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es-AR" className={`${cormorant.variable} ${inter.variable}`}>
+    <html lang="es-AR" className={inter.variable}>
       <body>{children}</body>
     </html>
   );

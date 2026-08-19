@@ -1,20 +1,25 @@
 @import "tailwindcss";
 
 @theme {
-  /* Paleta: crema / rosa palido con acento vino tinto */
-  --color-crema: #fbf6f1;
-  --color-crema-oscuro: #f4ebe3;
-  --color-rosa: #f8e9e6;
-  --color-rosa-medio: #efd6d0;
+  /* Paleta: crema / rosa palido con acento vino tinto.
+     Los grises son mas oscuros que un default para que el texto
+     tenga buen contraste en pantallas de celular al sol. */
+  --color-crema: #fbf8f5;
+  --color-crema-oscuro: #f4eee8;
+  --color-rosa: #f8ebe7;
+  --color-rosa-medio: #efd8d2;
   --color-vino: #7b2e3e;
   --color-vino-oscuro: #5d2130;
-  --color-vino-suave: #f3e4e6;
-  --color-tinta: #2b2523;
-  --color-tinta-suave: #7c6d68;
-  --color-borde: #e7dbd3;
+  --color-vino-suave: #f5e7e8;
+  --color-tinta: #1d1d1f;
+  --color-tinta-suave: #57514e;
+  --color-borde: #e6ddd6;
 
-  --font-display: var(--font-cormorant), Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* Tipografia del sistema Apple: en iPhone y Mac usa San Francisco,
+     en Windows y Android cae en Inter, que es lo mas parecido. */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    var(--font-inter), "Segoe UI", system-ui, sans-serif;
 
   --radius-suave: 1.25rem;
 }
@@ -28,12 +33,31 @@
     background-color: var(--color-crema);
     color: var(--color-tinta);
     font-family: var(--font-sans);
+    /* Base de 18px: la pagina se lee sin forzar la vista */
+    font-size: 1.125rem;
+    line-height: 1.6;
+    letter-spacing: -0.011em;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Los anclas no quedan pegadas al header fijo */
+  /* Titulos con el tracking cerrado tipico de San Francisco */
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.022em;
+    line-height: 1.1;
+  }
+
+  /* Los anclas no quedan tapadas por el header fijo */
   section[id] {
-    scroll-margin-top: 5rem;
+    scroll-margin-top: 4.5rem;
+  }
+
+  /* Foco visible en todo lo clickeable: importante para navegar con teclado */
+  :focus-visible {
+    outline: 3px solid var(--color-vino);
+    outline-offset: 3px;
   }
 
   ::selection {
@@ -45,17 +69,36 @@
 @layer components {
   .contenedor {
     width: 100%;
-    max-width: 72rem;
+    max-width: 64rem;
     margin-inline: auto;
     padding-inline: 1.25rem;
   }
+
+  /* Boton principal: alto generoso para que sea facil de tocar */
+  .boton-principal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    min-height: 3.5rem;
+    padding-inline: 2rem;
+    border-radius: 9999px;
+    background-color: var(--color-vino);
+    color: var(--color-crema);
+    font-size: 1.125rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+
+  .boton-principal:hover {
+    background-color: var(--color-vino-oscuro);
+  }
 }
 
-/* Aparicion suave de secciones al cargar */
 @keyframes aparecer {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -64,7 +107,7 @@
 }
 
 .animar-entrada {
-  animation: aparecer 0.6s ease-out both;
+  animation: aparecer 0.5s ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {

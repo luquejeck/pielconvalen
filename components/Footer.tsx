@@ -2,80 +2,58 @@ import { CONSULTORIO } from "@/lib/config";
 import { linkWhatsAppSimple } from "@/lib/whatsapp";
 import { IconoInstagram, IconoPin, IconoWhatsApp } from "./iconos";
 
+const CONTACTO = [
+  {
+    Icono: IconoPin,
+    titulo: "Consultorio",
+    detalle: CONSULTORIO.direccion,
+    href: CONSULTORIO.mapsUrl,
+  },
+  {
+    Icono: IconoWhatsApp,
+    titulo: "WhatsApp",
+    detalle: CONSULTORIO.whatsappVisible,
+    href: linkWhatsAppSimple(),
+  },
+  {
+    Icono: IconoInstagram,
+    titulo: "Instagram",
+    detalle: `@${CONSULTORIO.instagram}`,
+    href: CONSULTORIO.instagramUrl,
+  },
+];
+
 export default function Footer() {
   return (
     <footer id="contacto" className="bg-vino text-crema">
-      <div className="contenedor py-16 md:py-20">
-        <div className="grid gap-12 md:grid-cols-[1.2fr_1fr]">
-          <div>
-            <p className="font-display text-3xl tracking-wide">
-              {CONSULTORIO.nombre}
-            </p>
-            <p className="mt-3 max-w-sm font-display text-xl italic text-crema/70">
-              «{CONSULTORIO.eslogan}»
-            </p>
-            <p className="mt-6 text-sm text-crema/60">
-              {CONSULTORIO.profesional} · {CONSULTORIO.titulo}
-            </p>
-          </div>
+      <div className="contenedor py-16">
+        <p className="text-center text-2xl font-semibold">
+          {CONSULTORIO.nombre}
+        </p>
+        <p className="mt-2 text-center text-lg text-crema/70">
+          {CONSULTORIO.profesional} · {CONSULTORIO.titulo}
+        </p>
 
-          <ul className="space-y-5 text-sm">
-            <li>
+        <ul className="mx-auto mt-12 grid max-w-2xl gap-8 sm:grid-cols-3">
+          {CONTACTO.map(({ Icono, titulo, detalle, href }) => (
+            <li key={titulo} className="text-center">
               <a
-                href={CONSULTORIO.mapsUrl}
+                href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-start gap-3 transition-colors hover:text-crema/70"
+                className="inline-flex flex-col items-center gap-2 transition-opacity hover:opacity-70"
               >
-                <IconoPin className="mt-0.5 h-5 w-5 shrink-0 text-crema/60" />
-                <span>
-                  <span className="block font-medium">Consultorio</span>
-                  <span className="text-crema/70">{CONSULTORIO.direccion}</span>
-                </span>
+                <Icono className="h-7 w-7" />
+                <span className="text-lg font-medium">{titulo}</span>
+                <span className="text-base text-crema/70">{detalle}</span>
               </a>
             </li>
+          ))}
+        </ul>
 
-            <li>
-              <a
-                href={linkWhatsAppSimple()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-start gap-3 transition-colors hover:text-crema/70"
-              >
-                <IconoWhatsApp className="mt-0.5 h-5 w-5 shrink-0 text-crema/60" />
-                <span>
-                  <span className="block font-medium">WhatsApp</span>
-                  <span className="text-crema/70">
-                    {CONSULTORIO.whatsappVisible}
-                  </span>
-                </span>
-              </a>
-            </li>
-
-            <li>
-              <a
-                href={CONSULTORIO.instagramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-start gap-3 transition-colors hover:text-crema/70"
-              >
-                <IconoInstagram className="mt-0.5 h-5 w-5 shrink-0 text-crema/60" />
-                <span>
-                  <span className="block font-medium">Instagram</span>
-                  <span className="text-crema/70">@{CONSULTORIO.instagram}</span>
-                </span>
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <div className="mt-14 flex flex-col gap-3 border-t border-crema/15 pt-6 text-xs text-crema/50 sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {new Date().getFullYear()} {CONSULTORIO.nombre}. Todos los derechos
-            reservados.
-          </p>
-          <p>Caballito, Ciudad de Buenos Aires</p>
-        </div>
+        <p className="mt-14 text-center text-base text-crema/50">
+          © {new Date().getFullYear()} {CONSULTORIO.nombre} · Caballito, CABA
+        </p>
       </div>
     </footer>
   );

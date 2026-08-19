@@ -11,6 +11,7 @@ import {
 import {
   claveFecha,
   DIAS_SEMANA,
+  formatearFechaLarga,
   grillaDelMes,
   inicioDelDia,
   MESES,
@@ -71,7 +72,6 @@ export default function Calendario({
 
   const turnosDelDia = fecha ? disponibilidad[fecha] ?? [] : [];
 
-  /* ----- Navegacion de meses ----- */
   const moverMes = (delta: number) => {
     setMesVisible((m) =>
       m ? new Date(m.getFullYear(), m.getMonth() + delta, 1) : m
@@ -90,7 +90,6 @@ export default function Calendario({
     !!limite &&
     new Date(mesVisible.getFullYear(), mesVisible.getMonth() + 1, 1) <= limite;
 
-  /* ----- Estado de cada dia ----- */
   const diaDisponible = (dia: Date): boolean => {
     if (!ahora || !limite) return false;
     const d = inicioDelDia(dia);
@@ -103,26 +102,25 @@ export default function Calendario({
 
   return (
     <div
-      className={`transition-opacity ${
-        deshabilitado ? "pointer-events-none opacity-40" : "opacity-100"
-      }`}
+      className={
+        deshabilitado ? "pointer-events-none opacity-40" : undefined
+      }
       aria-disabled={deshabilitado}
     >
-      {/* Encabezado del mes */}
-      <div className="mb-5 flex items-center justify-between">
+      {/* Mes */}
+      <div className="flex items-center justify-between">
         <button
           type="button"
           onClick={() => moverMes(-1)}
           disabled={!puedeRetroceder}
           aria-label="Mes anterior"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-borde text-lg text-vino transition-colors hover:bg-vino-suave disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-borde text-2xl text-vino transition-colors hover:bg-vino-suave disabled:opacity-25"
         >
           &#8249;
         </button>
 
-        <p className="font-display text-xl text-tinta">
-          {MESES[mesVisible.getMonth()]}{" "}
-          <span className="text-tinta-suave">{mesVisible.getFullYear()}</span>
+        <p className="text-xl font-semibold text-tinta">
+          {MESES[mesVisible.getMonth()]} {mesVisible.getFullYear()}
         </p>
 
         <button
@@ -130,30 +128,27 @@ export default function Calendario({
           onClick={() => moverMes(1)}
           disabled={!puedeAvanzar}
           aria-label="Mes siguiente"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-borde text-lg text-vino transition-colors hover:bg-vino-suave disabled:cursor-not-allowed disabled:opacity-30"
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-borde text-2xl text-vino transition-colors hover:bg-vino-suave disabled:opacity-25"
         >
           &#8250;
         </button>
       </div>
 
       {/* Dias de la semana */}
-      <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-widest text-tinta-suave">
+      <div className="mt-6 grid grid-cols-7 gap-1.5 text-center text-base text-tinta-suave">
         {DIAS_SEMANA.map((d) => (
-          <span key={d} className="py-2">
-            {d}
-          </span>
+          <span key={d}>{d}</span>
         ))}
       </div>
 
-      {/* Grilla del mes */}
-      <div className="mt-1 grid grid-cols-7 gap-1">
+      {/* Grilla */}
+      <div className="mt-2 grid grid-cols-7 gap-1.5">
         {celdas.map((dia, i) => {
           if (!dia) return <span key={`vacio-${i}`} />;
 
           const clave = claveFecha(dia);
           const disponible = !cargando && diaDisponible(dia);
           const seleccionado = clave === fecha;
-          const esHoy = clave === claveFecha(ahora);
 
           return (
             <button
@@ -162,58 +157,38 @@ export default function Calendario({
               disabled={!disponible}
               onClick={() => onCambio(clave, null)}
               aria-pressed={seleccionado}
-              aria-label={`${dia.getDate()} de ${MESES[dia.getMonth()]} — ${
-                disponible ? "con turnos" : "sin disponibilidad"
+              aria-label={`${dia.getDate()} de ${MESES[dia.getMonth()]}${
+                disponible ? "" : ", sin turnos"
               }`}
               className={[
-                "relative aspect-square rounded-xl text-sm transition-all",
+                "flex aspect-square items-center justify-center rounded-xl text-lg transition-colors",
                 seleccionado
-                  ? "bg-vino font-medium text-crema shadow-md shadow-vino/25"
+                  ? "bg-vino font-semibold text-crema"
                   : disponible
-                    ? "bg-white text-tinta ring-1 ring-borde hover:ring-2 hover:ring-vino"
-                    : "text-tinta-suave/35",
-                esHoy && !seleccionado ? "ring-2 ring-vino/40" : "",
+                    ? "border border-vino/40 bg-white text-tinta hover:bg-vino-suave"
+                    : "text-tinta-suave/30",
               ].join(" ")}
             >
               {dia.getDate()}
-              {disponible && !seleccionado && (
-                <span className="absolute bottom-1.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-vino/60" />
-              )}
             </button>
           );
         })}
       </div>
 
-      {cargando && (
-        <p className="mt-4 text-center text-xs text-tinta-suave">
-          Cargando disponibilidad...
-        </p>
-      )}
+      <p className="mt-5 text-base text-tinta-suave">
+        {cargando
+          ? "Buscando turnos disponibles…"
+          : "Los días con borde tienen turnos libres. Tocá uno para ver los horarios."}
+      </p>
 
-      {/* Referencias */}
-      <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-tinta-suave">
-        <li className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-white ring-1 ring-borde" />
-          Con turnos
-        </li>
-        <li className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-vino" />
-          Seleccionado
-        </li>
-        <li className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-borde" />
-          Sin disponibilidad
-        </li>
-      </ul>
-
-      {/* Horarios del dia elegido */}
+      {/* Horarios */}
       {fecha && (
-        <div className="animar-entrada mt-8 border-t border-borde pt-6">
-          <p className="mb-4 text-[11px] uppercase tracking-[0.22em] text-vino/70">
-            Horarios
+        <div className="animar-entrada mt-8 border-t border-borde pt-7">
+          <p className="text-lg font-medium text-tinta">
+            Horarios del {formatearFechaLarga(fecha)}
           </p>
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {turnosDelDia.map((turno) => {
               const libre = turnoReservable(fecha, turno, ahora);
               const activo = turno.hora === hora;
@@ -225,25 +200,27 @@ export default function Calendario({
                   disabled={!libre}
                   onClick={() => onCambio(fecha, turno.hora)}
                   aria-pressed={activo}
-                  title={libre ? "Disponible" : "Ocupado"}
                   className={[
-                    "rounded-xl px-3 py-3 text-sm transition-all",
+                    "min-h-14 rounded-2xl text-lg transition-colors",
                     activo
-                      ? "bg-vino font-medium text-crema shadow-md shadow-vino/25"
+                      ? "bg-vino font-semibold text-crema"
                       : libre
-                        ? "bg-white text-tinta ring-1 ring-borde hover:ring-2 hover:ring-vino"
-                        : "cursor-not-allowed bg-crema-oscuro text-tinta-suave/45 line-through",
+                        ? "border border-vino/40 bg-white text-tinta hover:bg-vino-suave"
+                        : "bg-crema-oscuro text-tinta-suave/50",
                   ].join(" ")}
                 >
                   {turno.hora}
+                  {!libre && (
+                    <span className="mt-0.5 block text-sm">ocupado</span>
+                  )}
                 </button>
               );
             })}
           </div>
 
           {turnosDelDia.every((t) => !turnoReservable(fecha, t, ahora)) && (
-            <p className="mt-4 text-sm text-tinta-suave">
-              No quedan horarios libres ese dia. Probá con otra fecha.
+            <p className="mt-4 text-lg text-tinta-suave">
+              Ese día ya no tiene lugar. Probá con otro.
             </p>
           )}
         </div>
@@ -255,8 +232,8 @@ export default function Calendario({
 function EsqueletoCalendario() {
   return (
     <div className="animate-pulse" aria-hidden>
-      <div className="mb-5 h-7 w-40 rounded-full bg-crema-oscuro" />
-      <div className="grid grid-cols-7 gap-1">
+      <div className="h-8 w-44 rounded-full bg-crema-oscuro" />
+      <div className="mt-6 grid grid-cols-7 gap-1.5">
         {Array.from({ length: 35 }).map((_, i) => (
           <div key={i} className="aspect-square rounded-xl bg-crema-oscuro" />
         ))}
