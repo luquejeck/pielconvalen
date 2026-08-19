@@ -23,7 +23,15 @@ export const CONSULTORIO = {
  */
 export const AGENDA = {
   diasHabiles: [2, 3, 4, 5, 6] as number[], // martes a sabado
-  horarios: ["09:00", "11:30", "14:00", "16:30"] as string[],
+  // Atiende de 8 a 20 hs, con turnos de 2 horas: el ultimo arranca 18:00.
+  horarios: [
+    "08:00",
+    "10:00",
+    "12:00",
+    "14:00",
+    "16:00",
+    "18:00",
+  ] as string[],
   /** No se puede reservar con menos de X horas de anticipacion */
   anticipacionMinimaHs: 24,
   /** Cuantos dias hacia adelante se puede reservar */
