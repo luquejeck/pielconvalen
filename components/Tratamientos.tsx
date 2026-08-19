@@ -21,7 +21,7 @@ export default function Tratamientos() {
         </h2>
 
         {/* Los pasos base se explican UNA sola vez */}
-        <div className="mx-auto mt-6 max-w-3xl rounded-suave bg-crema px-6 py-5">
+        <div className="tarjeta mx-auto mt-6 max-w-3xl px-6 py-5">
           <h3 className="text-lg font-semibold text-tinta">
             Todos incluyen estos 7 pasos
           </h3>
@@ -48,10 +48,8 @@ export default function Tratamientos() {
             return (
               <li
                 key={t.id}
-                className={`flex flex-col rounded-suave border px-5 py-4 transition-colors ${
-                  activo
-                    ? "border-vino bg-vino-suave"
-                    : "border-borde bg-crema"
+                className={`tarjeta flex flex-col px-5 py-4 transition-colors ${
+                  activo ? "border-vino bg-vino-suave" : ""
                 }`}
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4">

@@ -94,7 +94,7 @@ export default function Reservas() {
                 Primero elegí un tratamiento arriba.
               </p>
             ) : (
-              <div className="mt-3 rounded-suave border border-borde bg-white p-4 sm:p-5">
+              <div className="tarjeta mt-3 p-4 sm:p-5">
                 <Calendario fecha={fecha} hora={hora} onCambio={manejarCambio} />
               </div>
             )}
@@ -104,7 +104,7 @@ export default function Reservas() {
           <div className="lg:sticky lg:top-22">
             <Paso numero={3} titulo="Confirmá por WhatsApp" />
 
-            <div className="mt-3 rounded-suave bg-rosa/70 px-5 py-5">
+            <div className="mt-3 rounded-suave border border-rosa-medio/60 bg-rosa px-5 py-5 shadow-suave">
               <dl className="space-y-2 text-base">
                 <Fila rotulo="Tratamiento" valor={tratamiento?.nombre} />
                 <Fila

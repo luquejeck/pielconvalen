@@ -1,19 +1,31 @@
 @import "tailwindcss";
 
 @theme {
-  /* Paleta: crema / rosa palido con acento vino tinto.
-     Los grises son mas oscuros que un default para que el texto
-     tenga buen contraste en pantallas de celular al sol. */
-  --color-crema: #fbf8f5;
-  --color-crema-oscuro: #f4eee8;
-  --color-rosa: #f8ebe7;
-  --color-rosa-medio: #efd8d2;
-  --color-vino: #7b2e3e;
-  --color-vino-oscuro: #5d2130;
-  --color-vino-suave: #f5e7e8;
-  --color-tinta: #1d1d1f;
-  --color-tinta-suave: #57514e;
-  --color-borde: #e6ddd6;
+  /* --------------------------------------------------------------------
+     PALETA
+     Misma familia de siempre (crema, rosa y vino), afinada:
+     - el vino gira apenas hacia el borgoña: menos ladrillo, mas elegante
+     - los grises dejan de ser neutros y se vuelven calidos, para que no
+       "ensucien" sobre el fondo crema
+     - se separan mejor los niveles de superficie: fondo, seccion y tarjeta
+     -------------------------------------------------------------------- */
+
+  /* Superficies, de mas clara a mas oscura */
+  --color-crema: #fdfaf7; /* fondo general */
+  --color-crema-oscuro: #f4ebe4; /* secciones alternadas */
+  --color-rosa: #f9e8e3; /* bloques de acento suave */
+  --color-rosa-medio: #edd2cb;
+
+  /* Acento */
+  --color-vino: #6d2740;
+  --color-vino-oscuro: #4d1a2d;
+  --color-vino-suave: #f7e6ea;
+
+  /* Texto */
+  --color-tinta: #2a2124; /* negro calido, no azulado */
+  --color-tinta-suave: #635356;
+
+  --color-borde: #ebe0d9;
 
   /* Tipografia del sistema Apple: en iPhone y Mac usa San Francisco,
      en Windows y Android cae en Inter, que es lo mas parecido. */
@@ -22,6 +34,11 @@
     var(--font-inter), "Segoe UI", system-ui, sans-serif;
 
   --radius-suave: 1.25rem;
+
+  /* Sombra tenue y calida: da profundidad sin verse gris ni pesada */
+  --shadow-suave:
+    0 1px 2px rgb(77 26 45 / 0.04), 0 10px 30px -18px rgb(77 26 45 / 0.22);
+  --shadow-boton: 0 6px 18px -8px rgb(77 26 45 / 0.55);
 }
 
 @layer base {
@@ -41,7 +58,6 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Titulos con el tracking cerrado tipico de San Francisco */
   h1,
   h2,
   h3 {
@@ -49,12 +65,10 @@
     line-height: 1.1;
   }
 
-  /* Los anclas no quedan tapadas por el header fijo */
   section[id] {
     scroll-margin-top: 4.5rem;
   }
 
-  /* Foco visible en todo lo clickeable: importante para navegar con teclado */
   :focus-visible {
     outline: 3px solid var(--color-vino);
     outline-offset: 3px;
@@ -84,14 +98,29 @@
     padding-inline: 2rem;
     border-radius: 9999px;
     background-color: var(--color-vino);
-    color: var(--color-crema);
+    color: #fff;
     font-size: 1.125rem;
     font-weight: 500;
-    transition: background-color 0.2s ease;
+    box-shadow: var(--shadow-boton);
+    transition:
+      background-color 0.2s ease,
+      transform 0.2s ease;
   }
 
   .boton-principal:hover {
     background-color: var(--color-vino-oscuro);
+  }
+
+  .boton-principal:active {
+    transform: scale(0.985);
+  }
+
+  /* Tarjeta: blanco puro sobre el crema, para que se despegue del fondo */
+  .tarjeta {
+    background-color: #fff;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radius-suave);
+    box-shadow: var(--shadow-suave);
   }
 }
 
