@@ -26,15 +26,15 @@ const CONTACTO = [
 export default function Footer() {
   return (
     <footer id="contacto" className="bg-vino text-crema">
-      <div className="contenedor py-16">
+      <div className="contenedor py-10">
         <p className="text-center text-2xl font-semibold">
           {CONSULTORIO.nombre}
         </p>
-        <p className="mt-2 text-center text-lg text-crema/70">
+        <p className="mt-1 text-center text-base text-crema/70">
           {CONSULTORIO.profesional} · {CONSULTORIO.titulo}
         </p>
 
-        <ul className="mx-auto mt-12 grid max-w-2xl gap-8 sm:grid-cols-3">
+        <ul className="mx-auto mt-8 grid max-w-2xl gap-5 sm:grid-cols-3">
           {CONTACTO.map(({ Icono, titulo, detalle, href }) => (
             <li key={titulo} className="text-center">
               <a
@@ -51,13 +51,13 @@ export default function Footer() {
           ))}
         </ul>
 
-        <p className="mt-14 text-center text-base text-crema/50">
+        <p className="mt-8 text-center text-sm text-crema/50">
           © {new Date().getFullYear()} {CONSULTORIO.nombre} · Caballito, CABA
         </p>
 
         {/* Acceso de Valen a su agenda. Discreto a proposito: no le dice
             nada a una clienta, pero esta siempre a mano desde el celular. */}
-        <p className="mt-4 text-center">
+        <p className="mt-2 text-center">
           <a
             href="/admin"
             className="text-sm text-crema/40 underline underline-offset-4 transition-colors hover:text-crema/80"

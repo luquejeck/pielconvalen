@@ -25,7 +25,7 @@ export default function FondoImagen({
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
       <div
-        className="absolute inset-0 scale-110 bg-cover bg-center blur-lg"
+        className="absolute inset-0 scale-105 bg-cover bg-center blur-xs"
         style={{
           backgroundImage: `url('${imagen}')`,
           opacity: intensidad / 100,

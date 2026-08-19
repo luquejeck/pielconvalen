@@ -40,117 +40,121 @@ export default function Reservas() {
   };
 
   return (
-    <section id="reservar" className="relative isolate py-20 md:py-24">
+    <section id="reservar" className="relative isolate py-12 md:py-16">
       <FondoImagen
         imagen="/imagenes/reservas.jpg"
         intensidad={55}
-        velo="bg-linear-to-b from-crema/85 via-crema/80 to-crema"
+        velo="bg-linear-to-b from-crema/88 via-crema/82 to-crema"
       />
 
-      <div className="contenedor max-w-2xl">
+      <div className="contenedor">
         <h2 className="text-center text-3xl font-semibold text-tinta sm:text-4xl">
           Reservá tu turno
         </h2>
-        <p className="mt-4 text-center text-lg text-tinta-suave">
-          Son tres pasos. Al final se abre WhatsApp con el mensaje ya escrito.
+        <p className="mt-2 text-center text-lg text-tinta-suave">
+          Tres pasos. Al final se abre WhatsApp con el mensaje ya escrito.
         </p>
 
-        {/* ---------- Paso 1 ---------- */}
-        <Paso numero={1} titulo="Elegí el tratamiento" />
+        {/* En celular es una sola columna en orden 1-2-3.
+            En PC el resumen queda fijo al costado, siempre a la vista. */}
+        <div className="mx-auto mt-8 grid max-w-5xl items-start gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <div>
+            {/* ---------- Paso 1 ---------- */}
+            <Paso numero={1} titulo="Elegí el tratamiento" />
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          {TRATAMIENTOS.map((t) => {
-            const activo = t.id === tratamientoId;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTratamientoId(activo ? null : t.id)}
-                aria-pressed={activo}
-                className={`min-h-16 rounded-2xl px-5 py-3 text-left text-lg transition-colors ${
-                  activo
-                    ? "bg-vino text-crema"
-                    : "border border-borde bg-white hover:border-vino"
-                }`}
-              >
-                <span className="block font-medium">{t.nombreCorto}</span>
-                <span
-                  className={activo ? "text-crema/80" : "text-tinta-suave"}
-                >
-                  {formatearPrecio(t.precio)}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* ---------- Paso 2 ---------- */}
-        <Paso numero={2} titulo="Elegí el día y la hora" />
-
-        {!tratamiento ? (
-          <p className="mt-5 rounded-2xl bg-crema-oscuro px-6 py-5 text-lg text-tinta">
-            Primero elegí un tratamiento arriba.
-          </p>
-        ) : (
-          <div className="mt-5 rounded-suave border border-borde bg-white p-5 sm:p-7">
-            <Calendario fecha={fecha} hora={hora} onCambio={manejarCambio} />
-          </div>
-        )}
-
-        {/* ---------- Paso 3 ---------- */}
-        <Paso numero={3} titulo="Confirmá por WhatsApp" />
-
-        <div className="mt-5 rounded-suave bg-rosa/60 p-6 sm:p-8">
-          <dl className="space-y-3 text-lg">
-            <Fila rotulo="Tratamiento" valor={tratamiento?.nombre} />
-            <Fila
-              rotulo="Día"
-              valor={fecha ? formatearFechaLarga(fecha) : null}
-            />
-            <Fila rotulo="Hora" valor={hora ? `${hora} hs` : null} />
-            <Fila
-              rotulo="Precio"
-              valor={tratamiento ? formatearPrecio(tratamiento.precio) : null}
-            />
-          </dl>
-
-          <label className="mt-6 block">
-            <span className="text-lg text-tinta">Tu nombre</span>
-            <input
-              type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Opcional"
-              autoComplete="given-name"
-              className="mt-2 min-h-14 w-full rounded-2xl border border-borde bg-white px-5 text-lg text-tinta outline-none transition-colors placeholder:text-tinta-suave/60 focus:border-vino"
-            />
-          </label>
-
-          {completo ? (
-            <a
-              href={linkWhatsApp({
-                tratamiento: tratamiento!,
-                fecha: fecha!,
-                hora: hora!,
-                nombre,
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {TRATAMIENTOS.map((t) => {
+                const activo = t.id === tratamientoId;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setTratamientoId(activo ? null : t.id)}
+                    aria-pressed={activo}
+                    className={`flex min-h-13 items-center justify-between gap-3 rounded-2xl px-4 py-2.5 text-left text-base transition-colors ${
+                      activo
+                        ? "bg-vino text-crema"
+                        : "border border-borde bg-white hover:border-vino"
+                    }`}
+                  >
+                    <span className="font-medium">{t.nombreCorto}</span>
+                    <span className={activo ? "text-crema/80" : "text-tinta-suave"}>
+                      {formatearPrecio(t.precio)}
+                    </span>
+                  </button>
+                );
               })}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={reservarHorario}
-              className="boton-principal mt-6 w-full"
-            >
-              <IconoWhatsApp className="h-6 w-6" />
-              Confirmar por WhatsApp
-            </a>
-          ) : (
-            <p className="mt-6 min-h-14 w-full rounded-full bg-vino/20 px-8 py-4 text-center text-lg text-tinta-suave">
-              Completá los pasos 1 y 2
-            </p>
-          )}
+            </div>
 
-          <p className="mt-4 text-center text-base text-tinta-suave">
-            El turno queda confirmado cuando Valen te responde.
-          </p>
+            {/* ---------- Paso 2 ---------- */}
+            <Paso numero={2} titulo="Elegí el día y la hora" />
+
+            {!tratamiento ? (
+              <p className="mt-3 rounded-2xl bg-crema-oscuro px-5 py-4 text-lg text-tinta">
+                Primero elegí un tratamiento arriba.
+              </p>
+            ) : (
+              <div className="mt-3 rounded-suave border border-borde bg-white p-4 sm:p-5">
+                <Calendario fecha={fecha} hora={hora} onCambio={manejarCambio} />
+              </div>
+            )}
+          </div>
+
+          {/* ---------- Paso 3 ---------- */}
+          <div className="lg:sticky lg:top-22">
+            <Paso numero={3} titulo="Confirmá por WhatsApp" />
+
+            <div className="mt-3 rounded-suave bg-rosa/70 px-5 py-5">
+              <dl className="space-y-2 text-base">
+                <Fila rotulo="Tratamiento" valor={tratamiento?.nombre} />
+                <Fila
+                  rotulo="Día"
+                  valor={fecha ? formatearFechaLarga(fecha) : null}
+                />
+                <Fila rotulo="Hora" valor={hora ? `${hora} hs` : null} />
+                <Fila
+                  rotulo="Precio"
+                  valor={tratamiento ? formatearPrecio(tratamiento.precio) : null}
+                />
+              </dl>
+
+              <input
+                type="text"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                placeholder="Tu nombre (opcional)"
+                autoComplete="given-name"
+                aria-label="Tu nombre"
+                className="mt-4 min-h-13 w-full rounded-2xl border border-borde bg-white px-4 text-base text-tinta outline-none transition-colors placeholder:text-tinta-suave/60 focus:border-vino"
+              />
+
+              {completo ? (
+                <a
+                  href={linkWhatsApp({
+                    tratamiento: tratamiento!,
+                    fecha: fecha!,
+                    hora: hora!,
+                    nombre,
+                  })}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={reservarHorario}
+                  className="boton-principal mt-3 w-full"
+                >
+                  <IconoWhatsApp className="h-5 w-5" />
+                  Confirmar turno
+                </a>
+              ) : (
+                <p className="mt-3 rounded-full bg-vino/15 px-6 py-3.5 text-center text-base text-tinta-suave">
+                  Completá los pasos 1 y 2
+                </p>
+              )}
+
+              <p className="mt-2.5 text-center text-sm text-tinta-suave">
+                Queda confirmado cuando Valen te responde.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -159,11 +163,11 @@ export default function Reservas() {
 
 function Paso({ numero, titulo }: { numero: number; titulo: string }) {
   return (
-    <div className="mt-12 flex items-center gap-4">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-vino text-lg font-medium text-crema">
+    <div className="mt-6 flex items-center gap-3 first:mt-0">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino text-base font-medium text-crema">
         {numero}
       </span>
-      <h3 className="text-2xl font-semibold text-tinta">{titulo}</h3>
+      <h3 className="text-xl font-semibold text-tinta">{titulo}</h3>
     </div>
   );
 }

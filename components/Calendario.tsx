@@ -114,7 +114,7 @@ export default function Calendario({
           onClick={() => moverMes(-1)}
           disabled={!puedeRetroceder}
           aria-label="Mes anterior"
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-borde text-2xl text-vino transition-colors hover:bg-vino-suave disabled:opacity-25"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-borde text-2xl text-vino transition-colors hover:bg-vino-suave disabled:opacity-25"
         >
           &#8249;
         </button>
@@ -128,14 +128,14 @@ export default function Calendario({
           onClick={() => moverMes(1)}
           disabled={!puedeAvanzar}
           aria-label="Mes siguiente"
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-borde text-2xl text-vino transition-colors hover:bg-vino-suave disabled:opacity-25"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-borde text-2xl text-vino transition-colors hover:bg-vino-suave disabled:opacity-25"
         >
           &#8250;
         </button>
       </div>
 
       {/* Dias de la semana */}
-      <div className="mt-6 grid grid-cols-7 gap-1.5 text-center text-base text-tinta-suave">
+      <div className="mt-4 grid grid-cols-7 gap-1.5 text-center text-sm text-tinta-suave">
         {DIAS_SEMANA.map((d) => (
           <span key={d}>{d}</span>
         ))}
@@ -175,7 +175,7 @@ export default function Calendario({
         })}
       </div>
 
-      <p className="mt-5 text-base text-tinta-suave">
+      <p className="mt-3 text-sm leading-snug text-tinta-suave">
         {cargando
           ? "Buscando turnos disponibles…"
           : "Los días con borde tienen turnos libres. Tocá uno para ver los horarios."}
@@ -183,12 +183,12 @@ export default function Calendario({
 
       {/* Horarios */}
       {fecha && (
-        <div className="animar-entrada mt-8 border-t border-borde pt-7">
+        <div className="animar-entrada mt-5 border-t border-borde pt-4">
           <p className="text-lg font-medium text-tinta">
             Horarios del {formatearFechaLarga(fecha)}
           </p>
 
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
             {turnosDelDia.map((turno) => {
               const libre = turnoReservable(fecha, turno, ahora);
               const activo = turno.hora === hora;
@@ -201,7 +201,7 @@ export default function Calendario({
                   onClick={() => onCambio(fecha, turno.hora)}
                   aria-pressed={activo}
                   className={[
-                    "min-h-14 rounded-2xl text-lg transition-colors",
+                    "min-h-13 rounded-2xl text-base transition-colors",
                     activo
                       ? "bg-vino font-semibold text-crema"
                       : libre
@@ -233,7 +233,7 @@ function EsqueletoCalendario() {
   return (
     <div className="animate-pulse" aria-hidden>
       <div className="h-8 w-44 rounded-full bg-crema-oscuro" />
-      <div className="mt-6 grid grid-cols-7 gap-1.5">
+      <div className="mt-5 grid grid-cols-7 gap-1.5">
         {Array.from({ length: 35 }).map((_, i) => (
           <div key={i} className="aspect-square rounded-xl bg-crema-oscuro" />
         ))}

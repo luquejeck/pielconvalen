@@ -20,28 +20,33 @@ const BENEFICIOS = [
 
 export default function Beneficios() {
   return (
-    <section id="beneficios" className="py-20 md:py-24">
+    <section id="beneficios" className="py-12 md:py-16">
       <div className="contenedor">
         <h2 className="text-center text-3xl font-semibold text-tinta sm:text-4xl">
           Qué vas a notar
         </h2>
 
-        <ul className="mt-12 grid gap-8 sm:grid-cols-3">
+        {/* En celular van en fila horizontal compacta; en pantallas
+            grandes se despliegan con el texto completo. */}
+        <ul className="mt-8 grid grid-cols-3 gap-4 sm:gap-6">
           {BENEFICIOS.map(({ Icono, titulo, texto }) => (
             <li key={titulo} className="text-center">
-              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-vino-suave text-vino">
-                <Icono className="h-7 w-7" />
+              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-vino-suave text-vino sm:h-14 sm:w-14">
+                <Icono className="h-6 w-6 sm:h-7 sm:w-7" />
               </span>
-              <h3 className="mt-5 text-xl font-semibold text-tinta">{titulo}</h3>
-              <p className="mt-2 text-lg text-tinta-suave">{texto}</p>
+              <h3 className="mt-3 text-base leading-tight font-semibold text-tinta sm:text-xl">
+                {titulo}
+              </h3>
+              <p className="mt-1 hidden text-lg text-tinta-suave sm:block">
+                {texto}
+              </p>
             </li>
           ))}
         </ul>
 
-        <p className="mx-auto mt-14 max-w-2xl rounded-suave bg-crema-oscuro p-7 text-center text-lg leading-relaxed text-tinta">
+        <p className="mx-auto mt-8 max-w-2xl rounded-suave bg-crema-oscuro px-6 py-5 text-center text-lg leading-snug text-tinta">
           Todos los tratamientos son <strong>personalizados</strong> según tu
-          tipo de piel. Reservá con tiempo: cada sesión dura{" "}
-          <strong>entre 1.5 y 2 horas</strong>.
+          tipo de piel, y duran <strong>entre 1.5 y 2 horas</strong>.
         </p>
       </div>
     </section>

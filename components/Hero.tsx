@@ -8,32 +8,31 @@ export default function Hero() {
       <FondoImagen
         imagen="/imagenes/hero.jpg"
         intensidad={70}
-        velo="bg-linear-to-b from-crema/55 via-crema/75 to-crema"
+        velo="bg-linear-to-b from-crema/60 via-crema/78 to-crema"
       />
 
-      <div className="contenedor animar-entrada py-20 text-center md:py-28">
+      <div className="contenedor animar-entrada py-12 text-center md:py-16">
         <h1 className="text-4xl font-semibold text-tinta sm:text-5xl">
           {CONSULTORIO.profesional}
         </h1>
 
-        <p className="mt-4 text-xl text-vino sm:text-2xl">
+        <p className="mt-2 text-lg text-vino sm:text-xl">
           Cosmetóloga · {CONSULTORIO.titulo}
         </p>
 
-        <p className="mx-auto mt-8 max-w-xl text-2xl leading-snug text-tinta sm:text-3xl">
+        <p className="mx-auto mt-5 max-w-xl text-2xl leading-tight text-tinta sm:text-3xl">
           {CONSULTORIO.eslogan}
         </p>
 
-        <p className="mx-auto mt-6 max-w-lg text-lg text-tinta-suave">
-          Tratamientos faciales personalizados en Caballito. Cada sesión se
-          adapta a tu piel y a lo que necesita hoy.
+        <p className="mx-auto mt-3 max-w-md text-lg leading-snug text-tinta-suave">
+          Tratamientos faciales personalizados en Caballito.
         </p>
 
-        <a href="#reservar" className="boton-principal mt-10">
+        <a href="#reservar" className="boton-principal mt-7">
           Reservar turno
         </a>
 
-        <ul className="mt-10 flex flex-col items-center gap-3 text-base text-tinta-suave sm:flex-row sm:justify-center sm:gap-8">
+        <ul className="mt-6 flex flex-col items-center gap-1.5 text-base text-tinta-suave sm:flex-row sm:justify-center sm:gap-6">
           <li className="flex items-center gap-2">
             <IconoPin className="h-5 w-5 text-vino" />
             {CONSULTORIO.direccion}
