@@ -22,6 +22,22 @@ export default function Reservas() {
     setHora(nuevaHora);
   };
 
+  /**
+   * Bloquea el horario en la agenda apenas la clienta toca el boton,
+   * sin frenar la apertura de WhatsApp: se dispara y sigue de largo.
+   * `keepalive` hace que el pedido llegue aunque cambie de pestaña.
+   */
+  const reservarHorario = () => {
+    void fetch("/api/turnos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fecha, hora, tratamientoId, nombre }),
+      keepalive: true,
+    }).catch(() => {
+      // Si falla, el turno igual se coordina por WhatsApp.
+    });
+  };
+
   return (
     <section id="reservar" className="py-20 md:py-24">
       <div className="contenedor max-w-2xl">
@@ -113,6 +129,7 @@ export default function Reservas() {
               })}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={reservarHorario}
               className="boton-principal mt-6 w-full"
             >
               <IconoWhatsApp className="h-6 w-6" />

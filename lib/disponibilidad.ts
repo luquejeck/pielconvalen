@@ -12,21 +12,41 @@ export type Turno = {
 export type MapaDisponibilidad = Record<string, Turno[]>;
 
 /* -------------------------------------------------------------------------
- * SIMULACION (mock)
- * Reemplazar por la consulta real a la base de datos dentro de
- * app/api/disponibilidad/route.ts. El resto del front no cambia.
+ * CONSTRUCCION DEL MAPA
+ * Recorre los dias habiles de la agenda y marca cada horario.
+ * De donde salen los datos (base de datos o simulacion) lo deciden
+ * las dos funciones que recibe.
+ * ---------------------------------------------------------------------- */
+export function construirMapa(
+  desde: Date,
+  dias: number,
+  estaOcupado: (clave: string, hora: string) => boolean,
+  diaCerrado: (clave: string) => boolean = () => false
+): MapaDisponibilidad {
+  const mapa: MapaDisponibilidad = {};
+
+  for (let i = 0; i < dias; i++) {
+    const fecha = sumarDias(desde, i);
+    if (!AGENDA.diasHabiles.includes(fecha.getDay())) continue;
+
+    const clave = claveFecha(fecha);
+    if (diaCerrado(clave)) continue;
+
+    mapa[clave] = AGENDA.horarios.map((hora) => ({
+      hora,
+      estado: estaOcupado(clave, hora) ? "ocupado" : "libre",
+    }));
+  }
+
+  return mapa;
+}
+
+/* -------------------------------------------------------------------------
+ * SIMULACION
+ * Se usa solo mientras la base de datos no este configurada.
  * ---------------------------------------------------------------------- */
 
-/**
- * Bloqueos manuales de ejemplo: lo que hoy carga la admin a mano.
- * clave = fecha, valor = horas ocupadas ("*" bloquea el dia entero).
- */
-const BLOQUEOS_MANUALES: Record<string, string[]> = {
-  // "2026-08-25": ["09:00", "11:30"],
-  // "2026-08-26": ["*"],
-};
-
-/** Hash estable: misma fecha+hora => mismo resultado en server y cliente. */
+/** Hash estable: misma fecha+hora => mismo resultado siempre. */
 function hash(texto: string): number {
   let h = 0;
   for (let i = 0; i < texto.length; i++) {
@@ -36,31 +56,15 @@ function hash(texto: string): number {
   return Math.abs(h);
 }
 
-/** Genera el mapa de disponibilidad simulado para un rango de dias. */
 export function generarDisponibilidadMock(
   desde: Date,
   dias: number = AGENDA.ventanaDias
 ): MapaDisponibilidad {
-  const mapa: MapaDisponibilidad = {};
-
-  for (let i = 0; i < dias; i++) {
-    const fecha = sumarDias(desde, i);
-    if (!AGENDA.diasHabiles.includes(fecha.getDay())) continue;
-
-    const clave = claveFecha(fecha);
-    const bloqueos = BLOQUEOS_MANUALES[clave] ?? [];
-    if (bloqueos.includes("*")) continue; // dia cerrado por la admin
-
-    mapa[clave] = AGENDA.horarios.map((hora) => ({
-      hora,
-      estado:
-        bloqueos.includes(hora) || hash(`${clave}|${hora}`) % 10 < 4
-          ? "ocupado"
-          : "libre",
-    }));
-  }
-
-  return mapa;
+  return construirMapa(
+    desde,
+    dias,
+    (clave, hora) => hash(`${clave}|${hora}`) % 10 < 4
+  );
 }
 
 /* -------------------------------------------------------------------------

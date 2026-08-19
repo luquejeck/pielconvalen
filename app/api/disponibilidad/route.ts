@@ -1,21 +1,22 @@
 import { NextResponse } from "next/server";
 import { AGENDA } from "@/lib/config";
 import {
+  construirMapa,
   generarDisponibilidadMock,
   type MapaDisponibilidad,
 } from "@/lib/disponibilidad";
-import { desdeClave } from "@/lib/fechas";
+import { claveFecha, desdeClave, sumarDias } from "@/lib/fechas";
+import { hayBaseDeDatos } from "@/lib/supabase";
+import { clienteServidor } from "@/lib/supabase-servidor";
 
 export const dynamic = "force-dynamic";
 
 /**
  * GET /api/disponibilidad?desde=2026-08-19&dias=60
+ * Devuelve: { "2026-08-20": [{ hora: "09:00", estado: "libre" }, ...] }
  *
- * Devuelve: { "2026-08-20": [{ hora: "09:00", estado: "libre" }, ...], ... }
- *
- * HOY: responde con la simulacion (mock).
- * MAÑANA: reemplazar el bloque marcado por la consulta a la base de datos.
- * El front no se toca: consume siempre este mismo contrato.
+ * Si la base de datos todavia no esta configurada, responde con la
+ * agenda simulada para que la web nunca quede rota.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -27,23 +28,38 @@ export async function GET(request: Request) {
       ? desdeClave(desdeParam)
       : new Date();
 
-  // ---------------------------------------------------------------
-  // SIMULACION — reemplazar por la DB (ver README, seccion "Backend")
-  //
-  //   const supabase = createClient(url, serviceKey);
-  //   const { data } = await supabase
-  //     .from("turnos")
-  //     .select("fecha, hora, estado")
-  //     .gte("fecha", claveFecha(desde))
-  //     .lte("fecha", claveFecha(sumarDias(desde, dias)));
-  //   const mapa = construirMapa(data);
-  // ---------------------------------------------------------------
-  const mapa: MapaDisponibilidad = generarDisponibilidadMock(desde, dias);
+  if (!hayBaseDeDatos) {
+    return NextResponse.json(generarDisponibilidadMock(desde, dias));
+  }
+
+  const supabase = await clienteServidor();
+  const hasta = claveFecha(sumarDias(desde, dias));
+
+  // La vista publica expone fecha y hora: nunca nombres ni telefonos.
+  const [{ data: turnos }, { data: cerrados }] = await Promise.all([
+    supabase
+      .from("turnos_publicos")
+      .select("fecha, hora")
+      .gte("fecha", claveFecha(desde))
+      .lte("fecha", hasta),
+    supabase
+      .from("dias_cerrados")
+      .select("fecha")
+      .gte("fecha", claveFecha(desde))
+      .lte("fecha", hasta),
+  ]);
+
+  const ocupados = new Set((turnos ?? []).map((t) => `${t.fecha}|${t.hora}`));
+  const diasCerrados = new Set((cerrados ?? []).map((d) => d.fecha));
+
+  const mapa: MapaDisponibilidad = construirMapa(
+    desde,
+    dias,
+    (clave, hora) => ocupados.has(`${clave}|${hora}`),
+    (clave) => diasCerrados.has(clave)
+  );
 
   return NextResponse.json(mapa, {
-    headers: {
-      // Cache corto en el CDN de Vercel: la agenda cambia seguido.
-      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
-    },
+    headers: { "Cache-Control": "no-store" },
   });
 }

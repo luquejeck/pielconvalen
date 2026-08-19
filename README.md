@@ -1,51 +1,50 @@
 # Piel con Valen — Web de reservas
 
-Single page en **Next.js 15 (App Router) + Tailwind CSS v4**, mobile-first, con módulo de
-turnos que termina en un mensaje prearmado de WhatsApp.
+Single page en **Next.js 16 (App Router) + Tailwind CSS v4** con módulo de turnos,
+panel de administración y base de datos en Supabase.
+
+- **Web pública:** https://pielconvalenn.vercel.app
+- **Panel de Valen:** https://pielconvalenn.vercel.app/admin
 
 ---
 
-## 1. Estructura de carpetas
+## 1. Estructura
 
 ```
 piel-con-valen/
 ├── app/
-│   ├── layout.tsx                    # fuentes, metadata SEO, <html lang="es-AR">
-│   ├── page.tsx                      # ensambla las 5 secciones
-│   ├── globals.css                   # tokens de color (@theme de Tailwind v4)
+│   ├── layout.tsx                    # tipografia (SF Pro / Inter) y metadata SEO
+│   ├── page.tsx                      # la landing completa
+│   ├── globals.css                   # colores y tipografia (@theme de Tailwind v4)
+│   ├── admin/
+│   │   ├── page.tsx                  # panel de turnos (protegido)
+│   │   └── login/page.tsx            # ingreso con mail y contraseña
 │   └── api/
-│       └── disponibilidad/
-│           └── route.ts              # ÚNICO punto a cambiar al conectar la DB
+│       ├── disponibilidad/route.ts   # que horarios estan libres (lectura publica)
+│       └── turnos/route.ts           # reserva un horario en estado pendiente
 ├── components/
-│   ├── Header.tsx                    # nav sticky + CTA
-│   ├── Hero.tsx                      # 1. Hero
-│   ├── Beneficios.tsx                # 2. Info + aclaración de duración
-│   ├── Tratamientos.tsx              # 3. Cards de tratamientos
-│   ├── Reservas.tsx                  # 4. Módulo de reservas (pasos 1-2-3)
-│   ├── Calendario.tsx                #    └─ calendario, estado libre/ocupado
-│   ├── ReservaContext.tsx            # estado compartido cards ↔ reservas
-│   ├── Footer.tsx                    # 5. Dirección, WA, IG
-│   └── iconos.tsx                    # SVGs inline (sin librerías)
+│   ├── Header · Hero · Beneficios · Tratamientos · Reservas · Footer
+│   ├── Calendario.tsx                # calendario con estados libre/ocupado
+│   ├── BotonWhatsApp.tsx             # boton flotante de consulta
+│   ├── ReservaContext.tsx            # estado compartido entre secciones
+│   └── admin/PanelAdmin.tsx          # agenda diaria de Valen
 ├── lib/
-│   ├── config.ts                     # datos del consultorio + agenda (horarios, días)
-│   ├── tratamientos.ts               # catálogo: precios y pasos
-│   ├── disponibilidad.ts             # tipos + mock + fetch + reglas de reserva
-│   ├── fechas.ts                     # helpers de fecha (sin dependencias)
-│   └── whatsapp.ts                   # armado del mensaje y del link wa.me
-├── public/
-├── .env.example
-├── next.config.mjs
-├── postcss.config.mjs
-├── tsconfig.json
-└── package.json
+│   ├── config.ts                     # datos del consultorio + agenda
+│   ├── tratamientos.ts               # precios, pasos base y extras
+│   ├── disponibilidad.ts             # armado del mapa de turnos
+│   ├── fechas.ts                     # helpers de fecha sin dependencias
+│   ├── whatsapp.ts                   # mensaje y link de wa.me
+│   ├── supabase.ts                   # cliente de navegador
+│   └── supabase-servidor.ts          # cliente de servidor (cookies)
+├── supabase/schema.sql               # tablas, vista y permisos
+└── proxy.ts                          # protege /admin
 ```
 
-**Regla de oro:** para cambiar precios, pasos, horarios de atención o datos de contacto
-sólo se tocan archivos de `lib/`. La UI no se toca.
+**Para cambiar precios, horarios o datos de contacto sólo se tocan archivos de `lib/`.**
 
 ---
 
-## 2. Correr el proyecto
+## 2. Correr en local
 
 ```bash
 npm install
@@ -55,162 +54,90 @@ npm install
 npm run dev
 ```
 
-Abrir http://localhost:3000
-
-> Requiere Node.js 18.18+ (recomendado 20 LTS). En esta máquina todavía no está instalado:
-> descargarlo de https://nodejs.org antes del `npm install`.
+Requiere Node 18.18+ (probado en Node 24).
 
 ---
 
-## 3. Cómo funciona el módulo de reservas
+## 3. Conectar la base de datos
 
-Flujo en 3 pasos, todo del lado del cliente:
+Sin variables de entorno la web funciona igual, con una **agenda simulada**.
+Para que los turnos sean reales:
 
-1. **Tratamiento** → `ReservaContext` guarda el `tratamientoId` (las cards de la sección 3
-   escriben en el mismo estado, por eso "Reservar este" te lleva al módulo ya seleccionado).
-2. **Fecha y hora** → `<Calendario />` pide la disponibilidad a `/api/disponibilidad`,
-   pinta la grilla del mes y los horarios del día elegido.
-3. **Confirmar** → `linkWhatsApp()` arma `https://wa.me/<número>?text=<mensaje>` y el botón
-   abre WhatsApp con todo escrito.
+### 3.1 Crear el proyecto en Supabase
 
-### Estados de un turno
+1. https://supabase.com → *Start your project* → entrar con GitHub.
+2. *New project*. Region: **South America (São Paulo)**, la más cercana.
+3. Guardar la contraseña de la base que te genera (no se usa en el código, pero
+   sirve para recuperar el proyecto).
 
-| Estado | De dónde sale | Cómo se ve |
-|---|---|---|
-| `libre` | la API lo devuelve como libre | botón blanco con borde, clickeable |
-| `ocupado` | bloqueado por la admin o ya reservado | tachado, gris, `disabled` |
-| fuera de agenda | día no hábil según `AGENDA.diasHabiles` | el día no aparece disponible |
-| muy sobre la hora | `AGENDA.anticipacionMinimaHs` (24 hs) | se muestra como ocupado |
-| fuera de ventana | más de `AGENDA.ventanaDias` (60 días) | navegación de mes bloqueada |
+### 3.2 Crear las tablas
 
-### La simulación
+Supabase → **SQL Editor** → *New query* → pegar todo el contenido de
+[`supabase/schema.sql`](supabase/schema.sql) → **Run**.
 
-`lib/disponibilidad.ts` genera el mock con un **hash determinístico** de `fecha|hora`: el
-mismo día siempre da el mismo resultado (no parpadea entre renders) y ~40% de los turnos
-aparecen ocupados. También hay un objeto `BLOQUEOS_MANUALES` para probar bloqueos concretos:
+Eso crea:
 
-```ts
-const BLOQUEOS_MANUALES: Record<string, string[]> = {
-  "2026-08-25": ["09:00", "11:30"], // dos turnos tomados
-  "2026-08-26": ["*"],              // día cerrado completo
-};
-```
+| Objeto | Para qué |
+|---|---|
+| `turnos` | cada turno: fecha, hora, estado, clienta, tratamiento, precio |
+| `dias_cerrados` | vacaciones y feriados |
+| `turnos_publicos` | vista que expone **sólo fecha y hora** — la web nunca ve nombres |
+| políticas RLS | nadie lee datos de clientas sin estar logueado |
+
+La restricción `unique (fecha, hora)` hace **imposible** que dos personas tomen
+el mismo turno: lo impide la base, no el código.
+
+### 3.3 Crear la usuaria de Valen
+
+Supabase → **Authentication** → *Users* → **Add user** → mail y contraseña,
+tildando *Auto Confirm User*.
+
+### 3.4 Cargar las variables en Vercel
+
+Supabase → *Project Settings* → **API**, y copiar:
+
+| Variable en Vercel | De dónde sale |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | *Project URL* |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | *anon public* |
+
+Vercel → *Settings* → *Environment Variables* → agregar las dos → **Redeploy**.
+
+> La clave `anon` es pública por diseño: viaja al navegador. Lo que protege los
+> datos son las políticas RLS del paso 3.2, no el secreto de la clave.
+> La clave `service_role` **no se usa en este proyecto** y no debe cargarse.
 
 ---
 
-## 4. Backend: conectar Vercel con una base de datos
+## 4. Cómo trabaja Valen
 
-### Recomendación: **Vercel + Supabase (Postgres)**
+Entra a `/admin` con su mail y contraseña, desde el celular.
 
-Es la combinación con menos fricción para este caso: plan gratuito suficiente para un
-consultorio, panel web para cargar turnos a mano desde el celular (Table Editor), auth
-incluida si más adelante querés un panel propio, e integración nativa con Vercel
-(las variables de entorno se inyectan solas).
+- **Ver el día.** Flechas para moverse o calendario para saltar a una fecha.
+- **Turnos que entran por la web** aparecen como *A confirmar* (ámbar). El horario
+  ya está bloqueado para las demás. Ella confirma o cancela.
+- **Cargar turno a mano.** Para quien reserva por Instagram o teléfono.
+- **Bloquear un horario.** Médico, trámite, lo que sea.
+- **Cerrar el día completo.** Vacaciones o feriados: desaparece de la web.
+- El teléfono de la clienta es un link directo a su WhatsApp.
 
-Alternativas válidas: **Neon** (Postgres serverless, mismo esquema) o **Vercel KV/Redis**
-si sólo se guardan bloqueos y no historial.
+---
 
-### Esquema mínimo
+## 5. Circuito de una reserva
 
-```sql
--- Turnos ocupados / bloqueos cargados por la admin
-create table turnos (
-  id          uuid primary key default gen_random_uuid(),
-  fecha       date not null,
-  hora        text not null,                    -- "09:00"
-  estado      text not null default 'ocupado',  -- 'ocupado' | 'bloqueado'
-  cliente     text,
-  tratamiento text,
-  notas       text,
-  creado_en   timestamptz default now(),
-  unique (fecha, hora)                          -- evita dobles reservas
-);
+1. La clienta elige tratamiento, día y horario en la web.
+2. Toca *Confirmar por WhatsApp* → `POST /api/turnos` guarda el turno como
+   **pendiente** y ese horario desaparece de la web al instante.
+3. Se abre WhatsApp con el mensaje escrito.
+4. Valen responde y marca **Confirmado** en el panel.
 
--- Días cerrados completos (vacaciones, feriados)
-create table dias_cerrados (
-  fecha  date primary key,
-  motivo text
-);
+Si la clienta nunca escribe, Valen cancela el turno y el horario vuelve a estar libre.
 
-alter table turnos enable row level security;
-alter table dias_cerrados enable row level security;
+---
 
--- El front sólo lee; la escritura queda para la admin (service role / panel de Supabase)
-create policy "lectura publica" on turnos for select using (true);
-create policy "lectura publica" on dias_cerrados for select using (true);
-```
+## 6. Pendientes
 
-### Cambio en el código (un solo archivo)
-
-En `app/api/disponibilidad/route.ts`, reemplazar la línea del mock por:
-
-```ts
-import { createClient } from "@supabase/supabase-js";
-import { AGENDA } from "@/lib/config";
-import { claveFecha, sumarDias } from "@/lib/fechas";
-import type { MapaDisponibilidad } from "@/lib/disponibilidad";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-const hasta = sumarDias(desde, dias);
-
-const [{ data: turnos }, { data: cerrados }] = await Promise.all([
-  supabase
-    .from("turnos")
-    .select("fecha, hora")
-    .gte("fecha", claveFecha(desde))
-    .lte("fecha", claveFecha(hasta)),
-  supabase
-    .from("dias_cerrados")
-    .select("fecha")
-    .gte("fecha", claveFecha(desde))
-    .lte("fecha", claveFecha(hasta)),
-]);
-
-const ocupados = new Set((turnos ?? []).map((t) => `${t.fecha}|${t.hora}`));
-const diasCerrados = new Set((cerrados ?? []).map((d) => d.fecha));
-
-const mapa: MapaDisponibilidad = {};
-for (let i = 0; i < dias; i++) {
-  const fecha = sumarDias(desde, i);
-  if (!AGENDA.diasHabiles.includes(fecha.getDay())) continue;
-
-  const clave = claveFecha(fecha);
-  if (diasCerrados.has(clave)) continue;
-
-  mapa[clave] = AGENDA.horarios.map((hora) => ({
-    hora,
-    estado: ocupados.has(`${clave}|${hora}`) ? "ocupado" : "libre",
-  }));
-}
-
-return NextResponse.json(mapa);
-```
-
-El resto del front (calendario, resumen, link de WhatsApp) **no cambia**: el contrato de la
-API sigue siendo el mismo objeto `{ "YYYY-MM-DD": [{ hora, estado }] }`.
-
-### Deploy en Vercel
-
-1. Subir el repo a GitHub → *Import Project* en Vercel (detecta Next.js solo).
-2. Storage → *Connect Store* → Supabase/Neon: Vercel inyecta las variables de entorno.
-3. Agregar a mano `NEXT_PUBLIC_WHATSAPP=5491122943672`.
-4. Deploy. La API route corre en el edge/serverless sin configuración extra.
-
-### Cómo carga los turnos la admin
-
-- **Etapa 1 (hoy mismo):** Valen entra al Table Editor de Supabase desde el celular y agrega
-  filas en `turnos` cuando confirma un turno por WhatsApp. Cero código.
-- **Etapa 2 (cuando haga falta):** ruta `/admin` protegida con Supabase Auth, que muestre el
-  mismo `<Calendario />` en modo edición: tocar un horario hace toggle libre/ocupado con un
-  `POST /api/turnos`. El componente ya está aislado, así que se reutiliza tal cual.
-
-### Próximo paso natural
-
-Cerrar el ciclo: en vez de sólo abrir WhatsApp, hacer un `POST /api/turnos` que cree la fila
-en estado `pendiente` **y** abra WhatsApp. Así el horario queda bloqueado en el momento y no
-depende de que Valen lo cargue después. La restricción `unique (fecha, hora)` evita que dos
-personas tomen el mismo turno.
+- Días y horarios reales de atención (hoy: martes a sábado, 09:00 / 11:30 / 14:00 / 16:30).
+- Fotos del consultorio y de trabajos.
+- Recordatorio automático 24 hs antes del turno.
+- Historial por clienta (los datos ya se guardan; falta la vista).
