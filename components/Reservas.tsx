@@ -43,8 +43,8 @@ export default function Reservas() {
     <section id="reservar" className="relative isolate py-20 md:py-24">
       <FondoImagen
         imagen="/imagenes/reservas.jpg"
-        intensidad={22}
-        velo="bg-linear-to-b from-crema via-crema/90 to-crema"
+        intensidad={55}
+        velo="bg-linear-to-b from-crema/85 via-crema/80 to-crema"
       />
 
       <div className="contenedor max-w-2xl">

@@ -7,8 +7,8 @@ export default function Hero() {
     <section id="inicio" className="relative isolate bg-rosa/50">
       <FondoImagen
         imagen="/imagenes/hero.jpg"
-        intensidad={45}
-        velo="bg-linear-to-b from-rosa/75 via-crema/85 to-crema"
+        intensidad={70}
+        velo="bg-linear-to-b from-crema/55 via-crema/75 to-crema"
       />
 
       <div className="contenedor animar-entrada py-20 text-center md:py-28">

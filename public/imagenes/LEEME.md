@@ -23,3 +23,16 @@ Si un archivo no está, esa sección muestra el degradado y se ve bien igual.
 En `components/Hero.tsx` y `components/Reservas.tsx`, la prop `intensidad`
 va de 0 a 100. Más alto = foto más visible, texto menos legible.
 Valores actuales: hero 45, reservas 22.
+
+## Fotos actuales (provisorias)
+
+Son de banco, bajadas de Unsplash bajo su licencia (uso comercial permitido,
+sin atribución obligatoria). Están para que la web no se vea vacía:
+**conviene reemplazarlas por fotos reales del consultorio** apenas se pueda.
+
+| Archivo | Qué muestra | Origen |
+|---|---|---|
+| `hero.jpg` | aplicación de máscara facial | unsplash.com/photos/photo-1570172619644-dfd03ed5d881 (Rosa Rafael) |
+| `reservas.jpg` | toalla, velas y difusor | unsplash.com/photos/photo-1620733723572-11c53f73a416 (Mediamodifier) |
+
+Para reemplazarlas: borrá el archivo y poné el tuyo con el mismo nombre.
