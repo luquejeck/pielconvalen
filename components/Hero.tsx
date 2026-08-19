@@ -1,9 +1,16 @@
 import { CONSULTORIO } from "@/lib/config";
+import FondoImagen from "./FondoImagen";
 import { IconoPin, IconoReloj } from "./iconos";
 
 export default function Hero() {
   return (
-    <section id="inicio" className="bg-rosa/50">
+    <section id="inicio" className="relative isolate bg-rosa/50">
+      <FondoImagen
+        imagen="/imagenes/hero.jpg"
+        intensidad={45}
+        velo="bg-linear-to-b from-rosa/75 via-crema/85 to-crema"
+      />
+
       <div className="contenedor animar-entrada py-20 text-center md:py-28">
         <h1 className="text-4xl font-semibold text-tinta sm:text-5xl">
           {CONSULTORIO.profesional}

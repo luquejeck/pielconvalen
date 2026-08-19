@@ -54,6 +54,17 @@ export default function Footer() {
         <p className="mt-14 text-center text-base text-crema/50">
           © {new Date().getFullYear()} {CONSULTORIO.nombre} · Caballito, CABA
         </p>
+
+        {/* Acceso de Valen a su agenda. Discreto a proposito: no le dice
+            nada a una clienta, pero esta siempre a mano desde el celular. */}
+        <p className="mt-4 text-center">
+          <a
+            href="/admin"
+            className="text-sm text-crema/40 underline underline-offset-4 transition-colors hover:text-crema/80"
+          >
+            Acceso profesional
+          </a>
+        </p>
       </div>
     </footer>
   );
