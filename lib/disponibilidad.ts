@@ -1,4 +1,4 @@
-import { AGENDA } from "./config";
+import type { Agenda } from "./config";
 import { claveFecha, fechaHora, sumarDias } from "./fechas";
 
 export type EstadoTurno = "libre" | "ocupado";
@@ -20,6 +20,7 @@ export type MapaDisponibilidad = Record<string, Turno[]>;
 export function construirMapa(
   desde: Date,
   dias: number,
+  agenda: Agenda,
   estaOcupado: (clave: string, hora: string) => boolean,
   diaCerrado: (clave: string) => boolean = () => false
 ): MapaDisponibilidad {
@@ -27,12 +28,12 @@ export function construirMapa(
 
   for (let i = 0; i < dias; i++) {
     const fecha = sumarDias(desde, i);
-    if (!AGENDA.diasHabiles.includes(fecha.getDay())) continue;
+    if (!agenda.diasHabiles.includes(fecha.getDay())) continue;
 
     const clave = claveFecha(fecha);
     if (diaCerrado(clave)) continue;
 
-    mapa[clave] = AGENDA.horarios.map((hora) => ({
+    mapa[clave] = agenda.horarios.map((hora) => ({
       hora,
       estado: estaOcupado(clave, hora) ? "ocupado" : "libre",
     }));
@@ -58,11 +59,13 @@ function hash(texto: string): number {
 
 export function generarDisponibilidadMock(
   desde: Date,
-  dias: number = AGENDA.ventanaDias
+  agenda: Agenda,
+  dias: number = agenda.ventanaDias
 ): MapaDisponibilidad {
   return construirMapa(
     desde,
     dias,
+    agenda,
     (clave, hora) => hash(`${clave}|${hora}`) % 10 < 4
   );
 }
@@ -71,7 +74,7 @@ export function generarDisponibilidadMock(
  * ACCESO DESDE EL FRONT
  * ---------------------------------------------------------------------- */
 
-/** Trae la disponibilidad desde la API. Si falla, cae al mock local. */
+/** Trae la disponibilidad desde la API. Si falla, devuelve vacio. */
 export async function obtenerDisponibilidad(
   desde: Date
 ): Promise<MapaDisponibilidad> {
@@ -82,7 +85,7 @@ export async function obtenerDisponibilidad(
     if (!res.ok) throw new Error("Respuesta no OK");
     return (await res.json()) as MapaDisponibilidad;
   } catch {
-    return generarDisponibilidadMock(desde);
+    return {};
   }
 }
 
@@ -90,19 +93,19 @@ export async function obtenerDisponibilidad(
 export function turnoReservable(
   clave: string,
   turno: Turno,
-  ahora: Date
+  ahora: Date,
+  anticipacionHoras: number
 ): boolean {
   if (turno.estado === "ocupado") return false;
-  const limite = new Date(
-    ahora.getTime() + AGENDA.anticipacionMinimaHs * 3600 * 1000
-  );
+  const limite = new Date(ahora.getTime() + anticipacionHoras * 3600 * 1000);
   return fechaHora(clave, turno.hora) > limite;
 }
 
 export function tieneLugar(
   turnos: Turno[] | undefined,
   clave: string,
-  ahora: Date
+  ahora: Date,
+  anticipacionHoras: number
 ): boolean {
-  return !!turnos?.some((t) => turnoReservable(clave, t, ahora));
+  return !!turnos?.some((t) => turnoReservable(clave, t, ahora, anticipacionHoras));
 }

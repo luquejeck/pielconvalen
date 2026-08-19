@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { AGENDA } from "@/lib/config";
+import { obtenerAgenda, obtenerTratamientos } from "@/lib/catalogo";
 import { buscarTratamiento } from "@/lib/tratamientos";
 import { hayBaseDeDatos } from "@/lib/supabase";
 import { clienteServidor } from "@/lib/supabase-servidor";
@@ -34,13 +34,17 @@ export async function POST(request: Request) {
     string | undefined
   >;
 
-  const tratamiento = buscarTratamiento(tratamientoId ?? null);
+  const [agenda, tratamientos] = await Promise.all([
+    obtenerAgenda(),
+    obtenerTratamientos(),
+  ]);
+  const tratamiento = buscarTratamiento(tratamientos, tratamientoId ?? null);
 
   if (
     !fecha ||
     !/^\d{4}-\d{2}-\d{2}$/.test(fecha) ||
     !hora ||
-    !AGENDA.horarios.includes(hora) ||
+    !agenda.horarios.includes(hora) ||
     !tratamiento
   ) {
     return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });

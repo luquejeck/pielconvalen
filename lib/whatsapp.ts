@@ -45,3 +45,23 @@ export function linkWhatsAppSimple(
 ): string {
   return `https://wa.me/${CONSULTORIO.whatsapp}?text=${encodeURIComponent(texto)}`;
 }
+
+/**
+ * Mover un turno ya reservado.
+ * El mensaje ya viene planteado para que la clienta no tenga que
+ * explicar nada: solo completa cuando puede.
+ */
+export const linkMoverTurno = () =>
+  linkWhatsAppSimple(
+    "Hola Valen! Tengo un turno reservado y necesito cambiarlo de día. ¿Qué horarios tenés disponibles?"
+  );
+
+/**
+ * Cancelar un turno.
+ * Pide avisar con anticipacion sin sonar a reproche: el objetivo es
+ * que el lugar se libere y lo pueda tomar otra persona.
+ */
+export const linkCancelarTurno = () =>
+  linkWhatsAppSimple(
+    "Hola Valen! Tengo un turno reservado y no voy a poder ir. Te aviso para liberar el lugar."
+  );

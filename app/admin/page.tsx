@@ -1,4 +1,6 @@
+import NavAdmin from "@/components/admin/NavAdmin";
 import PanelAdmin from "@/components/admin/PanelAdmin";
+import { obtenerAgenda, obtenerTratamientos } from "@/lib/catalogo";
 import { hayBaseDeDatos } from "@/lib/supabase";
 
 export const metadata = {
@@ -6,7 +8,9 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function Admin() {
+export const dynamic = "force-dynamic";
+
+export default async function Admin() {
   if (!hayBaseDeDatos) {
     return (
       <main className="mx-auto max-w-md px-5 py-20 text-center">
@@ -23,5 +27,15 @@ export default function Admin() {
     );
   }
 
-  return <PanelAdmin />;
+  const [tratamientos, agenda] = await Promise.all([
+    obtenerTratamientos(),
+    obtenerAgenda(),
+  ]);
+
+  return (
+    <main className="mx-auto max-w-2xl px-5 py-10">
+      <NavAdmin />
+      <PanelAdmin tratamientos={tratamientos} agenda={agenda} />
+    </main>
+  );
 }

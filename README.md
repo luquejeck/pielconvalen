@@ -73,13 +73,16 @@ Para que los turnos sean reales:
 ### 3.2 Crear las tablas
 
 Supabase → **SQL Editor** → *New query* → pegar todo el contenido de
-[`supabase/schema.sql`](supabase/schema.sql) → **Run**.
+[`supabase/schema.sql`](supabase/schema.sql) → **Run**. Después repetir con
+[`supabase/schema-2-catalogo.sql`](supabase/schema-2-catalogo.sql).
 
 Eso crea:
 
 | Objeto | Para qué |
 |---|---|
 | `turnos` | cada turno: fecha, hora, estado, clienta, tratamiento, precio |
+| `tratamientos` | el catálogo: nombres, precios y qué suma cada uno |
+| `agenda` | días, horarios, anticipación mínima y pasos base |
 | `dias_cerrados` | vacaciones y feriados |
 | `turnos_publicos` | vista que expone **sólo fecha y hora** — la web nunca ve nombres |
 | políticas RLS | nadie lee datos de clientas sin estar logueado |
@@ -111,7 +114,9 @@ Vercel → *Settings* → *Environment Variables* → agregar las dos → **Rede
 
 ## 4. Cómo trabaja Valen
 
-Entra a `/admin` con su mail y contraseña, desde el celular.
+Entra a `/admin` con su mail y contraseña, desde el celular. Tiene tres solapas:
+
+### Turnos (`/admin`)
 
 - **Ver el día.** Flechas para moverse o calendario para saltar a una fecha.
 - **Turnos que entran por la web** aparecen como *A confirmar* (ámbar). El horario
@@ -119,7 +124,19 @@ Entra a `/admin` con su mail y contraseña, desde el celular.
 - **Cargar turno a mano.** Para quien reserva por Instagram o teléfono.
 - **Bloquear un horario.** Médico, trámite, lo que sea.
 - **Cerrar el día completo.** Vacaciones o feriados: desaparece de la web.
+- **Mover un turno** a otro día u horario sin perder los datos de la clienta.
 - El teléfono de la clienta es un link directo a su WhatsApp.
+
+### Tratamientos (`/admin/tratamientos`)
+
+Cambiar precios, editar nombres, agregar o eliminar tratamientos. Lo que
+guarda se ve en la web al instante, sin tocar código ni redeployar.
+
+### Horarios (`/admin/agenda`)
+
+Días que atiende, horarios de cada día (agregar o quitar turnos),
+anticipación mínima para reservar, cuántos días adelante se abre la agenda
+y los pasos que incluyen todos los tratamientos.
 
 ---
 
@@ -137,7 +154,6 @@ Si la clienta nunca escribe, Valen cancela el turno y el horario vuelve a estar 
 
 ## 6. Pendientes
 
-- Días y horarios reales de atención (hoy: martes a sábado, 09:00 / 11:30 / 14:00 / 16:30).
-- Fotos del consultorio y de trabajos.
+- Fotos reales del consultorio (hoy hay dos de banco, ver `public/imagenes/LEEME.md`).
 - Recordatorio automático 24 hs antes del turno.
 - Historial por clienta (los datos ya se guardan; falta la vista).

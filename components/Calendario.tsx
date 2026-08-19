@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AGENDA } from "@/lib/config";
+import type { Agenda } from "@/lib/config";
 import {
   obtenerDisponibilidad,
   tieneLugar,
@@ -19,6 +19,7 @@ import {
 } from "@/lib/fechas";
 
 type Props = {
+  agenda: Agenda;
   fecha: string | null;
   hora: string | null;
   onCambio: (fecha: string | null, hora: string | null) => void;
@@ -27,6 +28,7 @@ type Props = {
 };
 
 export default function Calendario({
+  agenda,
   fecha,
   hora,
   onCambio,
@@ -58,8 +60,8 @@ export default function Calendario({
   }, []);
 
   const limite = useMemo(
-    () => (ahora ? inicioDelDia(sumarDias(ahora, AGENDA.ventanaDias)) : null),
-    [ahora]
+    () => (ahora ? inicioDelDia(sumarDias(ahora, agenda.ventanaDias)) : null),
+    [ahora, agenda.ventanaDias]
   );
 
   const celdas = useMemo(
@@ -95,7 +97,7 @@ export default function Calendario({
     const d = inicioDelDia(dia);
     if (d < inicioDelDia(ahora) || d > limite) return false;
     const clave = claveFecha(dia);
-    return tieneLugar(disponibilidad[clave], clave, ahora);
+    return tieneLugar(disponibilidad[clave], clave, ahora, agenda.anticipacionMinimaHs);
   };
 
   if (!mesVisible || !ahora) return <EsqueletoCalendario />;
@@ -190,7 +192,7 @@ export default function Calendario({
 
           <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
             {turnosDelDia.map((turno) => {
-              const libre = turnoReservable(fecha, turno, ahora);
+              const libre = turnoReservable(fecha, turno, ahora, agenda.anticipacionMinimaHs);
               const activo = turno.hora === hora;
 
               return (
@@ -218,7 +220,7 @@ export default function Calendario({
             })}
           </div>
 
-          {turnosDelDia.every((t) => !turnoReservable(fecha, t, ahora)) && (
+          {turnosDelDia.every((t) => !turnoReservable(fecha, t, ahora, agenda.anticipacionMinimaHs)) && (
             <p className="mt-4 text-lg text-tinta-suave">
               Ese día ya no tiene lugar. Probá con otro.
             </p>

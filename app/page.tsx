@@ -6,13 +6,9 @@ import Hero from "@/components/Hero";
 import { ReservaProvider } from "@/components/ReservaContext";
 import Reservas from "@/components/Reservas";
 import Tratamientos from "@/components/Tratamientos";
-import { AGENDA, CONSULTORIO } from "@/lib/config";
-import { TRATAMIENTOS } from "@/lib/tratamientos";
+import { obtenerAgenda, obtenerTratamientos } from "@/lib/catalogo";
+import { CONSULTORIO } from "@/lib/config";
 
-/**
- * Datos estructurados para Google (ficha de negocio local).
- * Ayuda a aparecer en "cosmetologa Caballito" y en Google Maps.
- */
 const DIAS_SCHEMA = [
   "Sunday",
   "Monday",
@@ -23,38 +19,46 @@ const DIAS_SCHEMA = [
   "Saturday",
 ];
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BeautySalon",
-  name: CONSULTORIO.nombre,
-  description: `Cosmetología por ${CONSULTORIO.profesional}, ${CONSULTORIO.titulo}. ${CONSULTORIO.eslogan}`,
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "Riglos 531",
-    addressLocality: "Caballito",
-    addressRegion: "Ciudad Autónoma de Buenos Aires",
-    addressCountry: "AR",
-  },
-  telephone: `+${CONSULTORIO.whatsapp}`,
-  sameAs: [CONSULTORIO.instagramUrl],
-  priceRange: "$$",
-  openingHoursSpecification: AGENDA.diasHabiles.map((dia) => ({
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: DIAS_SCHEMA[dia],
-    opens: AGENDA.horarios[0],
-    closes: "19:00",
-  })),
-  makesOffer: TRATAMIENTOS.map((t) => ({
-    "@type": "Offer",
-    name: t.nombre,
-    price: t.precio,
-    priceCurrency: "ARS",
-  })),
-};
+export default async function Home() {
+  // Precios, tratamientos y horarios salen de la base: lo que Valen
+  // edita en el panel se ve en la web sin tocar el codigo.
+  const [tratamientos, agenda] = await Promise.all([
+    obtenerTratamientos(),
+    obtenerAgenda(),
+  ]);
 
-export default function Home() {
+  /** Ficha de negocio local para Google. */
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BeautySalon",
+    name: CONSULTORIO.nombre,
+    description: `Cosmetología por ${CONSULTORIO.profesional}, ${CONSULTORIO.titulo}. ${CONSULTORIO.eslogan}`,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Riglos 531",
+      addressLocality: "Caballito",
+      addressRegion: "Ciudad Autónoma de Buenos Aires",
+      addressCountry: "AR",
+    },
+    telephone: `+${CONSULTORIO.whatsapp}`,
+    sameAs: [CONSULTORIO.instagramUrl],
+    priceRange: "$$",
+    openingHoursSpecification: agenda.diasHabiles.map((dia) => ({
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: DIAS_SCHEMA[dia],
+      opens: agenda.horarios[0],
+      closes: "20:00",
+    })),
+    makesOffer: tratamientos.map((t) => ({
+      "@type": "Offer",
+      name: t.nombre,
+      price: t.precio,
+      priceCurrency: "ARS",
+    })),
+  };
+
   return (
-    <ReservaProvider>
+    <ReservaProvider tratamientos={tratamientos} agenda={agenda}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

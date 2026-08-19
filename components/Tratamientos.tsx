@@ -1,6 +1,6 @@
 "use client";
 
-import { formatearPrecio, PASOS_BASE, TRATAMIENTOS } from "@/lib/tratamientos";
+import { formatearPrecio } from "@/lib/tratamientos";
 import { useReserva } from "./ReservaContext";
 import { IconoCheck } from "./iconos";
 
@@ -11,7 +11,8 @@ const unir = (items: string[]) =>
   );
 
 export default function Tratamientos() {
-  const { tratamientoId, elegirYReservar } = useReserva();
+  const { tratamientos, agenda, tratamientoId, elegirYReservar } = useReserva();
+  const pasos = agenda.pasosBase;
 
   return (
     <section id="tratamientos" className="bg-crema-oscuro py-12 md:py-16">
@@ -23,10 +24,10 @@ export default function Tratamientos() {
         {/* Los pasos base se explican UNA sola vez */}
         <div className="tarjeta mx-auto mt-6 max-w-3xl px-6 py-5">
           <h3 className="text-lg font-semibold text-tinta">
-            Todos incluyen estos 7 pasos
+            Todos incluyen estos {pasos.length} pasos
           </h3>
           <ul className="mt-3 grid gap-x-6 gap-y-1.5 sm:grid-cols-2 lg:grid-cols-3">
-            {PASOS_BASE.map((paso) => (
+            {pasos.map((paso) => (
               <li key={paso} className="flex items-start gap-2 text-base">
                 <IconoCheck className="mt-1.5 h-3.5 w-3.5 shrink-0 text-vino" />
                 <span>{paso}</span>
@@ -42,7 +43,7 @@ export default function Tratamientos() {
         {/* Una tarjeta por tratamiento. En PC van de a dos para no
             obligar a scrollear de más. */}
         <ul className="mx-auto mt-4 grid max-w-3xl gap-3 lg:grid-cols-2">
-          {TRATAMIENTOS.map((t) => {
+          {tratamientos.map((t) => {
             const activo = tratamientoId === t.id;
 
             return (
@@ -63,10 +64,10 @@ export default function Tratamientos() {
 
                 <p className="mt-1 grow text-base leading-snug text-tinta-suave">
                   {t.extras.length === 0 ? (
-                    "Los 7 pasos base."
+                    `Los ${pasos.length} pasos base.`
                   ) : (
                     <>
-                      Los 7 pasos base{" "}
+                      Los {pasos.length} pasos base{" "}
                       <span className="text-tinta">+ {unir(t.extras)}</span>.
                     </>
                   )}

@@ -10,21 +10,11 @@ export type Tratamiento = {
 };
 
 /**
- * Los 7 pasos que incluyen TODOS los tratamientos.
- * Se muestran una sola vez en la pagina: asi cada tratamiento
- * se lee en un renglon y se comparan de un vistazo.
+ * Valores de arranque. La fuente real es la tabla `tratamientos` de la
+ * base, que Valen edita desde /admin/tratamientos. Esto es el respaldo
+ * por si la base todavia no esta configurada.
  */
-export const PASOS_BASE = [
-  "Preparación de la piel",
-  "Exfoliación mecánica",
-  "Máscara de ácidos o enzimática",
-  "Extracciones",
-  "Descongestión y alta frecuencia",
-  "Hidratación",
-  "Protector solar",
-];
-
-export const TRATAMIENTOS: Tratamiento[] = [
+export const TRATAMIENTOS_POR_DEFECTO: Tratamiento[] = [
   {
     id: "hfp",
     nombre: "Higiene Facial Profunda",
@@ -75,5 +65,7 @@ export const formatearPrecio = (precio: number) =>
     maximumFractionDigits: 0,
   }).format(precio);
 
-export const buscarTratamiento = (id: string | null) =>
-  TRATAMIENTOS.find((t) => t.id === id) ?? null;
+export const buscarTratamiento = (
+  lista: Tratamiento[],
+  id: string | null
+): Tratamiento | null => lista.find((t) => t.id === id) ?? null;

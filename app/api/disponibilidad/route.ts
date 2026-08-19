@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { AGENDA } from "@/lib/config";
+import { obtenerAgenda } from "@/lib/catalogo";
 import {
   construirMapa,
   generarDisponibilidadMock,
@@ -13,15 +13,17 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/disponibilidad?desde=2026-08-19&dias=60
- * Devuelve: { "2026-08-20": [{ hora: "09:00", estado: "libre" }, ...] }
+ * Devuelve: { "2026-08-20": [{ hora: "08:00", estado: "libre" }, ...] }
  *
- * Si la base de datos todavia no esta configurada, responde con la
- * agenda simulada para que la web nunca quede rota.
+ * Los dias y horarios salen de la tabla `agenda`, que edita Valen.
+ * Si la base todavia no esta configurada, responde con una agenda
+ * simulada para que la web nunca quede rota.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const desdeParam = searchParams.get("desde");
-  const dias = Number(searchParams.get("dias")) || AGENDA.ventanaDias;
+  const agenda = await obtenerAgenda();
+  const dias = Number(searchParams.get("dias")) || agenda.ventanaDias;
 
   const desde =
     desdeParam && /^\d{4}-\d{2}-\d{2}$/.test(desdeParam)
@@ -29,7 +31,7 @@ export async function GET(request: Request) {
       : new Date();
 
   if (!hayBaseDeDatos) {
-    return NextResponse.json(generarDisponibilidadMock(desde, dias));
+    return NextResponse.json(generarDisponibilidadMock(desde, agenda, dias));
   }
 
   const supabase = await clienteServidor();
@@ -55,6 +57,7 @@ export async function GET(request: Request) {
   const mapa: MapaDisponibilidad = construirMapa(
     desde,
     dias,
+    agenda,
     (clave, hora) => ocupados.has(`${clave}|${hora}`),
     (clave) => diasCerrados.has(clave)
   );

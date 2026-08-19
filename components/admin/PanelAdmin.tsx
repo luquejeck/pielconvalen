@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { AGENDA } from "@/lib/config";
+import type { Agenda } from "@/lib/config";
 import {
   claveFecha,
   desdeClave,
@@ -10,7 +9,7 @@ import {
   sumarDias,
 } from "@/lib/fechas";
 import { clienteNavegador } from "@/lib/supabase";
-import { formatearPrecio, TRATAMIENTOS } from "@/lib/tratamientos";
+import { formatearPrecio, type Tratamiento } from "@/lib/tratamientos";
 
 type EstadoTurno = "pendiente" | "confirmado" | "bloqueado";
 
@@ -40,8 +39,9 @@ const ETIQUETAS: Record<EstadoTurno, { texto: string; clase: string }> = {
   },
 };
 
-export default function PanelAdmin() {
-  const router = useRouter();
+type Props = { tratamientos: Tratamiento[]; agenda: Agenda };
+
+export default function PanelAdmin({ tratamientos, agenda }: Props) {
   const supabase = clienteNavegador();
 
   const [fecha, setFecha] = useState(() => claveFecha(new Date()));
@@ -49,6 +49,8 @@ export default function PanelAdmin() {
   const [diaCerrado, setDiaCerrado] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  /** id del turno que se esta reprogramando, si hay alguno */
+  const [moviendo, setMoviendo] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -93,33 +95,16 @@ export default function PanelAdmin() {
     await cargar();
   };
 
-  const salir = async () => {
-    await supabase.auth.signOut();
-    router.push("/admin/login");
-    router.refresh();
-  };
-
   const moverDia = (dias: number) =>
     setFecha(claveFecha(sumarDias(desdeClave(fecha), dias)));
 
   const turnoDe = (hora: string) => turnos.find((t) => t.hora === hora);
-  const horasLibres = AGENDA.horarios.filter((h) => !turnoDe(h));
+  const horasLibres = agenda.horarios.filter((h) => !turnoDe(h));
 
   return (
-    <main className="mx-auto max-w-2xl px-5 py-10">
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-tinta">Agenda</h1>
-        <button
-          type="button"
-          onClick={salir}
-          className="rounded-full border border-borde px-5 py-2.5 text-base text-tinta-suave hover:border-vino hover:text-vino"
-        >
-          Salir
-        </button>
-      </header>
-
+    <section>
       {/* Navegacion por dia */}
-      <div className="mt-7 flex items-center gap-3">
+      <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => moverDia(-1)}
@@ -162,7 +147,7 @@ export default function PanelAdmin() {
         {cargando ? (
           <li className="text-lg text-tinta-suave">Cargando…</li>
         ) : (
-          AGENDA.horarios.map((hora) => {
+          agenda.horarios.map((hora) => {
             const turno = turnoDe(hora);
 
             return (
@@ -220,6 +205,18 @@ export default function PanelAdmin() {
                     </button>
                   )}
 
+                  {turno && turno.estado !== "bloqueado" && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setMoviendo(moviendo === turno.id ? null : turno.id)
+                      }
+                      className="rounded-full border border-borde bg-white/60 px-5 py-2.5 text-base hover:border-vino hover:text-vino"
+                    >
+                      {moviendo === turno.id ? "Cerrar" : "Mover"}
+                    </button>
+                  )}
+
                   {turno && (
                     <button
                       type="button"
@@ -230,6 +227,17 @@ export default function PanelAdmin() {
                     </button>
                   )}
                 </div>
+
+                {turno && moviendo === turno.id && (
+                  <FormularioMover
+                    turno={turno}
+                    agenda={agenda}
+                    onListo={async () => {
+                      setMoviendo(null);
+                      await cargar();
+                    }}
+                  />
+                )}
               </li>
             );
           })
@@ -260,13 +268,14 @@ export default function PanelAdmin() {
         <FormularioTurno
           fecha={fecha}
           horasLibres={horasLibres}
+          tratamientos={tratamientos}
           onGuardado={async () => {
             setMostrarFormulario(false);
             await cargar();
           }}
         />
       )}
-    </main>
+    </section>
   );
 }
 
@@ -275,24 +284,26 @@ export default function PanelAdmin() {
 function FormularioTurno({
   fecha,
   horasLibres,
+  tratamientos,
   onGuardado,
 }: {
   fecha: string;
   horasLibres: string[];
+  tratamientos: Tratamiento[];
   onGuardado: () => void;
 }) {
   const supabase = clienteNavegador();
   const [hora, setHora] = useState(horasLibres[0]);
   const [cliente, setCliente] = useState("");
   const [telefono, setTelefono] = useState("");
-  const [tratamientoId, setTratamientoId] = useState(TRATAMIENTOS[0].id);
+  const [tratamientoId, setTratamientoId] = useState(tratamientos[0]?.id ?? "");
   const [guardando, setGuardando] = useState(false);
 
   const guardar = async (e: React.FormEvent) => {
     e.preventDefault();
     setGuardando(true);
 
-    const tratamiento = TRATAMIENTOS.find((t) => t.id === tratamientoId)!;
+    const tratamiento = tratamientos.find((t) => t.id === tratamientoId);
 
     await supabase.from("turnos").insert({
       fecha,
@@ -300,8 +311,8 @@ function FormularioTurno({
       estado: "confirmado",
       cliente: cliente.trim() || null,
       telefono: telefono.trim() || null,
-      tratamiento: tratamiento.nombre,
-      precio: tratamiento.precio,
+      tratamiento: tratamiento?.nombre ?? null,
+      precio: tratamiento?.precio ?? null,
     });
 
     setGuardando(false);
@@ -336,7 +347,7 @@ function FormularioTurno({
             onChange={(e) => setTratamientoId(e.target.value)}
             className="mt-2 min-h-12 w-full rounded-2xl border border-borde px-4 text-lg outline-none focus:border-vino"
           >
-            {TRATAMIENTOS.map((t) => (
+            {tratamientos.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.nombreCorto}
               </option>
@@ -372,6 +383,92 @@ function FormularioTurno({
         className="boton-principal mt-6 w-full disabled:opacity-60"
       >
         {guardando ? "Guardando…" : "Guardar turno"}
+      </button>
+    </form>
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+
+/**
+ * Reprograma un turno conservando los datos de la clienta.
+ * Antes habia que cancelarlo y volver a cargarlo a mano, con el riesgo
+ * de perder el nombre y el telefono en el medio.
+ */
+function FormularioMover({
+  turno,
+  agenda,
+  onListo,
+}: {
+  turno: TurnoDB;
+  agenda: Agenda;
+  onListo: () => void;
+}) {
+  const supabase = clienteNavegador();
+  const [fecha, setFecha] = useState(turno.fecha);
+  const [hora, setHora] = useState(turno.hora);
+  const [error, setError] = useState<string | null>(null);
+  const [guardando, setGuardando] = useState(false);
+
+  const mover = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGuardando(true);
+    setError(null);
+
+    const { error } = await supabase
+      .from("turnos")
+      .update({ fecha, hora })
+      .eq("id", turno.id);
+
+    setGuardando(false);
+
+    if (error) {
+      // 23505 = ya existe un turno en esa fecha y hora
+      setError(
+        error.code === "23505"
+          ? "Ese horario ya está ocupado. Probá con otro."
+          : "No se pudo mover el turno."
+      );
+      return;
+    }
+
+    onListo();
+  };
+
+  return (
+    <form onSubmit={mover} className="mt-4 border-t border-current/15 pt-4">
+      <p className="text-base">Mover a:</p>
+
+      <div className="mt-2 flex flex-wrap gap-2">
+        <input
+          type="date"
+          value={fecha}
+          onChange={(e) => setFecha(e.target.value)}
+          required
+          className="min-h-12 grow rounded-2xl border border-borde bg-white px-4 text-base text-tinta outline-none focus:border-vino"
+        />
+
+        <select
+          value={hora}
+          onChange={(e) => setHora(e.target.value)}
+          className="min-h-12 rounded-2xl border border-borde bg-white px-4 text-base text-tinta outline-none focus:border-vino"
+        >
+          {agenda.horarios.map((h) => (
+            <option key={h} value={h}>
+              {h}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {error && <p className="mt-2 text-base text-vino">{error}</p>}
+
+      <button
+        type="submit"
+        disabled={guardando}
+        className="mt-3 min-h-12 w-full rounded-full bg-vino px-6 text-base text-white disabled:opacity-60"
+      >
+        {guardando ? "Moviendo…" : "Confirmar cambio"}
       </button>
     </form>
   );

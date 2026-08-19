@@ -14,26 +14,36 @@ export const CONSULTORIO = {
   instagramUrl: "https://instagram.com/pielconvalen",
 } as const;
 
-/**
- * Agenda base. El calendario genera los turnos a partir de esta config
- * y despues los cruza contra los bloqueos que carga la admin.
- *
- * diasHabiles: 0 = domingo ... 6 = sabado
- * horarios: horas de INICIO de cada turno (los tratamientos duran 1.5 a 2 hs)
- */
-export const AGENDA = {
-  diasHabiles: [1, 2, 3, 4, 5, 6] as number[], // lunes a sabado
-  // Atiende de 8 a 20 hs, con turnos de 2 horas: el ultimo arranca 18:00.
-  horarios: [
-    "08:00",
-    "10:00",
-    "12:00",
-    "14:00",
-    "16:00",
-    "18:00",
-  ] as string[],
+export type Agenda = {
+  /** 0 = domingo ... 6 = sabado */
+  diasHabiles: number[];
+  /** Horas de inicio de cada turno */
+  horarios: string[];
   /** No se puede reservar con menos de X horas de anticipacion */
-  anticipacionMinimaHs: 24,
+  anticipacionMinimaHs: number;
   /** Cuantos dias hacia adelante se puede reservar */
+  ventanaDias: number;
+  /** Pasos que incluyen todos los tratamientos */
+  pasosBase: string[];
+};
+
+/**
+ * Valores de arranque. La fuente real es la tabla `agenda` de la base,
+ * que Valen edita desde /admin/agenda. Esto es el respaldo por si la
+ * base todavia no esta configurada.
+ */
+export const AGENDA_POR_DEFECTO: Agenda = {
+  diasHabiles: [1, 2, 3, 4, 5, 6], // lunes a sabado
+  horarios: ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00"],
+  anticipacionMinimaHs: 24,
   ventanaDias: 60,
+  pasosBase: [
+    "Preparación de la piel",
+    "Exfoliación mecánica",
+    "Máscara de ácidos o enzimática",
+    "Extracciones",
+    "Descongestión y alta frecuencia",
+    "Hidratación",
+    "Protector solar",
+  ],
 };
