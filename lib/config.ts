@@ -22,7 +22,7 @@ export const CONSULTORIO = {
  * horarios: horas de INICIO de cada turno (los tratamientos duran 1.5 a 2 hs)
  */
 export const AGENDA = {
-  diasHabiles: [2, 3, 4, 5, 6] as number[], // martes a sabado
+  diasHabiles: [1, 2, 3, 4, 5, 6] as number[], // lunes a sabado
   // Atiende de 8 a 20 hs, con turnos de 2 horas: el ultimo arranca 18:00.
   horarios: [
     "08:00",
