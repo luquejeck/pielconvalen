@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import BuscadorCliente from "./BuscadorCliente";
 
 type Movimiento = {
   id: string;
@@ -62,6 +63,7 @@ export default function PanelEconomia() {
     descripcion: "",
     monto: "",
   });
+  const [clienteId, setClienteId] = useState<string | null>(null);
 
   const cargar = async (m: string) => {
     setCargando(true);
@@ -83,9 +85,10 @@ export default function PanelEconomia() {
     await fetch("/api/movimientos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, monto: parseInt(form.monto) }),
+      body: JSON.stringify({ ...form, monto: parseInt(form.monto), cliente_id: clienteId }),
     });
     setForm((f) => ({ ...f, descripcion: "", monto: "" }));
+    setClienteId(null);
     setMostrarForm(false);
     await cargar(mes);
     setGuardando(false);
@@ -168,6 +171,16 @@ export default function PanelEconomia() {
               </button>
             ))}
           </div>
+
+          {(form.tipo === "ingreso" || form.tipo === "venta_producto") && (
+            <div>
+              <span className="text-sm text-tinta-suave">Clienta (opcional)</span>
+              <BuscadorCliente
+                key={form.tipo}
+                onSeleccionar={(c) => setClienteId(c?.id ?? null)}
+              />
+            </div>
+          )}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">

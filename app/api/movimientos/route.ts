@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
       categoria: body.categoria,
       descripcion: body.descripcion,
       monto: body.monto,
+      cliente_id: body.cliente_id ?? null,
     })
     .select()
     .single();

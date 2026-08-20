@@ -10,6 +10,7 @@ import {
 } from "@/lib/fechas";
 import { clienteNavegador } from "@/lib/supabase";
 import { formatearPrecio, type Tratamiento } from "@/lib/tratamientos";
+import BuscadorCliente from "./BuscadorCliente";
 
 type EstadoTurno = "pendiente" | "confirmado" | "bloqueado";
 
@@ -22,6 +23,7 @@ type TurnoDB = {
   telefono: string | null;
   tratamiento: string | null;
   precio: number | null;
+  cliente_id: string | null;
 };
 
 const ETIQUETAS: Record<EstadoTurno, { texto: string; clase: string }> = {
@@ -49,8 +51,8 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
   const [diaCerrado, setDiaCerrado] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  /** id del turno que se esta reprogramando, si hay alguno */
   const [moviendo, setMoviendo] = useState<string | null>(null);
+  const [vinculando, setVinculando] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -83,6 +85,22 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
 
   const confirmar = async (id: string) => {
     await supabase.from("turnos").update({ estado: "confirmado" }).eq("id", id);
+    await cargar();
+  };
+
+  const vincularCliente = async (
+    turnoId: string,
+    c: { id: string; nombre: string; telefono?: string } | null
+  ) => {
+    await supabase
+      .from("turnos")
+      .update({
+        cliente_id: c?.id ?? null,
+        cliente: c?.nombre ?? null,
+        telefono: c?.telefono ?? null,
+      })
+      .eq("id", turnoId);
+    setVinculando(null);
     await cargar();
   };
 
@@ -217,6 +235,18 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
                     </button>
                   )}
 
+                  {turno && turno.estado !== "bloqueado" && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setVinculando(vinculando === turno.id ? null : turno.id)
+                      }
+                      className="rounded-full border border-borde bg-white/60 px-5 py-2.5 text-base hover:border-vino hover:text-vino"
+                    >
+                      {turno.cliente_id ? "Cambiar clienta" : "Vincular clienta"}
+                    </button>
+                  )}
+
                   {turno && (
                     <button
                       type="button"
@@ -227,6 +257,25 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
                     </button>
                   )}
                 </div>
+
+                {turno && vinculando === turno.id && (
+                  <div className="mt-4 border-t border-current/15 pt-4">
+                    <p className="mb-2 text-sm text-tinta-suave">Vincular a una clienta (opcional)</p>
+                    <BuscadorCliente
+                      valorInicial={turno.cliente ?? ""}
+                      onSeleccionar={(c) => vincularCliente(turno.id, c)}
+                    />
+                    {turno.cliente_id && (
+                      <button
+                        type="button"
+                        onClick={() => vincularCliente(turno.id, null)}
+                        className="mt-2 text-sm text-tinta-suave underline hover:text-vino"
+                      >
+                        Desvincular
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {turno && moviendo === turno.id && (
                   <FormularioMover
@@ -296,6 +345,7 @@ function FormularioTurno({
   const [hora, setHora] = useState(horasLibres[0]);
   const [cliente, setCliente] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [clienteId, setClienteId] = useState<string | null>(null);
   const [tratamientoId, setTratamientoId] = useState(tratamientos[0]?.id ?? "");
   const [guardando, setGuardando] = useState(false);
 
@@ -311,6 +361,7 @@ function FormularioTurno({
       estado: "confirmado",
       cliente: cliente.trim() || null,
       telefono: telefono.trim() || null,
+      cliente_id: clienteId,
       tratamiento: tratamiento?.nombre ?? null,
       precio: tratamiento?.precio ?? null,
     });
@@ -355,8 +406,19 @@ function FormularioTurno({
           </select>
         </label>
 
+        <label className="block sm:col-span-2">
+          <span className="text-base text-tinta-suave">Clienta (opcional)</span>
+          <BuscadorCliente
+            onSeleccionar={(c) => {
+              setClienteId(c?.id ?? null);
+              setCliente(c?.nombre ?? "");
+              setTelefono(c?.telefono ?? "");
+            }}
+          />
+        </label>
+
         <label className="block">
-          <span className="text-base text-tinta-suave">Nombre</span>
+          <span className="text-base text-tinta-suave">Nombre (si no está en el listado)</span>
           <input
             type="text"
             value={cliente}
