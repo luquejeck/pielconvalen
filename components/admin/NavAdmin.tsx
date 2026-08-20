@@ -6,6 +6,7 @@ import { clienteNavegador } from "@/lib/supabase";
 
 const SECCIONES = [
   { href: "/admin", texto: "Turnos" },
+  { href: "/admin/clientes", texto: "Clientas" },
   { href: "/admin/tratamientos", texto: "Tratamientos" },
   { href: "/admin/agenda", texto: "Horarios" },
   { href: "/admin/economia", texto: "Economía" },
