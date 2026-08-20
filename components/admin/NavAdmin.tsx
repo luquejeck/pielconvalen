@@ -8,6 +8,7 @@ const SECCIONES = [
   { href: "/admin", texto: "Turnos" },
   { href: "/admin/tratamientos", texto: "Tratamientos" },
   { href: "/admin/agenda", texto: "Horarios" },
+  { href: "/admin/economia", texto: "Economía" },
 ];
 
 export default function NavAdmin() {
@@ -23,7 +24,15 @@ export default function NavAdmin() {
   return (
     <header className="mb-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-tinta">Panel de Valen</h1>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="rounded-full border border-borde px-4 py-2 text-sm text-tinta-suave hover:border-vino hover:text-vino"
+          >
+            ← Sitio
+          </Link>
+          <h1 className="text-2xl font-semibold text-tinta">Panel de Valen</h1>
+        </div>
         <button
           type="button"
           onClick={salir}

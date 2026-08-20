@@ -11,28 +11,27 @@
      -------------------------------------------------------------------- */
 
   /* Superficies, de mas clara a mas oscura */
-  --color-crema: #fdfaf7; /* fondo general */
-  --color-crema-oscuro: #f4ebe4; /* secciones alternadas */
-  --color-rosa: #f9e8e3; /* bloques de acento suave */
-  --color-rosa-medio: #edd2cb;
+  --color-crema: #fdf8f4; /* fondo general, mas calidez */
+  --color-crema-oscuro: #f0e4da; /* secciones alternadas, mas contraste */
+  --color-rosa: #f8e3db; /* bloques de acento suave */
+  --color-rosa-medio: #e8c4ba;
 
-  /* Acento */
-  --color-vino: #5e2038; /* borgoña mas profundo, menos ladrillo */
-  --color-vino-oscuro: #431629;
-  --color-vino-suave: #f6e6ea;
+  /* Acento — borgoña profundo, no ladrillo */
+  --color-vino: #6b1f3a;
+  --color-vino-oscuro: #4d1229;
+  --color-vino-suave: #f5e0e6;
 
-  /* Fondo oscuro: casi negro pero con base borgoña, no gris */
-  --color-noche: #241119;
+  /* Fondo oscuro: casi negro con base borgoña */
+  --color-noche: #1c0d13;
 
-  /* Tercer color: champagne apagado. Solo sobre fondo oscuro,
-     que es donde tiene contraste suficiente para leerse. */
-  --color-dorado: #d2ac7e;
+  /* Champagne: solo sobre fondo oscuro */
+  --color-dorado: #d4a96a;
 
-  /* Texto */
-  --color-tinta: #2a2124; /* negro calido, no azulado */
-  --color-tinta-suave: #635356;
+  /* Texto — mas oscuros para mejor contraste */
+  --color-tinta: #1e1015; /* casi negro con base borgoña */
+  --color-tinta-suave: #5a3f46;
 
-  --color-borde: #ebe0d9;
+  --color-borde: #e0cfc5;
 
   /* Tipografia del sistema Apple: en iPhone y Mac usa San Francisco,
      en Windows y Android cae en Inter, que es lo mas parecido. */

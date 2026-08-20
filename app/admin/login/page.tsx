@@ -39,6 +39,12 @@ export default function Login() {
         onSubmit={entrar}
         className="w-full max-w-sm rounded-suave border border-borde bg-white p-8"
       >
+        <a
+          href="/"
+          className="mb-6 inline-flex items-center gap-1 text-sm text-tinta-suave hover:text-vino"
+        >
+          ← Volver al sitio
+        </a>
         <h1 className="text-2xl font-semibold text-tinta">Agenda de Valen</h1>
         <p className="mt-2 text-base text-tinta-suave">
           Ingresá para gestionar los turnos.
