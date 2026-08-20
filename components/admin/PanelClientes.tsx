@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { normalizarTelefono } from "@/lib/whatsapp";
 
 type Cliente = {
   id: string;
@@ -224,7 +225,7 @@ function FichaCliente({ cliente, onVolver, onActualizar }: {
 
           <div className="mt-4 grid gap-2 text-base sm:grid-cols-2">
             {cliente.telefono && (
-              <a href={`https://wa.me/549${cliente.telefono.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-vino hover:underline">
+              <a href={`https://wa.me/${normalizarTelefono(cliente.telefono)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-vino hover:underline">
                 📱 {cliente.telefono}
               </a>
             )}

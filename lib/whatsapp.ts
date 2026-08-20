@@ -2,6 +2,32 @@ import { CONSULTORIO } from "./config";
 import { formatearFechaLarga } from "./fechas";
 import { formatearPrecio, type Tratamiento } from "./tratamientos";
 
+/**
+ * Deja un telefono en el formato que espera wa.me: 549 + area + numero.
+ *
+ * Valen carga los telefonos como se los pasan, y cada clienta los escribe
+ * distinto: "+54 9 11 2294-3672", "11 2294-3672", "011 15 2294 3672".
+ * Sin normalizar, el mensaje se abre contra un numero que no existe.
+ */
+export function normalizarTelefono(crudo: string): string {
+  let n = crudo.replace(/\D/g, "");
+
+  // Ya trae codigo de pais: solo falta asegurar el 9 de celular.
+  if (n.startsWith("54")) {
+    const resto = n.slice(2);
+    return resto.startsWith("9") ? n : `549${resto}`;
+  }
+
+  // El 0 de larga distancia no va en el formato internacional.
+  if (n.startsWith("0")) n = n.slice(1);
+
+  // El 15 de celular tampoco. Se contempla CABA (area 11), que es donde
+  // atiende: "11 15 2294 3672" tiene que quedar "11 2294 3672".
+  if (n.startsWith("11") && n.slice(2, 4) === "15") n = `11${n.slice(4)}`;
+
+  return `549${n}`;
+}
+
 type DatosReserva = {
   tratamiento: Tratamiento;
   fecha: string; // "YYYY-MM-DD"
@@ -65,3 +91,37 @@ export const linkCancelarTurno = () =>
   linkWhatsAppSimple(
     "Hola Valen! Tengo un turno reservado y no voy a poder ir. Te aviso para liberar el lugar."
   );
+
+/**
+ * Recordatorio que Valen le manda a la clienta el dia previo.
+ *
+ * Va dirigido a la clienta, asi que el numero es el de ella, no el del
+ * consultorio. Cierra pidiendo confirmacion: es lo que convierte el aviso
+ * en una chance de liberar el lugar si no va a venir.
+ */
+export function linkRecordatorio({
+  telefono,
+  nombre,
+  hora,
+  tratamiento,
+}: {
+  telefono: string;
+  nombre?: string | null;
+  hora: string;
+  tratamiento?: string | null;
+}): string {
+  const saludo = nombre?.trim() ? `Hola ${nombre.trim().split(" ")[0]}!` : "Hola!";
+
+  const lineas = [
+    `${saludo} Te escribo de ${CONSULTORIO.nombre} 🌿`,
+    ``,
+    `Te recuerdo tu turno de mañana a las ${hora} hs${
+      tratamiento ? ` para ${tratamiento}` : ""
+    }.`,
+    ``,
+    `¿Me confirmás que venís?`,
+  ];
+
+  const numero = normalizarTelefono(telefono);
+  return `https://wa.me/${numero}?text=${encodeURIComponent(lineas.join("\n"))}`;
+}

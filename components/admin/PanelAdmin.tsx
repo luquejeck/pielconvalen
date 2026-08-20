@@ -10,6 +10,7 @@ import {
 } from "@/lib/fechas";
 import { clienteNavegador } from "@/lib/supabase";
 import { formatearPrecio, type Tratamiento } from "@/lib/tratamientos";
+import { normalizarTelefono } from "@/lib/whatsapp";
 import BuscadorCliente from "./BuscadorCliente";
 
 type EstadoTurno = "pendiente" | "confirmado" | "bloqueado";
@@ -198,7 +199,7 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
                 )}
                 {turno?.telefono && (
                   <a
-                    href={`https://wa.me/${turno.telefono.replace(/\D/g, "")}`}
+                    href={`https://wa.me/${normalizarTelefono(turno.telefono)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-base underline"
