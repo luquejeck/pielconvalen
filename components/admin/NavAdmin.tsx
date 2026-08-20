@@ -23,43 +23,49 @@ export default function NavAdmin() {
   };
 
   return (
-    <header className="mb-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <header className="mb-6" style={{ fontFamily: "var(--font-admin)" }}>
+      {/* Barra superior */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
           <Link
             href="/"
-            className="rounded-full border border-borde px-4 py-2 text-sm text-tinta-suave hover:border-vino hover:text-vino"
+            className="shrink-0 rounded-full border border-borde px-3 py-1.5 text-xs text-tinta-suave hover:border-vino hover:text-vino"
           >
             ← Sitio
           </Link>
-          <h1 className="text-2xl font-semibold text-tinta">Panel de Valen</h1>
+          <h1 className="truncate text-lg font-semibold text-tinta sm:text-xl">
+            Panel de Valen
+          </h1>
         </div>
         <button
           type="button"
           onClick={salir}
-          className="rounded-full border border-borde px-5 py-2.5 text-base text-tinta-suave hover:border-vino hover:text-vino"
+          className="shrink-0 rounded-full border border-borde px-4 py-1.5 text-sm text-tinta-suave hover:border-vino hover:text-vino"
         >
           Salir
         </button>
       </div>
 
-      <nav className="mt-4 flex gap-2">
-        {SECCIONES.map(({ href, texto }) => {
-          const activo = pathname === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`rounded-full px-5 py-2.5 text-base transition-colors ${
-                activo
-                  ? "bg-vino text-white"
-                  : "border border-borde bg-white text-tinta-suave hover:border-vino hover:text-vino"
-              }`}
-            >
-              {texto}
-            </Link>
-          );
-        })}
+      {/* Tabs — scroll horizontal en mobile */}
+      <nav className="mt-4 -mx-5 overflow-x-auto px-5">
+        <div className="flex gap-2 pb-1" style={{ width: "max-content" }}>
+          {SECCIONES.map(({ href, texto }) => {
+            const activo = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                  activo
+                    ? "bg-vino text-white"
+                    : "border border-borde bg-white text-tinta-suave hover:border-vino hover:text-vino"
+                }`}
+              >
+                {texto}
+              </Link>
+            );
+          })}
+        </div>
       </nav>
     </header>
   );

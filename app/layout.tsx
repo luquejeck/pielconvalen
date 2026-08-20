@@ -1,15 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Montserrat } from "next/font/google";
 import { CONSULTORIO } from "@/lib/config";
 import "./globals.css";
 
-/**
- * Inter es el plan B para Windows y Android.
- * En iPhone y Mac la pagina usa San Francisco, la tipografia del sistema.
- */
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-montserrat",
   display: "swap",
 });
 
@@ -43,7 +45,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es-AR" className={inter.variable}>
+    <html lang="es-AR" className={`${inter.variable} ${montserrat.variable}`}>
       <body>{children}</body>
     </html>
   );
