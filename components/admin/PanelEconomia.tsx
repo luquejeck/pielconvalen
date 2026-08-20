@@ -645,10 +645,17 @@ export default function PanelEconomia() {
   useEffect(() => { cargarTodo(); }, []);
 
   const eliminarMovimiento = async (id: string) => {
-    if (id.startsWith("d")) return; // demo
+    if (id.startsWith("d")) {
+      alert("Este es un dato de ejemplo y no se puede eliminar. Registrá tu primera venta real para reemplazarlos.");
+      return;
+    }
     if (!confirm("¿Eliminar este movimiento?")) return;
-    await fetch(`/api/movimientos?id=${id}`, { method: "DELETE" });
-    setMovimientos((prev) => prev.filter((m) => m.id !== id));
+    const res = await fetch(`/api/movimientos?id=${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setMovimientos((prev) => prev.filter((m) => m.id !== id));
+    } else {
+      alert("No se pudo eliminar. Intentá de nuevo.");
+    }
   };
 
   if (cargando) return <p className="text-center text-tinta-suave">Cargando…</p>;
