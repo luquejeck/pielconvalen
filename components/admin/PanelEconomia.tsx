@@ -224,7 +224,7 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
     costo: "",
   });
   const [guardando, setGuardando] = useState(false);
-  const [ok, setOk] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -292,14 +292,24 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
       setError("No se pudo guardar. Revisá tu conexión.");
       return;
     }
-    setOk(true);
+
+    // El nombre se guarda antes de limpiar la seleccion, si no el aviso queda sin producto.
+    setAviso(
+      tipo === "gasto"
+        ? "Gasto registrado."
+        : tipo === "producto" && selProducto
+          ? `Venta registrada. Stock de ${selProducto.producto} actualizado.`
+          : "Venta registrada."
+    );
     setSelTratamiento(null);
     setSelProducto(null);
     setForm((f) => ({ ...f, descripcion: "", monto: "", costo: "" }));
     setClienteId(null);
-    setTimeout(() => setOk(false), 3000);
-    // Recargar inventario para actualizar stock
-    fetch("/api/inventario").then((r) => r.json()).then(setProductos);
+    setTimeout(() => setAviso(null), 3000);
+
+    // El stock del desplegable y el del panel se refrescan juntos.
+    const frescos = await fetch("/api/inventario").then((r) => r.json());
+    setProductos(frescos);
     onGuardado();
   };
 
@@ -429,9 +439,9 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
             className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino" />
         </label>
 
-        {ok && (
+        {aviso && (
           <p className="rounded-xl bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
-            ✓ {tipo === "gasto" ? "Gasto registrado." : `Venta registrada.${tipo === "producto" && selProducto ? ` Stock de ${selProducto.producto} actualizado.` : ""}`}
+            ✓ {aviso}
           </p>
         )}
         {error && <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</p>}
@@ -822,7 +832,14 @@ export default function PanelEconomia() {
       </div>
 
       {tab === "dashboard" && <TabDashboard todos={movimientos} />}
-      {tab === "ingresos" && <TabIngresos onGuardado={cargarMovimientos} />}
+      {/* Una venta de producto descuenta stock: hay que refrescar las dos cosas. */}
+      {tab === "ingresos" && (
+        <TabIngresos
+          onGuardado={async () => {
+            await Promise.all([cargarMovimientos(), cargarInventario()]);
+          }}
+        />
+      )}
       {tab === "inventario" && <TabInventario items={inventario} onActualizar={cargarInventario} />}
       {tab === "flujo" && <TabFlujo todos={movimientos} mes={mes} setMes={setMes} onEliminar={eliminarMovimiento} />}
 
