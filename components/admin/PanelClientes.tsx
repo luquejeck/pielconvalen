@@ -232,9 +232,9 @@ function FichaCliente({ cliente, onVolver, onActualizar }: {
           </div>
 
           {cliente.antecedentes && (
-            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-medium text-amber-800">Historial médico</p>
-              <p className="mt-1 whitespace-pre-wrap text-base text-amber-900">{cliente.antecedentes}</p>
+            <div className="mt-4 rounded-xl border border-vino/20 bg-vino-suave p-4">
+              <p className="text-sm font-medium text-vino">Historial médico</p>
+              <p className="mt-1 whitespace-pre-wrap text-base text-tinta">{cliente.antecedentes}</p>
             </div>
           )}
 
@@ -302,7 +302,7 @@ function FichaCliente({ cliente, onVolver, onActualizar }: {
                     <p className="font-medium text-tinta">{s.tratamiento}</p>
                     <p className="text-sm text-tinta-suave">{s.fecha} · {fmt(s.precio)}</p>
                   </div>
-                  <button onClick={() => eliminarSesion(s.id)} className="rounded-full p-1.5 text-tinta-suave hover:bg-red-50 hover:text-red-600" title="Eliminar">✕</button>
+                  <button onClick={() => eliminarSesion(s.id)} className="rounded-full p-1.5 text-tinta-suave hover:bg-vino-suave hover:text-vino" title="Eliminar">✕</button>
                 </div>
                 {s.notas && <p className="mt-2 text-sm text-tinta-suave">{s.notas}</p>}
               </li>

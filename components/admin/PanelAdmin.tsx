@@ -26,10 +26,15 @@ type TurnoDB = {
   cliente_id: string | null;
 };
 
+/**
+ * Tres niveles con un solo color: el pendiente pide accion y va en vino
+ * pleno, el confirmado ya esta resuelto y va en vino diluido, el bloqueado
+ * no es un turno y se apaga contra el fondo.
+ */
 const ETIQUETAS: Record<EstadoTurno, { texto: string; clase: string }> = {
   pendiente: {
     texto: "A confirmar",
-    clase: "bg-amber-100 text-amber-900 border-amber-300",
+    clase: "bg-vino text-crema border-vino",
   },
   confirmado: {
     texto: "Confirmado",

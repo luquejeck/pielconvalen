@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { LogoMarca } from "@/components/Logo";
 import { clienteNavegador, hayBaseDeDatos } from "@/lib/supabase";
 
 export default function Login() {
@@ -57,6 +58,7 @@ export default function Login() {
         >
           ← Volver al sitio
         </a>
+        <LogoMarca alto={34} className="mb-5" />
         <h1 className="text-2xl font-semibold text-tinta">Agenda de Valen</h1>
         <p className="mt-2 text-base text-tinta-suave">
           Ingresá para gestionar los turnos.

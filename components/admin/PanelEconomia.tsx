@@ -105,7 +105,7 @@ function GraficoBarras({ movimientos }: { movimientos: Movimiento[] }) {
           <div key={mes} className="flex flex-1 flex-col items-center gap-1">
             <div className="flex w-full flex-col-reverse items-stretch" style={{ height: "120px" }}>
               {total === 0 ? (
-                <div className="w-full rounded-t-sm bg-gray-100" style={{ height: "4px" }} />
+                <div className="w-full rounded-t-sm bg-borde" style={{ height: "4px" }} />
               ) : (
                 <>
                   <div
@@ -114,7 +114,7 @@ function GraficoBarras({ movimientos }: { movimientos: Movimiento[] }) {
                     title={`Tratamientos: ${fmt(v.tratamientos)}`}
                   />
                   <div
-                    className="w-full rounded-t-sm bg-dorado/80"
+                    className="w-full rounded-t-sm bg-vino/35"
                     style={{ height: `${alturaProd}%` }}
                     title={`Productos: ${fmt(v.productos)}`}
                   />
@@ -165,11 +165,14 @@ function TabDashboard({ todos }: { todos: Movimiento[] }) {
         </div>
         <div className="rounded-2xl border border-borde bg-white p-4">
           <p className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Gastos</p>
-          <p className="mt-1 text-2xl font-bold text-red-600">{fmt(totalGastos)}</p>
+          <p className="mt-1 text-2xl font-bold text-tinta-suave">{fmt(totalGastos)}</p>
         </div>
-        <div className={`rounded-2xl border p-4 ${neto >= 0 ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"}`}>
-          <p className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Ganancia neta</p>
-          <p className={`mt-1 text-2xl font-bold ${neto >= 0 ? "text-emerald-700" : "text-red-600"}`}>{fmt(neto)}</p>
+        {/* En rojo el mes cierra en perdida: se invierte la tarjeta para que salte a la vista. */}
+        <div className={`rounded-2xl border p-4 ${neto >= 0 ? "border-vino/20 bg-vino-suave" : "border-vino bg-vino"}`}>
+          <p className={`text-xs font-medium uppercase tracking-wide ${neto >= 0 ? "text-tinta-suave" : "text-crema/70"}`}>
+            Ganancia neta
+          </p>
+          <p className={`mt-1 text-2xl font-bold ${neto >= 0 ? "text-vino" : "text-crema"}`}>{fmt(neto)}</p>
         </div>
       </div>
 
@@ -193,7 +196,7 @@ function TabDashboard({ todos }: { todos: Movimiento[] }) {
           <p className="text-sm font-semibold text-tinta">Evolución mensual</p>
           <div className="flex gap-3 text-xs text-tinta-suave">
             <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-vino/70" />Tratamientos</span>
-            <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-dorado/80" />Productos</span>
+            <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-vino/35" />Productos</span>
           </div>
         </div>
         <GraficoBarras movimientos={todos} />
@@ -332,7 +335,7 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
           Venta de producto
         </button>
         <button type="button" onClick={() => cambiarTipo("gasto")}
-          className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${tipo === "gasto" ? "bg-red-600 text-white" : "border border-borde text-tinta-suave"}`}>
+          className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${tipo === "gasto" ? "bg-tinta text-crema" : "border border-borde text-tinta-suave"}`}>
           Gasto / Costo
         </button>
       </div>
@@ -349,7 +352,7 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
           <label className="block">
             <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Tratamiento *</span>
             {tratamientos.length === 0 ? (
-              <p className="mt-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-700">
+              <p className="mt-1 rounded-xl border border-vino/20 bg-vino-suave px-3 py-2.5 text-sm text-vino">
                 No tenés tratamientos cargados. Agregá uno desde la pestaña Tratamientos.
               </p>
             ) : (
@@ -370,7 +373,7 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
           <label className="block">
             <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Producto *</span>
             {productos.length === 0 ? (
-              <p className="mt-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-700">
+              <p className="mt-1 rounded-xl border border-vino/20 bg-vino-suave px-3 py-2.5 text-sm text-vino">
                 No tenés productos en inventario. Agregá uno desde la pestaña Inventario.
               </p>
             ) : (
@@ -390,7 +393,7 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
               </select>
             )}
             {selProducto && selProducto.cantidad <= 2 && selProducto.cantidad > 0 && (
-              <p className="mt-1 text-xs text-amber-600">⚠️ Quedan solo {selProducto.cantidad} unidades.</p>
+              <p className="mt-1 text-xs text-vino">⚠️ Quedan solo {selProducto.cantidad} unidades.</p>
             )}
           </label>
         ) : (
@@ -440,11 +443,11 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
         </label>
 
         {aviso && (
-          <p className="rounded-xl bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
+          <p className="rounded-xl bg-vino-suave px-4 py-2.5 text-sm text-vino">
             ✓ {aviso}
           </p>
         )}
-        {error && <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</p>}
+        {error && <p className="rounded-xl bg-vino-suave px-4 py-2.5 text-sm text-vino">{error}</p>}
 
         <button type="submit" disabled={guardando} className="boton-principal w-full disabled:opacity-60">
           {guardando ? "Guardando…" : tipo === "gasto" ? "Registrar gasto" : "Registrar venta"}
@@ -505,7 +508,7 @@ function FormProducto({
             className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-sm outline-none focus:border-vino" />
         </label>
       </div>
-      {error && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {error && <p className="mt-3 rounded-xl bg-vino-suave px-3 py-2 text-sm text-vino">{error}</p>}
       <div className="mt-3 flex gap-2">
         <button type="submit" disabled={guardando} className="boton-principal disabled:opacity-60">
           {guardando ? "Guardando…" : "Guardar"}
@@ -615,7 +618,7 @@ function TabInventario({ items, onActualizar }: { items: ItemInventario[]; onAct
                     <p className="font-semibold text-tinta">{item.producto}</p>
                     <p className="text-xs text-tinta-suave">{item.marca}</p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${stockBajo ? "bg-red-50 text-red-600" : "bg-crema-oscuro text-tinta-suave"}`}>
+                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${stockBajo ? "bg-vino text-crema" : "bg-crema-oscuro text-tinta-suave"}`}>
                     Stock: {item.cantidad}{stockBajo ? " ⚠️" : ""}
                   </span>
                 </div>
@@ -632,18 +635,18 @@ function TabInventario({ items, onActualizar }: { items: ItemInventario[]; onAct
                   </div>
                   <div>
                     <p className="text-xs text-tinta-suave">Margen</p>
-                    <p className="font-medium text-emerald-700">{margenPct}%</p>
+                    <p className="font-medium text-vino">{margenPct}%</p>
                   </div>
                 </div>
 
                 {/* Acciones */}
                 {confirmarElimId === item.id ? (
-                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2">
-                    <p className="flex-1 text-sm text-red-700">¿Eliminar?</p>
+                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-vino/20 bg-vino-suave px-3 py-2">
+                    <p className="flex-1 text-sm text-vino">¿Eliminar?</p>
                     <button onClick={() => eliminar(item.id)}
-                      className="rounded-full bg-red-600 px-3 py-1 text-xs text-white">Sí</button>
+                      className="rounded-full bg-vino px-3 py-1 text-xs text-crema">Sí</button>
                     <button onClick={() => setConfirmarElimId(null)}
-                      className="rounded-full border border-red-200 px-3 py-1 text-xs text-red-600">No</button>
+                      className="rounded-full border border-vino/25 px-3 py-1 text-xs text-vino">No</button>
                   </div>
                 ) : (
                   <div className="mt-3 flex gap-2">
@@ -653,7 +656,7 @@ function TabInventario({ items, onActualizar }: { items: ItemInventario[]; onAct
                       Editar
                     </button>
                     <button onClick={() => setConfirmarElimId(item.id)}
-                      className="rounded-full border border-borde px-4 py-1.5 text-xs text-tinta-suave hover:border-red-300 hover:text-red-600">
+                      className="rounded-full border border-borde px-4 py-1.5 text-xs text-tinta-suave hover:border-vino/40 hover:text-vino">
                       Eliminar
                     </button>
                   </div>
@@ -685,10 +688,10 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
     compra_producto: "Compra",
   };
   const COLORES: Record<string, string> = {
-    ingreso: "text-emerald-700 bg-emerald-50",
-    venta_producto: "text-blue-700 bg-blue-50",
-    gasto: "text-red-700 bg-red-50",
-    compra_producto: "text-orange-700 bg-orange-50",
+    ingreso: "text-vino bg-vino-suave",
+    venta_producto: "text-vino/80 bg-vino-suave",
+    gasto: "text-tinta-suave bg-crema-oscuro",
+    compra_producto: "text-tinta-suave bg-crema-oscuro",
   };
 
   return (
@@ -698,7 +701,7 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
         <button onClick={() => setMes(mesAnterior(mes))} className="rounded-full border border-borde px-3 py-1.5 text-sm hover:border-vino hover:text-vino">←</button>
         <span className="font-semibold text-tinta">{formatoMes(mes)}</span>
         <button onClick={() => setMes(mesSiguiente(mes))} className="rounded-full border border-borde px-3 py-1.5 text-sm hover:border-vino hover:text-vino">→</button>
-        <span className={`ml-auto text-sm font-semibold ${saldo >= 0 ? "text-emerald-700" : "text-red-600"}`}>
+        <span className={`ml-auto text-sm font-semibold ${saldo >= 0 ? "text-vino" : "text-tinta-suave"}`}>
           Saldo: {fmt(saldo)}
         </span>
       </div>
@@ -724,12 +727,12 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
                   )}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
-                  <span className={`text-base font-semibold ${esIngreso(m.tipo) ? "text-emerald-700" : "text-red-600"}`}>
+                  <span className={`text-base font-semibold ${esIngreso(m.tipo) ? "text-vino" : "text-tinta-suave"}`}>
                     {esIngreso(m.tipo) ? "+" : "-"}{fmt(m.monto)}
                   </span>
                   <button
                     onClick={() => setConfirmarId(confirmarId === m.id ? null : m.id)}
-                    className="rounded-full px-3 py-1 text-xs text-tinta-suave hover:bg-red-50 hover:text-red-600"
+                    className="rounded-full px-3 py-1 text-xs text-tinta-suave hover:bg-vino-suave hover:text-vino"
                   >
                     Eliminar
                   </button>
@@ -738,17 +741,17 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
 
               {/* Confirmación inline */}
               {confirmarId === m.id && (
-                <div className="mt-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5">
-                  <p className="flex-1 text-sm text-red-700">¿Eliminar este movimiento?</p>
+                <div className="mt-3 flex items-center gap-2 rounded-xl border border-vino/20 bg-vino-suave px-3 py-2.5">
+                  <p className="flex-1 text-sm text-vino">¿Eliminar este movimiento?</p>
                   <button
                     onClick={() => { onEliminar(m.id); setConfirmarId(null); }}
-                    className="rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white"
+                    className="rounded-full bg-vino px-3 py-1 text-xs font-medium text-crema"
                   >
                     Sí, eliminar
                   </button>
                   <button
                     onClick={() => setConfirmarId(null)}
-                    className="rounded-full border border-red-200 px-3 py-1 text-xs text-red-600"
+                    className="rounded-full border border-vino/25 px-3 py-1 text-xs text-vino"
                   >
                     Cancelar
                   </button>

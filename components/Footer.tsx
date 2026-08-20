@@ -25,7 +25,7 @@ const CONTACTO = [
 
 export default function Footer() {
   return (
-    <footer id="contacto" className="bg-noche text-white">
+    <footer id="contacto" className="bg-tinta text-crema">
       <div className="contenedor py-12 md:py-14">
         <div className="grid gap-8 md:grid-cols-2 md:items-center md:gap-12">
           {/* Identidad */}
@@ -33,10 +33,10 @@ export default function Footer() {
             <p className="text-2xl font-semibold tracking-tight">
               {CONSULTORIO.nombre}
             </p>
-            <p className="mt-1 text-base text-white/55">
+            <p className="mt-1 text-base text-crema/55">
               {CONSULTORIO.profesional} · {CONSULTORIO.titulo}
             </p>
-            <p className="mt-5 max-w-xs text-xl leading-snug text-white/85">
+            <p className="mt-5 max-w-xs text-xl leading-snug text-crema/85">
               {CONSULTORIO.eslogan}
             </p>
           </div>
@@ -49,24 +49,27 @@ export default function Footer() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-4 rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5 transition-colors hover:border-white/35 hover:bg-white/10"
+                  className="flex items-center gap-4 rounded-2xl border border-crema/15 bg-crema/5 px-4 py-3.5 transition-colors hover:border-crema/35 hover:bg-crema/10"
                 >
-                  <Icono className="h-5 w-5 shrink-0 text-dorado/80" />
+                  <Icono className="h-5 w-5 shrink-0 text-crema/60" />
                   <span className="flex min-w-0 flex-col leading-tight">
-                    <span className="text-sm text-dorado">{titulo}</span>
+                    <span className="text-sm text-crema/60">{titulo}</span>
                     <span className="truncate text-base font-medium">
                       {detalle}
                     </span>
                   </span>
-                  <IconoFlecha className="ml-auto h-4 w-4 shrink-0 text-white/35" />
+                  <IconoFlecha className="ml-auto h-4 w-4 shrink-0 text-crema/35" />
                 </a>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Barra inferior */}
-        <div className="mt-10 flex flex-col items-center gap-2 border-t border-white/12 pt-5 text-sm text-white/40 sm:flex-row sm:justify-between">
+        {/*
+          Barra inferior. El padding de abajo deja libre la esquina donde flota
+          el boton de WhatsApp: sin el, tapa el acceso de Valen a su agenda.
+        */}
+        <div className="mt-10 flex flex-col items-center gap-3 border-t border-crema/15 pt-5 pb-20 text-sm text-crema/40 sm:flex-row sm:justify-between sm:pb-0 sm:pr-44">
           <p>
             © {new Date().getFullYear()} {CONSULTORIO.nombre} · Caballito, CABA
           </p>
@@ -74,7 +77,7 @@ export default function Footer() {
           {/* Acceso de Valen a su agenda: discreto, pero siempre a mano. */}
           <a
             href="/admin"
-            className="transition-colors hover:text-white/80"
+            className="rounded-full border border-crema/20 px-4 py-2 transition-colors hover:border-crema/50 hover:text-crema/80"
           >
             Acceso profesional
           </a>

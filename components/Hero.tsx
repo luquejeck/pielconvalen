@@ -4,7 +4,7 @@ import { IconoPin, IconoReloj } from "./iconos";
 
 export default function Hero() {
   return (
-    <section id="inicio" className="relative isolate bg-rosa/50">
+    <section id="inicio" className="relative isolate bg-crema-oscuro">
       <FondoImagen
         imagen="/imagenes/hero.jpg"
         intensidad={70}

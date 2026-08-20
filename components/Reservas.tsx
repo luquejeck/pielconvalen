@@ -140,7 +140,7 @@ export default function Reservas() {
                 onEmpezarDeNuevo={empezarDeNuevo}
               />
             ) : (
-              <div className="mt-3 rounded-suave border border-rosa-medio/60 bg-rosa px-5 py-5 shadow-suave">
+              <div className="mt-3 rounded-suave border border-borde bg-vino-suave px-5 py-5 shadow-suave">
                 <dl className="space-y-2 text-base">
                   <Fila rotulo="Tratamiento" valor={tratamiento?.nombre} />
                   <Fila

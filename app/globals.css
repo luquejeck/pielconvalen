@@ -1,37 +1,28 @@
 @import "tailwindcss";
 
 @theme {
-  /* --------------------------------------------------------------------
+  /* ------------------------------------------------------------------
      PALETA
-     Misma familia de siempre (crema, rosa y vino), afinada:
-     - el vino gira apenas hacia el borgoña: menos ladrillo, mas elegante
-     - los grises dejan de ser neutros y se vuelven calidos, para que no
-       "ensucien" sobre el fondo crema
-     - se separan mejor los niveles de superficie: fondo, seccion y tarjeta
-     -------------------------------------------------------------------- */
+     Tres colores y nada mas. Todo lo que sigue es un tinte de estos:
+       VINO   la marca, tomado del logo
+       CREMA  la superficie
+       TINTA  el texto
+     Sin rosa ni dorado: cada color extra ensuciaba el conjunto.
+     ------------------------------------------------------------------ */
 
-  /* Superficies, de mas clara a mas oscura */
-  --color-crema: #fdf8f4; /* fondo general, mas calidez */
-  --color-crema-oscuro: #f0e4da; /* secciones alternadas, mas contraste */
-  --color-rosa: #f8e3db; /* bloques de acento suave */
-  --color-rosa-medio: #e8c4ba;
+  /* 1. VINO — la marca */
+  --color-vino: #7a0f45;
+  --color-vino-oscuro: #5b0a33; /* hover de botones */
+  --color-vino-suave: #f6e3ea; /* el mismo vino, muy diluido */
 
-  /* Acento — borgoña profundo, no ladrillo */
-  --color-vino: #6b1f3a;
-  --color-vino-oscuro: #4d1229;
-  --color-vino-suave: #f5e0e6;
+  /* 2. CREMA — superficies, de mas clara a mas oscura */
+  --color-crema: #faf6f2;
+  --color-crema-oscuro: #f1e8e1; /* secciones alternadas */
+  --color-borde: #e5d8d0;
 
-  /* Fondo oscuro: casi negro con base borgoña */
-  --color-noche: #1c0d13;
-
-  /* Champagne: solo sobre fondo oscuro */
-  --color-dorado: #d4a96a;
-
-  /* Texto — mas oscuros para mejor contraste */
-  --color-tinta: #1e1015; /* casi negro con base borgoña */
-  --color-tinta-suave: #5a3f46;
-
-  --color-borde: #e0cfc5;
+  /* 3. TINTA — texto, y fondo de las secciones oscuras */
+  --color-tinta: #1e1015;
+  --color-tinta-suave: #6b5259;
 
   /* Tipografia del sistema Apple: en iPhone y Mac usa San Francisco,
      en Windows y Android cae en Inter, que es lo mas parecido. */
@@ -42,10 +33,11 @@
 
   --radius-suave: 1.25rem;
 
-  /* Sombra tenue y calida: da profundidad sin verse gris ni pesada */
+  /* Sombras teñidas con la tinta (30 16 21), no con gris: sobre el crema
+     un gris neutro se ve sucio. */
   --shadow-suave:
-    0 1px 2px rgb(36 17 25 / 0.04), 0 10px 30px -18px rgb(36 17 25 / 0.22);
-  --shadow-boton: 0 6px 18px -8px rgb(36 17 25 / 0.5);
+    0 1px 2px rgb(30 16 21 / 0.04), 0 10px 30px -18px rgb(30 16 21 / 0.2);
+  --shadow-boton: 0 6px 18px -8px rgb(30 16 21 / 0.45);
 }
 
 @layer base {
