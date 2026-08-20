@@ -25,7 +25,7 @@ const CONTACTO = [
 
 export default function Footer() {
   return (
-    <footer id="contacto" className="bg-vino-oscuro text-white">
+    <footer id="contacto" className="bg-noche text-white">
       <div className="contenedor py-12 md:py-14">
         <div className="grid gap-8 md:grid-cols-2 md:items-center md:gap-12">
           {/* Identidad */}
@@ -36,7 +36,7 @@ export default function Footer() {
             <p className="mt-1 text-base text-white/55">
               {CONSULTORIO.profesional} · {CONSULTORIO.titulo}
             </p>
-            <p className="mt-5 max-w-xs text-xl leading-snug text-white/90">
+            <p className="mt-5 max-w-xs text-xl leading-snug text-white/85">
               {CONSULTORIO.eslogan}
             </p>
           </div>
@@ -51,9 +51,9 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-4 rounded-2xl border border-white/15 bg-white/5 px-4 py-3.5 transition-colors hover:border-white/35 hover:bg-white/10"
                 >
-                  <Icono className="h-5 w-5 shrink-0 text-white/70" />
+                  <Icono className="h-5 w-5 shrink-0 text-dorado/80" />
                   <span className="flex min-w-0 flex-col leading-tight">
-                    <span className="text-sm text-white/55">{titulo}</span>
+                    <span className="text-sm text-dorado">{titulo}</span>
                     <span className="truncate text-base font-medium">
                       {detalle}
                     </span>

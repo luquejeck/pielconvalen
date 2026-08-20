@@ -17,9 +17,16 @@
   --color-rosa-medio: #edd2cb;
 
   /* Acento */
-  --color-vino: #6d2740;
-  --color-vino-oscuro: #4d1a2d;
-  --color-vino-suave: #f7e6ea;
+  --color-vino: #5e2038; /* borgoña mas profundo, menos ladrillo */
+  --color-vino-oscuro: #431629;
+  --color-vino-suave: #f6e6ea;
+
+  /* Fondo oscuro: casi negro pero con base borgoña, no gris */
+  --color-noche: #241119;
+
+  /* Tercer color: champagne apagado. Solo sobre fondo oscuro,
+     que es donde tiene contraste suficiente para leerse. */
+  --color-dorado: #d2ac7e;
 
   /* Texto */
   --color-tinta: #2a2124; /* negro calido, no azulado */
@@ -37,8 +44,8 @@
 
   /* Sombra tenue y calida: da profundidad sin verse gris ni pesada */
   --shadow-suave:
-    0 1px 2px rgb(77 26 45 / 0.04), 0 10px 30px -18px rgb(77 26 45 / 0.22);
-  --shadow-boton: 0 6px 18px -8px rgb(77 26 45 / 0.55);
+    0 1px 2px rgb(36 17 25 / 0.04), 0 10px 30px -18px rgb(36 17 25 / 0.22);
+  --shadow-boton: 0 6px 18px -8px rgb(36 17 25 / 0.5);
 }
 
 @layer base {
