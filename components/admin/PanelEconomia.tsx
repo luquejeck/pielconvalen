@@ -462,85 +462,85 @@ function TabInventario({ items, onActualizar }: { items: ItemInventario[]; onAct
         />
       )}
 
-      {/* Tabla responsive */}
-      <div className="overflow-x-auto rounded-2xl border border-borde bg-white">
-        <table className="w-full min-w-[560px] text-sm">
-          <thead>
-            <tr className="border-b border-borde bg-crema-oscuro text-left text-xs font-medium uppercase tracking-wide text-tinta-suave">
-              <th className="px-4 py-3">Marca / Producto</th>
-              <th className="px-4 py-3">Costo</th>
-              <th className="px-4 py-3">Venta</th>
-              <th className="px-4 py-3">Margen</th>
-              <th className="px-4 py-3">Stock</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-borde">
-            {items.map((item) => {
-              const margen = item.precio_venta - item.costo;
-              const margenPct = item.precio_venta > 0 ? Math.round((margen / item.precio_venta) * 100) : 0;
-              const stockBajo = item.cantidad <= 2;
+      {/* Lista de productos — tarjetas en mobile, tabla en desktop */}
+      {items.length === 0 ? (
+        <p className="rounded-2xl border border-borde bg-white px-4 py-8 text-center text-tinta-suave">
+          Sin productos cargados aún.
+        </p>
+      ) : (
+        <ul className="space-y-3">
+          {items.map((item) => {
+            const margen = item.precio_venta - item.costo;
+            const margenPct = item.precio_venta > 0 ? Math.round((margen / item.precio_venta) * 100) : 0;
+            const stockBajo = item.cantidad <= 2;
 
-              if (editando?.id === item.id) {
-                return (
-                  <tr key={item.id}>
-                    <td colSpan={6} className="px-4 py-3">
-                      <FormProducto
-                        form={form} setForm={setForm} guardando={guardando} error={errorGuardar}
-                        onSubmit={guardar} onCancelar={cancelar}
-                      />
-                    </td>
-                  </tr>
-                );
-              }
-
+            if (editando?.id === item.id) {
               return (
-                <tr key={item.id} className="hover:bg-crema/50">
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-tinta">{item.producto}</p>
-                    <p className="text-xs text-tinta-suave">{item.marca}</p>
-                  </td>
-                  <td className="px-4 py-3 text-tinta">{fmt(item.costo)}</td>
-                  <td className="px-4 py-3 font-medium text-tinta">{fmt(item.precio_venta)}</td>
-                  <td className="px-4 py-3">
-                    <span className="font-medium text-emerald-700">{fmt(margen)}</span>
-                    <span className="ml-1 text-xs text-tinta-suave">({margenPct}%)</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`font-medium ${stockBajo ? "text-red-600" : "text-tinta"}`}>
-                      {item.cantidad} {stockBajo && "⚠️"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    {confirmarElimId === item.id ? (
-                      <div className="flex gap-1">
-                        <button onClick={() => eliminar(item.id)}
-                          className="rounded-full bg-red-600 px-3 py-1 text-xs text-white">Sí</button>
-                        <button onClick={() => setConfirmarElimId(null)}
-                          className="rounded-full border border-borde px-3 py-1 text-xs text-tinta-suave">No</button>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button onClick={() => { setEditando(item); setNuevo(false); setForm({ marca: item.marca, producto: item.producto, costo: String(item.costo), precio_venta: String(item.precio_venta), cantidad: String(item.cantidad) }); }}
-                          className="rounded-full border border-borde px-3 py-1 text-xs hover:border-vino hover:text-vino">
-                          Editar
-                        </button>
-                        <button onClick={() => setConfirmarElimId(item.id)}
-                          className="rounded-full border border-borde px-3 py-1 text-xs hover:border-red-300 hover:text-red-600">
-                          Eliminar
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
+                <li key={item.id}>
+                  <FormProducto
+                    form={form} setForm={setForm} guardando={guardando} error={errorGuardar}
+                    onSubmit={guardar} onCancelar={cancelar}
+                  />
+                </li>
               );
-            })}
-            {items.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-tinta-suave">Sin productos cargados aún.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            }
+
+            return (
+              <li key={item.id} className="rounded-2xl border border-borde bg-white p-4">
+                {/* Nombre y marca */}
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-semibold text-tinta">{item.producto}</p>
+                    <p className="text-xs text-tinta-suave">{item.marca}</p>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${stockBajo ? "bg-red-50 text-red-600" : "bg-crema-oscuro text-tinta-suave"}`}>
+                    Stock: {item.cantidad}{stockBajo ? " ⚠️" : ""}
+                  </span>
+                </div>
+
+                {/* Números en grilla 3 columnas */}
+                <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl bg-crema-oscuro p-3">
+                  <div>
+                    <p className="text-xs text-tinta-suave">Costo</p>
+                    <p className="font-medium text-tinta">{fmt(item.costo)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-tinta-suave">Venta</p>
+                    <p className="font-medium text-tinta">{fmt(item.precio_venta)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-tinta-suave">Margen</p>
+                    <p className="font-medium text-emerald-700">{margenPct}%</p>
+                  </div>
+                </div>
+
+                {/* Acciones */}
+                {confirmarElimId === item.id ? (
+                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2">
+                    <p className="flex-1 text-sm text-red-700">¿Eliminar?</p>
+                    <button onClick={() => eliminar(item.id)}
+                      className="rounded-full bg-red-600 px-3 py-1 text-xs text-white">Sí</button>
+                    <button onClick={() => setConfirmarElimId(null)}
+                      className="rounded-full border border-red-200 px-3 py-1 text-xs text-red-600">No</button>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => { setEditando(item); setNuevo(false); setForm({ marca: item.marca, producto: item.producto, costo: String(item.costo), precio_venta: String(item.precio_venta), cantidad: String(item.cantidad) }); }}
+                      className="rounded-full border border-borde px-4 py-1.5 text-xs text-tinta-suave hover:border-vino hover:text-vino">
+                      Editar
+                    </button>
+                    <button onClick={() => setConfirmarElimId(item.id)}
+                      className="rounded-full border border-borde px-4 py-1.5 text-xs text-tinta-suave hover:border-red-300 hover:text-red-600">
+                      Eliminar
+                    </button>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }
