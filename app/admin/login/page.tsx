@@ -19,12 +19,22 @@ export default function Login() {
     setError(null);
 
     const { error } = await clienteNavegador().auth.signInWithPassword({
-      email,
+      email: email.trim().toLowerCase(),
       password: clave,
     });
 
     if (error) {
-      setError("Mail o contraseña incorrectos.");
+      // Cada causa necesita una solucion distinta, asi que se distinguen.
+      const causa = error.message.toLowerCase();
+      if (causa.includes("not confirmed")) {
+        setError(
+          "La cuenta existe pero no está confirmada. Hay que activarla desde Supabase → Authentication → Users."
+        );
+      } else if (causa.includes("invalid login")) {
+        setError("Mail o contraseña incorrectos.");
+      } else {
+        setError(error.message);
+      }
       setEntrando(false);
       return;
     }
