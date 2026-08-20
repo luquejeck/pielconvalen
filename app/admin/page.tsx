@@ -1,6 +1,5 @@
 import NavAdmin from "@/components/admin/NavAdmin";
 import PanelAdmin from "@/components/admin/PanelAdmin";
-import Recordatorios from "@/components/admin/Recordatorios";
 import { obtenerAgenda, obtenerTratamientos } from "@/lib/catalogo";
 import { hayBaseDeDatos } from "@/lib/supabase";
 
@@ -36,7 +35,6 @@ export default async function Admin() {
   return (
     <main className="mx-auto max-w-2xl px-5 py-10">
       <NavAdmin />
-      <Recordatorios />
       <PanelAdmin tratamientos={tratamientos} agenda={agenda} />
     </main>
   );

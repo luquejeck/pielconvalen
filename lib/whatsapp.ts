@@ -91,37 +91,3 @@ export const linkCancelarTurno = () =>
   linkWhatsAppSimple(
     "Hola Valen! Tengo un turno reservado y no voy a poder ir. Te aviso para liberar el lugar."
   );
-
-/**
- * Recordatorio que Valen le manda a la clienta el dia previo.
- *
- * Va dirigido a la clienta, asi que el numero es el de ella, no el del
- * consultorio. Cierra pidiendo confirmacion: es lo que convierte el aviso
- * en una chance de liberar el lugar si no va a venir.
- */
-export function linkRecordatorio({
-  telefono,
-  nombre,
-  hora,
-  tratamiento,
-}: {
-  telefono: string;
-  nombre?: string | null;
-  hora: string;
-  tratamiento?: string | null;
-}): string {
-  const saludo = nombre?.trim() ? `Hola ${nombre.trim().split(" ")[0]}!` : "Hola!";
-
-  const lineas = [
-    `${saludo} Te escribo de ${CONSULTORIO.nombre} 🌿`,
-    ``,
-    `Te recuerdo tu turno de mañana a las ${hora} hs${
-      tratamiento ? ` para ${tratamiento}` : ""
-    }.`,
-    ``,
-    `¿Me confirmás que venís?`,
-  ];
-
-  const numero = normalizarTelefono(telefono);
-  return `https://wa.me/${numero}?text=${encodeURIComponent(lineas.join("\n"))}`;
-}
