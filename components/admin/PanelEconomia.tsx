@@ -332,41 +332,30 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
   );
 }
 
-// ─── Tab: Inventario ──────────────────────────────────────────────────
-function TabInventario({ items, onActualizar }: { items: ItemInventario[]; onActualizar: () => void }) {
-  const [editando, setEditando] = useState<ItemInventario | null>(null);
-  const [nuevo, setNuevo] = useState(false);
-  const FORM_VACIO = { marca: "", producto: "", costo: "", precio_venta: "", cantidad: "" };
-  const [form, setForm] = useState(FORM_VACIO);
-  const [guardando, setGuardando] = useState(false);
+// ─── Formulario de producto (fuera del componente para evitar remounts) ──
+const FORM_INV_VACIO = { marca: "", producto: "", costo: "", precio_venta: "", cantidad: "" };
+type FormInvState = typeof FORM_INV_VACIO;
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+function FormProducto({
+  form,
+  setForm,
+  guardando,
+  error,
+  onSubmit,
+  onCancelar,
+}: {
+  form: FormInvState;
+  setForm: React.Dispatch<React.SetStateAction<FormInvState>>;
+  guardando: boolean;
+  error: string | null;
+  onSubmit: (e: React.FormEvent) => void;
+  onCancelar: () => void;
+}) {
+  const set = (k: keyof FormInvState) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const guardar = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setGuardando(true);
-    const payload = { marca: form.marca, producto: form.producto, costo: parseInt(form.costo), precio_venta: parseInt(form.precio_venta), cantidad: parseInt(form.cantidad) };
-    if (editando) {
-      await fetch(`/api/inventario?id=${editando.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      setEditando(null);
-    } else {
-      await fetch("/api/inventario", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      setNuevo(false);
-    }
-    setForm(FORM_VACIO);
-    setGuardando(false);
-    onActualizar();
-  };
-
-  const eliminar = async (id: string) => {
-    if (!confirm("¿Eliminar este producto?")) return;
-    await fetch(`/api/inventario?id=${id}`, { method: "DELETE" });
-    onActualizar();
-  };
-
-  const FormProducto = () => (
-    <form onSubmit={guardar} className="rounded-2xl border border-borde bg-white p-4">
+  return (
+    <form onSubmit={onSubmit} className="rounded-2xl border border-borde bg-white p-4">
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block">
           <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Marca</span>
@@ -394,29 +383,82 @@ function TabInventario({ items, onActualizar }: { items: ItemInventario[]; onAct
             className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-sm outline-none focus:border-vino" />
         </label>
       </div>
+      {error && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <div className="mt-3 flex gap-2">
         <button type="submit" disabled={guardando} className="boton-principal disabled:opacity-60">
           {guardando ? "Guardando…" : "Guardar"}
         </button>
-        <button type="button" onClick={() => { setEditando(null); setNuevo(false); setForm(FORM_VACIO); }}
+        <button type="button" onClick={onCancelar}
           className="rounded-full border border-borde px-5 py-2.5 text-sm text-tinta-suave hover:border-vino hover:text-vino">
           Cancelar
         </button>
       </div>
     </form>
   );
+}
+
+// ─── Tab: Inventario ──────────────────────────────────────────────────
+function TabInventario({ items, onActualizar }: { items: ItemInventario[]; onActualizar: () => void }) {
+  const [editando, setEditando] = useState<ItemInventario | null>(null);
+  const [nuevo, setNuevo] = useState(false);
+  const [form, setForm] = useState(FORM_INV_VACIO);
+  const [guardando, setGuardando] = useState(false);
+  const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
+
+  const cancelar = () => { setEditando(null); setNuevo(false); setForm(FORM_INV_VACIO); setErrorGuardar(null); };
+
+  const guardar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGuardando(true);
+    setErrorGuardar(null);
+    const payload = {
+      marca: form.marca,
+      producto: form.producto,
+      costo: parseInt(form.costo),
+      precio_venta: parseInt(form.precio_venta),
+      cantidad: parseInt(form.cantidad),
+    };
+    try {
+      const res = editando
+        ? await fetch(`/api/inventario?id=${editando.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+        : await fetch("/api/inventario", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErrorGuardar(err.error ?? "No se pudo guardar. Revisá tu conexión.");
+        return;
+      }
+      cancelar();
+      await onActualizar();
+    } catch {
+      setErrorGuardar("Error de red. Intentá de nuevo.");
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const eliminar = async (id: string) => {
+    if (!confirm("¿Eliminar este producto?")) return;
+    await fetch(`/api/inventario?id=${id}`, { method: "DELETE" });
+    onActualizar();
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-tinta-suave">{items.length} productos</p>
-        <button onClick={() => { setNuevo((v) => !v); setEditando(null); setForm(FORM_VACIO); }}
+        <button onClick={() => { setNuevo((v) => !v); setEditando(null); setForm(FORM_INV_VACIO); setErrorGuardar(null); }}
           className="rounded-full border border-borde px-4 py-2 text-sm text-tinta-suave hover:border-vino hover:text-vino">
           {nuevo ? "Cancelar" : "+ Agregar producto"}
         </button>
       </div>
 
-      {nuevo && <FormProducto />}
+      {nuevo && (
+        <FormProducto
+          form={form} setForm={setForm} guardando={guardando} error={errorGuardar}
+          onSubmit={guardar} onCancelar={cancelar}
+        />
+      )}
 
       {/* Tabla responsive */}
       <div className="overflow-x-auto rounded-2xl border border-borde bg-white">
@@ -441,7 +483,10 @@ function TabInventario({ items, onActualizar }: { items: ItemInventario[]; onAct
                 return (
                   <tr key={item.id}>
                     <td colSpan={6} className="px-4 py-3">
-                      <FormProducto />
+                      <FormProducto
+                        form={form} setForm={setForm} guardando={guardando} error={errorGuardar}
+                        onSubmit={guardar} onCancelar={cancelar}
+                      />
                     </td>
                   </tr>
                 );
@@ -587,8 +632,7 @@ export default function PanelEconomia() {
   const cargarInventario = async () => {
     const res = await fetch("/api/inventario");
     if (res.ok) {
-      const data: ItemInventario[] = await res.json();
-      setInventario(data.length > 0 ? data : DEMO_INVENTARIO);
+      setInventario(await res.json());
     }
   };
 
