@@ -206,8 +206,10 @@ function TabDashboard({ todos }: { todos: Movimiento[] }) {
 type TratamientoDB = { id: string; nombre: string; precio: number };
 type ProductoDB = { id: string; marca: string; producto: string; costo: number; precio_venta: number; cantidad: number };
 
+const CATEGORIAS_GASTO = ["Insumos / descartables", "Equipamiento", "Alquiler", "Marketing", "Transporte", "Cursos / formación", "Otro"];
+
 function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
-  const [tipo, setTipo] = useState<"tratamiento" | "producto">("tratamiento");
+  const [tipo, setTipo] = useState<"tratamiento" | "producto" | "gasto">("tratamiento");
   const [tratamientos, setTratamientos] = useState<TratamientoDB[]>([]);
   const [productos, setProductos] = useState<ProductoDB[]>([]);
   const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
@@ -251,7 +253,7 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
     if (p) setForm((f) => ({ ...f, monto: String(p.precio_venta), costo: String(p.costo), descripcion: `${p.producto} — ${p.marca}` }));
   };
 
-  const cambiarTipo = (t: "tratamiento" | "producto") => {
+  const cambiarTipo = (t: "tratamiento" | "producto" | "gasto") => {
     setTipo(t);
     setSelTratamiento(null);
     setSelProducto(null);
@@ -263,17 +265,24 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
     setGuardando(true);
     setError(null);
 
+    const tipoAPI = tipo === "tratamiento" ? "ingreso" : tipo === "producto" ? "venta_producto" : "gasto";
+    const categoriaAPI = tipo === "tratamiento"
+      ? (selTratamiento?.nombre ?? "Tratamiento")
+      : tipo === "producto"
+        ? (selProducto?.producto ?? "Producto")
+        : form.descripcion.split(" ")[0]; // primera palabra como categoría de gasto
+
     const res = await fetch("/api/movimientos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         fecha: form.fecha,
-        tipo: tipo === "tratamiento" ? "ingreso" : "venta_producto",
-        categoria: tipo === "tratamiento" ? (selTratamiento?.nombre ?? "Tratamiento") : (selProducto?.producto ?? "Producto"),
+        tipo: tipoAPI,
+        categoria: categoriaAPI,
         descripcion: form.descripcion,
         monto: parseInt(form.monto),
-        costo: form.costo ? parseInt(form.costo) : null,
-        cliente_id: clienteId,
+        costo: null,
+        cliente_id: tipo !== "gasto" ? clienteId : null,
         inventario_id: selProducto?.id ?? null,
       }),
     });
@@ -301,14 +310,18 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
       <h3 className="mb-4 text-base font-semibold text-tinta">Registrar nueva venta</h3>
 
       {/* Tipo */}
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <button type="button" onClick={() => cambiarTipo("tratamiento")}
           className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${tipo === "tratamiento" ? "bg-vino text-white" : "border border-borde text-tinta-suave"}`}>
           Tratamiento
         </button>
         <button type="button" onClick={() => cambiarTipo("producto")}
           className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${tipo === "producto" ? "bg-vino text-white" : "border border-borde text-tinta-suave"}`}>
-          Producto (retail)
+          Venta de producto
+        </button>
+        <button type="button" onClick={() => cambiarTipo("gasto")}
+          className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${tipo === "gasto" ? "bg-red-600 text-white" : "border border-borde text-tinta-suave"}`}>
+          Gasto / Costo
         </button>
       </div>
 
@@ -370,36 +383,56 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
           </label>
         )}
 
-        <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Clienta (opcional)</span>
-          <BuscadorCliente key={tipo} onSeleccionar={(c) => setClienteId(c?.id ?? null)} />
-        </label>
+        {/* Categoría de gasto */}
+        {tipo === "gasto" && (
+          <label className="block">
+            <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Categoría del gasto</span>
+            <select
+              value={form.descripcion || CATEGORIAS_GASTO[0]}
+              onChange={(e) => setForm((f) => ({ ...f, descripcion: e.target.value }))}
+              className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino"
+            >
+              {CATEGORIAS_GASTO.map((c) => <option key={c}>{c}</option>)}
+            </select>
+          </label>
+        )}
+
+        {/* Clienta solo para ingresos */}
+        {tipo !== "gasto" && (
+          <label className="block">
+            <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Clienta (opcional)</span>
+            <BuscadorCliente key={tipo} onSeleccionar={(c) => setClienteId(c?.id ?? null)} />
+          </label>
+        )}
 
         <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Observaciones</span>
-          <input type="text" value={form.descripcion} onChange={set("descripcion")}
-            placeholder="Notas adicionales sobre esta venta…"
+          <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">
+            {tipo === "gasto" ? "Detalle del gasto *" : "Observaciones"}
+          </span>
+          <input type="text" value={tipo === "gasto" ? form.descripcion : form.descripcion} onChange={set("descripcion")}
+            required={tipo === "gasto"}
+            placeholder={tipo === "gasto" ? "Ej: Agujas 30G caja x100, Ácido hialurónico…" : "Notas adicionales…"}
             className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino" />
         </label>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Precio cobrado *</span>
-            <input type="number" min="0" required value={form.monto} onChange={set("monto")} placeholder="28000"
-              className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino" />
-          </label>
-          <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Costo (opcional)</span>
-            <input type="number" min="0" value={form.costo} onChange={set("costo")} placeholder="3500"
-              className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino" />
-          </label>
-        </div>
+        <label className="block">
+          <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">
+            {tipo === "gasto" ? "Monto gastado *" : "Precio cobrado *"}
+          </span>
+          <input type="number" min="0" required value={form.monto} onChange={set("monto")}
+            placeholder={tipo === "gasto" ? "5000" : "28000"}
+            className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino" />
+        </label>
 
-        {ok && <p className="rounded-xl bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">✓ Venta registrada. {tipo === "producto" && selProducto ? `Stock de ${selProducto.producto} actualizado.` : ""}</p>}
+        {ok && (
+          <p className="rounded-xl bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
+            ✓ {tipo === "gasto" ? "Gasto registrado." : `Venta registrada.${tipo === "producto" && selProducto ? ` Stock de ${selProducto.producto} actualizado.` : ""}`}
+          </p>
+        )}
         {error && <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</p>}
 
         <button type="submit" disabled={guardando} className="boton-principal w-full disabled:opacity-60">
-          {guardando ? "Guardando…" : "Registrar venta"}
+          {guardando ? "Guardando…" : tipo === "gasto" ? "Registrar gasto" : "Registrar venta"}
         </button>
       </form>
     </div>
