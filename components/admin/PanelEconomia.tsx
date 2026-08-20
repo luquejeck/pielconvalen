@@ -437,9 +437,11 @@ function TabInventario({ items, onActualizar }: { items: ItemInventario[]; onAct
     }
   };
 
+  const [confirmarElimId, setConfirmarElimId] = useState<string | null>(null);
+
   const eliminar = async (id: string) => {
-    if (!confirm("¿Eliminar este producto?")) return;
     await fetch(`/api/inventario?id=${id}`, { method: "DELETE" });
+    setConfirmarElimId(null);
     onActualizar();
   };
 
@@ -510,16 +512,25 @@ function TabInventario({ items, onActualizar }: { items: ItemInventario[]; onAct
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <button onClick={() => { setEditando(item); setNuevo(false); setForm({ marca: item.marca, producto: item.producto, costo: String(item.costo), precio_venta: String(item.precio_venta), cantidad: String(item.cantidad) }); }}
-                        className="rounded-full border border-borde px-3 py-1 text-xs hover:border-vino hover:text-vino">
-                        Editar
-                      </button>
-                      <button onClick={() => eliminar(item.id)}
-                        className="rounded-full border border-borde px-3 py-1 text-xs hover:border-red-300 hover:text-red-600">
-                        ✕
-                      </button>
-                    </div>
+                    {confirmarElimId === item.id ? (
+                      <div className="flex gap-1">
+                        <button onClick={() => eliminar(item.id)}
+                          className="rounded-full bg-red-600 px-3 py-1 text-xs text-white">Sí</button>
+                        <button onClick={() => setConfirmarElimId(null)}
+                          className="rounded-full border border-borde px-3 py-1 text-xs text-tinta-suave">No</button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button onClick={() => { setEditando(item); setNuevo(false); setForm({ marca: item.marca, producto: item.producto, costo: String(item.costo), precio_venta: String(item.precio_venta), cantidad: String(item.cantidad) }); }}
+                          className="rounded-full border border-borde px-3 py-1 text-xs hover:border-vino hover:text-vino">
+                          Editar
+                        </button>
+                        <button onClick={() => setConfirmarElimId(item.id)}
+                          className="rounded-full border border-borde px-3 py-1 text-xs hover:border-red-300 hover:text-red-600">
+                          Eliminar
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               );
@@ -541,6 +552,7 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
   setMes: (m: string) => void;
   onEliminar: (id: string) => void;
 }) {
+  const [confirmarId, setConfirmarId] = useState<string | null>(null);
   const delMes = todos.filter((m) => m.fecha.startsWith(mes));
   const saldo = delMes.reduce((s, m) => s + (esIngreso(m.tipo) ? m.monto : -m.monto), 0);
 
@@ -575,27 +587,51 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
       ) : (
         <ul className="space-y-2">
           {delMes.map((m) => (
-            <li key={m.id} className="flex items-center gap-3 rounded-2xl border border-borde bg-white px-4 py-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${COLORES[m.tipo] ?? "bg-crema-oscuro text-tinta-suave"}`}>
-                    {ETIQUETAS[m.tipo] ?? m.tipo}
-                  </span>
-                  <span className="text-xs text-tinta-suave">{m.fecha} · {m.categoria}</span>
+            <li key={m.id} className="rounded-2xl border border-borde bg-white px-4 py-3">
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${COLORES[m.tipo] ?? "bg-crema-oscuro text-tinta-suave"}`}>
+                      {ETIQUETAS[m.tipo] ?? m.tipo}
+                    </span>
+                    <span className="text-xs text-tinta-suave">{m.fecha} · {m.categoria}</span>
+                  </div>
+                  <p className="mt-0.5 truncate text-sm text-tinta">{m.descripcion}</p>
+                  {m.costo && (
+                    <p className="text-xs text-tinta-suave">Costo: {fmt(m.costo)} · Margen: {fmt(m.monto - m.costo)}</p>
+                  )}
                 </div>
-                <p className="mt-0.5 truncate text-sm text-tinta">{m.descripcion}</p>
-                {m.costo && (
-                  <p className="text-xs text-tinta-suave">Costo: {fmt(m.costo)} · Margen: {fmt(m.monto - m.costo)}</p>
-                )}
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <span className={`text-base font-semibold ${esIngreso(m.tipo) ? "text-emerald-700" : "text-red-600"}`}>
+                    {esIngreso(m.tipo) ? "+" : "-"}{fmt(m.monto)}
+                  </span>
+                  <button
+                    onClick={() => setConfirmarId(confirmarId === m.id ? null : m.id)}
+                    className="rounded-full px-3 py-1 text-xs text-tinta-suave hover:bg-red-50 hover:text-red-600"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </div>
-              <div className="flex shrink-0 flex-col items-end gap-1">
-                <span className={`text-base font-semibold ${esIngreso(m.tipo) ? "text-emerald-700" : "text-red-600"}`}>
-                  {esIngreso(m.tipo) ? "+" : "-"}{fmt(m.monto)}
-                </span>
-                <button onClick={() => onEliminar(m.id)} className="rounded-full p-1 text-tinta-suave hover:bg-red-50 hover:text-red-600">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                </button>
-              </div>
+
+              {/* Confirmación inline */}
+              {confirmarId === m.id && (
+                <div className="mt-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5">
+                  <p className="flex-1 text-sm text-red-700">¿Eliminar este movimiento?</p>
+                  <button
+                    onClick={() => { onEliminar(m.id); setConfirmarId(null); }}
+                    className="rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white"
+                  >
+                    Sí, eliminar
+                  </button>
+                  <button
+                    onClick={() => setConfirmarId(null)}
+                    className="rounded-full border border-red-200 px-3 py-1 text-xs text-red-600"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
             </li>
           ))}
         </ul>
