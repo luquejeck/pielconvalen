@@ -35,17 +35,22 @@ export async function proxy(request: NextRequest) {
 
   const esLogin = request.nextUrl.pathname.startsWith("/admin/login");
 
-  if (!user && !esLogin) {
+  /**
+   * Un redirect arranca con una respuesta limpia, sin las cookies que
+   * Supabase acaba de refrescar en `respuesta`. Si no se copian, la sesion
+   * se pierde justo al entrar y el login rebota contra si mismo.
+   */
+  const redirigirA = (pathname: string) => {
     const destino = request.nextUrl.clone();
-    destino.pathname = "/admin/login";
-    return NextResponse.redirect(destino);
-  }
+    destino.pathname = pathname;
 
-  if (user && esLogin) {
-    const destino = request.nextUrl.clone();
-    destino.pathname = "/admin";
-    return NextResponse.redirect(destino);
-  }
+    const salida = NextResponse.redirect(destino);
+    respuesta.cookies.getAll().forEach((cookie) => salida.cookies.set(cookie));
+    return salida;
+  };
+
+  if (!user && !esLogin) return redirigirA("/admin/login");
+  if (user && esLogin) return redirigirA("/admin");
 
   return respuesta;
 }

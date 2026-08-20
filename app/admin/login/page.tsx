@@ -1,11 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { clienteNavegador, hayBaseDeDatos } from "@/lib/supabase";
 
 export default function Login() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [clave, setClave] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -39,8 +37,12 @@ export default function Login() {
       return;
     }
 
-    router.push("/admin");
-    router.refresh();
+    /**
+     * Navegacion real, no del router: asi el navegador manda la cookie de
+     * sesion recien escrita. Con router.push() la peticion puede salir antes
+     * de que la cookie exista y el proxy rebota de vuelta al login.
+     */
+    window.location.assign("/admin");
   };
 
   return (
