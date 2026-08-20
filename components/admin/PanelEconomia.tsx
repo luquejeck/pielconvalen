@@ -307,7 +307,9 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
 
   return (
     <div className="rounded-2xl border border-borde bg-white p-5">
-      <h3 className="mb-4 text-base font-semibold text-tinta">Registrar nueva venta</h3>
+      <h3 className="mb-4 text-base font-semibold text-tinta">
+        {tipo === "gasto" ? "Registrar gasto" : "Registrar venta"}
+      </h3>
 
       {/* Tipo */}
       <div className="mb-4 flex flex-wrap gap-2">
@@ -354,7 +356,7 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
               </select>
             )}
           </label>
-        ) : (
+        ) : tipo === "producto" ? (
           <label className="block">
             <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Producto *</span>
             {productos.length === 0 ? (
@@ -381,6 +383,9 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
               <p className="mt-1 text-xs text-amber-600">⚠️ Quedan solo {selProducto.cantidad} unidades.</p>
             )}
           </label>
+        ) : (
+          /* Gasto: no hay nada que elegir del catálogo */
+          null
         )}
 
         {/* Categoría de gasto */}
@@ -752,7 +757,7 @@ type Tab = "dashboard" | "ingresos" | "inventario" | "flujo";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
-  { id: "ingresos", label: "Registrar venta" },
+  { id: "ingresos", label: "Registrar venta/gasto" },
   { id: "inventario", label: "Inventario" },
   { id: "flujo", label: "Flujo de caja" },
 ];
