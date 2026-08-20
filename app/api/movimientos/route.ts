@@ -34,12 +34,30 @@ export async function POST(req: NextRequest) {
       categoria: body.categoria,
       descripcion: body.descripcion,
       monto: body.monto,
+      costo: body.costo ?? null,
       cliente_id: body.cliente_id ?? null,
     })
     .select()
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Si es venta de producto con inventario_id, descontar una unidad
+  if (body.inventario_id) {
+    const { data: item } = await sb
+      .from("inventario")
+      .select("cantidad")
+      .eq("id", body.inventario_id)
+      .single();
+
+    if (item && item.cantidad > 0) {
+      await sb
+        .from("inventario")
+        .update({ cantidad: item.cantidad - 1 })
+        .eq("id", body.inventario_id);
+    }
+  }
+
   return NextResponse.json(data, { status: 201 });
 }
 

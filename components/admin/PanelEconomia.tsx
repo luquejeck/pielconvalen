@@ -203,54 +203,98 @@ function TabDashboard({ todos }: { todos: Movimiento[] }) {
 }
 
 // ─── Tab: Ingresos ────────────────────────────────────────────────────
-const CATEGORIAS_INGRESO = ["Limpieza profunda", "Dermaplaning", "Microneedling", "Peeling", "Hidratación", "Otro tratamiento"];
-const CATEGORIAS_PRODUCTO = ["Sérum", "Crema hidratante", "Protector solar", "Mascarilla", "Contorno de ojos", "Otro producto"];
+type TratamientoDB = { id: string; nombre: string; precio: number };
+type ProductoDB = { id: string; marca: string; producto: string; costo: number; precio_venta: number; cantidad: number };
 
 function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
   const [tipo, setTipo] = useState<"tratamiento" | "producto">("tratamiento");
+  const [tratamientos, setTratamientos] = useState<TratamientoDB[]>([]);
+  const [productos, setProductos] = useState<ProductoDB[]>([]);
+  const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
+
   const [clienteId, setClienteId] = useState<string | null>(null);
+  const [selTratamiento, setSelTratamiento] = useState<TratamientoDB | null>(null);
+  const [selProducto, setSelProducto] = useState<ProductoDB | null>(null);
   const [form, setForm] = useState({
     fecha: new Date().toISOString().slice(0, 10),
-    clienteNombre: "",
-    categoria: CATEGORIAS_INGRESO[0],
     descripcion: "",
     monto: "",
     costo: "",
   });
   const [guardando, setGuardando] = useState(false);
   const [ok, setOk] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/tratamientos").then((r) => r.json()),
+      fetch("/api/inventario").then((r) => r.json()),
+    ]).then(([tratos, prods]) => {
+      setTratamientos(tratos);
+      setProductos(prods);
+      setCargandoCatalogo(false);
+    });
+  }, []);
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const elegirTratamiento = (id: string) => {
+    const t = tratamientos.find((x) => x.id === id) ?? null;
+    setSelTratamiento(t);
+    if (t) setForm((f) => ({ ...f, monto: String(t.precio), descripcion: t.nombre }));
+  };
+
+  const elegirProducto = (id: string) => {
+    const p = productos.find((x) => x.id === id) ?? null;
+    setSelProducto(p);
+    if (p) setForm((f) => ({ ...f, monto: String(p.precio_venta), costo: String(p.costo), descripcion: `${p.producto} — ${p.marca}` }));
+  };
 
   const cambiarTipo = (t: "tratamiento" | "producto") => {
     setTipo(t);
-    setForm((f) => ({ ...f, categoria: t === "tratamiento" ? CATEGORIAS_INGRESO[0] : CATEGORIAS_PRODUCTO[0] }));
+    setSelTratamiento(null);
+    setSelProducto(null);
+    setForm({ fecha: form.fecha, descripcion: "", monto: "", costo: "" });
   };
 
   const guardar = async (e: React.FormEvent) => {
     e.preventDefault();
     setGuardando(true);
-    await fetch("/api/movimientos", {
+    setError(null);
+
+    const res = await fetch("/api/movimientos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         fecha: form.fecha,
         tipo: tipo === "tratamiento" ? "ingreso" : "venta_producto",
-        categoria: form.categoria,
-        descripcion: form.descripcion || form.categoria,
+        categoria: tipo === "tratamiento" ? (selTratamiento?.nombre ?? "Tratamiento") : (selProducto?.producto ?? "Producto"),
+        descripcion: form.descripcion,
         monto: parseInt(form.monto),
         costo: form.costo ? parseInt(form.costo) : null,
         cliente_id: clienteId,
+        inventario_id: selProducto?.id ?? null,
       }),
     });
+
     setGuardando(false);
+    if (!res.ok) {
+      setError("No se pudo guardar. Revisá tu conexión.");
+      return;
+    }
     setOk(true);
+    setSelTratamiento(null);
+    setSelProducto(null);
     setForm((f) => ({ ...f, descripcion: "", monto: "", costo: "" }));
     setClienteId(null);
     setTimeout(() => setOk(false), 3000);
+    // Recargar inventario para actualizar stock
+    fetch("/api/inventario").then((r) => r.json()).then(setProductos);
     onGuardado();
   };
+
+  if (cargandoCatalogo) return <p className="text-center text-tinta-suave">Cargando catálogo…</p>;
 
   return (
     <div className="rounded-2xl border border-borde bg-white p-5">
@@ -258,71 +302,101 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
 
       {/* Tipo */}
       <div className="mb-4 flex gap-2">
-        <button
-          type="button"
-          onClick={() => cambiarTipo("tratamiento")}
-          className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${tipo === "tratamiento" ? "bg-vino text-white" : "border border-borde text-tinta-suave"}`}
-        >
-          Tratamiento (servicio)
+        <button type="button" onClick={() => cambiarTipo("tratamiento")}
+          className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${tipo === "tratamiento" ? "bg-vino text-white" : "border border-borde text-tinta-suave"}`}>
+          Tratamiento
         </button>
-        <button
-          type="button"
-          onClick={() => cambiarTipo("producto")}
-          className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${tipo === "producto" ? "bg-vino text-white" : "border border-borde text-tinta-suave"}`}
-        >
+        <button type="button" onClick={() => cambiarTipo("producto")}
+          className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${tipo === "producto" ? "bg-vino text-white" : "border border-borde text-tinta-suave"}`}>
           Producto (retail)
         </button>
       </div>
 
       <form onSubmit={guardar} className="space-y-3">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Fecha</span>
+          <input type="date" value={form.fecha} onChange={set("fecha")}
+            className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino" />
+        </label>
+
+        {/* Selector desde la DB */}
+        {tipo === "tratamiento" ? (
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Fecha</span>
-            <input type="date" value={form.fecha} onChange={set("fecha")}
-              className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino" />
+            <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Tratamiento *</span>
+            {tratamientos.length === 0 ? (
+              <p className="mt-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-700">
+                No tenés tratamientos cargados. Agregá uno desde la pestaña Tratamientos.
+              </p>
+            ) : (
+              <select
+                required
+                value={selTratamiento?.id ?? ""}
+                onChange={(e) => elegirTratamiento(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino"
+              >
+                <option value="" disabled>Seleccioná un tratamiento…</option>
+                {tratamientos.map((t) => (
+                  <option key={t.id} value={t.id}>{t.nombre} — ${t.precio.toLocaleString("es-AR")}</option>
+                ))}
+              </select>
+            )}
           </label>
+        ) : (
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Categoría</span>
-            <select value={form.categoria} onChange={set("categoria")}
-              className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino">
-              {(tipo === "tratamiento" ? CATEGORIAS_INGRESO : CATEGORIAS_PRODUCTO).map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
+            <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Producto *</span>
+            {productos.length === 0 ? (
+              <p className="mt-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-700">
+                No tenés productos en inventario. Agregá uno desde la pestaña Inventario.
+              </p>
+            ) : (
+              <select
+                required
+                value={selProducto?.id ?? ""}
+                onChange={(e) => elegirProducto(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino"
+              >
+                <option value="" disabled>Seleccioná un producto…</option>
+                {productos.map((p) => (
+                  <option key={p.id} value={p.id} disabled={p.cantidad === 0}>
+                    {p.producto} ({p.marca}) — ${p.precio_venta.toLocaleString("es-AR")} · Stock: {p.cantidad}
+                    {p.cantidad === 0 ? " ❌ Sin stock" : ""}
+                  </option>
+                ))}
+              </select>
+            )}
+            {selProducto && selProducto.cantidad <= 2 && selProducto.cantidad > 0 && (
+              <p className="mt-1 text-xs text-amber-600">⚠️ Quedan solo {selProducto.cantidad} unidades.</p>
+            )}
           </label>
-        </div>
+        )}
 
         <label className="block">
           <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Clienta (opcional)</span>
-          <BuscadorCliente
-            key={tipo}
-            onSeleccionar={(c) => { setClienteId(c?.id ?? null); }}
-          />
+          <BuscadorCliente key={tipo} onSeleccionar={(c) => setClienteId(c?.id ?? null)} />
         </label>
 
         <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Descripción</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Observaciones</span>
           <input type="text" value={form.descripcion} onChange={set("descripcion")}
-            placeholder={tipo === "tratamiento" ? "Ej: Limpieza profunda + vitamina C" : "Ej: Sérum La Roche-Posay 30ml"}
+            placeholder="Notas adicionales sobre esta venta…"
             className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino" />
         </label>
 
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block">
             <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Precio cobrado *</span>
-            <input type="number" min="0" required value={form.monto} onChange={set("monto")}
-              placeholder="28000"
+            <input type="number" min="0" required value={form.monto} onChange={set("monto")} placeholder="28000"
               className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino" />
           </label>
           <label className="block">
-            <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Costo de insumos (opcional)</span>
-            <input type="number" min="0" value={form.costo} onChange={set("costo")}
-              placeholder="3500"
+            <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Costo (opcional)</span>
+            <input type="number" min="0" value={form.costo} onChange={set("costo")} placeholder="3500"
               className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino" />
           </label>
         </div>
 
-        {ok && <p className="rounded-xl bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">✓ Venta registrada correctamente.</p>}
+        {ok && <p className="rounded-xl bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">✓ Venta registrada. {tipo === "producto" && selProducto ? `Stock de ${selProducto.producto} actualizado.` : ""}</p>}
+        {error && <p className="rounded-xl bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</p>}
 
         <button type="submit" disabled={guardando} className="boton-principal w-full disabled:opacity-60">
           {guardando ? "Guardando…" : "Registrar venta"}
