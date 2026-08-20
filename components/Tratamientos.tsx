@@ -15,14 +15,14 @@ export default function Tratamientos() {
   const pasos = agenda.pasosBase;
 
   return (
-    <section id="tratamientos" className="bg-crema-oscuro py-12 md:py-16">
+    <section id="tratamientos" className="bg-crema-oscuro py-12 md:py-16 xl:py-24">
       <div className="contenedor">
         <h2 className="text-center text-3xl font-semibold text-tinta sm:text-4xl">
           Tratamientos
         </h2>
 
         {/* Los pasos base se explican UNA sola vez */}
-        <div className="tarjeta mx-auto mt-6 max-w-3xl px-6 py-5">
+        <div className="tarjeta mx-auto mt-6 max-w-4xl px-6 py-5 xl:max-w-none">
           <h3 className="text-lg font-semibold text-tinta">
             Todos incluyen estos {pasos.length} pasos
           </h3>
@@ -42,7 +42,7 @@ export default function Tratamientos() {
 
         {/* Una tarjeta por tratamiento. En PC van de a dos para no
             obligar a scrollear de más. */}
-        <ul className="mx-auto mt-4 grid max-w-3xl gap-3 lg:grid-cols-2">
+        <ul className="mx-auto mt-4 grid max-w-5xl gap-3 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
           {tratamientos.map((t) => {
             const activo = tratamientoId === t.id;
 

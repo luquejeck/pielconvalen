@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { clienteNavegador } from "@/lib/supabase";
+import { usePathname } from "next/navigation";
 
 const SECCIONES = [
   { href: "/admin", texto: "Turnos" },
@@ -14,12 +13,11 @@ const SECCIONES = [
 
 export default function NavAdmin() {
   const pathname = usePathname();
-  const router = useRouter();
 
+  /** La cookie la escribe el servidor, asi que es el servidor quien la borra. */
   const salir = async () => {
-    await clienteNavegador().auth.signOut();
-    router.push("/admin/login");
-    router.refresh();
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.assign("/admin/login");
   };
 
   return (

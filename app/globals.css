@@ -87,6 +87,21 @@
     padding-inline: 1.25rem;
   }
 
+  /* En monitores grandes el contenido quedaba encerrado en una columna
+     angosta al medio, con margenes enormes a los lados. */
+  @media (min-width: 1280px) {
+    .contenedor {
+      max-width: 76rem;
+      padding-inline: 2.5rem;
+    }
+  }
+
+  @media (min-width: 1600px) {
+    .contenedor {
+      max-width: 84rem;
+    }
+  }
+
   /* Boton principal: alto generoso para que sea facil de tocar */
   .boton-principal {
     display: inline-flex;

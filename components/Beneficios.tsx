@@ -20,7 +20,7 @@ const BENEFICIOS = [
 
 export default function Beneficios() {
   return (
-    <section id="beneficios" className="bg-crema-oscuro py-14 md:py-20">
+    <section id="beneficios" className="bg-crema-oscuro py-14 md:py-20 xl:py-24">
       <div className="contenedor">
         <p className="text-center text-sm font-medium uppercase tracking-widest text-vino">
           Resultados

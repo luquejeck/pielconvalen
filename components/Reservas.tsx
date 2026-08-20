@@ -61,7 +61,7 @@ export default function Reservas() {
   };
 
   return (
-    <section id="reservar" className="relative isolate py-12 md:py-16">
+    <section id="reservar" className="relative isolate py-12 md:py-16 xl:py-24">
       <FondoImagen
         imagen="/imagenes/reservas.jpg"
         intensidad={55}
@@ -78,7 +78,7 @@ export default function Reservas() {
 
         {/* En celular es una sola columna en orden 1-2-3.
             En PC el resumen queda fijo al costado, siempre a la vista. */}
-        <div className="mx-auto mt-8 grid max-w-5xl items-start gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="mx-auto mt-8 grid max-w-5xl items-start gap-6 lg:grid-cols-[1.15fr_0.85fr] xl:max-w-none">
           <div>
             {/* ---------- Paso 1 ---------- */}
             <Paso numero={1} titulo="Elegí el tratamiento" />

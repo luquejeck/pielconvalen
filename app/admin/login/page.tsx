@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { LogoMarca } from "@/components/Logo";
-import { clienteNavegador, hayBaseDeDatos } from "@/lib/supabase";
+import { hayBaseDeDatos } from "@/lib/supabase";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,32 +17,25 @@ export default function Login() {
     setEntrando(true);
     setError(null);
 
-    const { error } = await clienteNavegador().auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password: clave,
+    /**
+     * La sesion se abre en el servidor, no aca. Escribir la cookie desde el
+     * navegador fallaba en celulares que restringen cookies: el ingreso
+     * andaba pero la sesion no sobrevivia y la pagina volvia al login.
+     */
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password: clave }),
     });
 
-    if (error) {
-      // Cada causa necesita una solucion distinta, asi que se distinguen.
-      const causa = error.message.toLowerCase();
-      if (causa.includes("not confirmed")) {
-        setError(
-          "La cuenta existe pero no está confirmada. Hay que activarla desde Supabase → Authentication → Users."
-        );
-      } else if (causa.includes("invalid login")) {
-        setError("Mail o contraseña incorrectos.");
-      } else {
-        setError(error.message);
-      }
+    if (!res.ok) {
+      const { error: mensaje } = await res.json().catch(() => ({ error: null }));
+      setError(mensaje ?? "No se pudo entrar. Probá de nuevo.");
       setEntrando(false);
       return;
     }
 
-    /**
-     * Navegacion real, no del router: asi el navegador manda la cookie de
-     * sesion recien escrita. Con router.push() la peticion puede salir antes
-     * de que la cookie exista y el proxy rebota de vuelta al login.
-     */
+    // Navegacion real para que el navegador mande la cookie recien recibida.
     window.location.assign("/admin");
   };
 
