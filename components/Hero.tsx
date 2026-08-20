@@ -11,7 +11,7 @@ export default function Hero() {
         velo="bg-linear-to-b from-crema/60 via-crema/78 to-crema"
       />
 
-      <div className="contenedor animar-entrada py-12 text-center md:py-16 xl:py-24">
+      <div className="contenedor animar-entrada py-12 text-center md:py-16 xl:py-20">
         <h1 className="text-4xl font-semibold text-tinta sm:text-5xl">
           {CONSULTORIO.profesional}
         </h1>

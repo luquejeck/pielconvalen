@@ -15,7 +15,7 @@ export default function Tratamientos() {
   const pasos = agenda.pasosBase;
 
   return (
-    <section id="tratamientos" className="bg-crema-oscuro py-12 md:py-16 xl:py-24">
+    <section id="tratamientos" className="bg-crema-oscuro py-12 md:py-16">
       <div className="contenedor">
         <h2 className="text-center text-3xl font-semibold text-tinta sm:text-4xl">
           Tratamientos

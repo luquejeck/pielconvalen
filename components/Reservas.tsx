@@ -61,7 +61,7 @@ export default function Reservas() {
   };
 
   return (
-    <section id="reservar" className="relative isolate py-12 md:py-16 xl:py-24">
+    <section id="reservar" className="relative isolate py-12 md:py-16 xl:py-20">
       <FondoImagen
         imagen="/imagenes/reservas.jpg"
         intensidad={55}
