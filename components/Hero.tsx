@@ -29,7 +29,7 @@ export default function Hero() {
           Reservar turno
         </a>
 
-        <ul className="mt-8 flex flex-col items-center gap-1.5 text-base text-tinta-suave sm:flex-row sm:justify-center sm:gap-6">
+        <ul className="mt-8 flex flex-col items-center gap-1.5 text-lg text-tinta-suave sm:flex-row sm:justify-center sm:gap-6">
           <li className="flex items-center gap-2">
             <IconoPin className="h-5 w-5 text-vino" />
             {CONSULTORIO.direccion}

@@ -95,7 +95,7 @@ export default function Reservas() {
                     type="button"
                     onClick={() => setTratamientoId(activo ? null : t.id)}
                     aria-pressed={activo}
-                    className={`flex min-h-13 items-center justify-between gap-3 rounded-2xl px-4 py-2.5 text-left text-base transition-colors ${
+                    className={`flex min-h-13 items-center justify-between gap-3 rounded-chico px-4 py-2.5 text-left text-lg transition-colors ${
                       activo
                         ? "bg-vino text-white"
                         : "border border-borde bg-white hover:border-vino"
@@ -114,7 +114,7 @@ export default function Reservas() {
             <Paso numero={2} titulo="Elegí el día y la hora" />
 
             {!tratamiento ? (
-              <div className="mt-3 rounded-2xl bg-crema-oscuro px-5 py-4">
+              <div className="mt-3 rounded-chico bg-crema-oscuro px-5 py-4">
                 <p className="text-lg text-tinta">
                   Primero elegí un tratamiento arriba.
                 </p>
@@ -154,7 +154,7 @@ export default function Reservas() {
               />
             ) : (
               <div className="mt-3 rounded-suave border border-borde bg-vino-suave px-5 py-5 shadow-suave">
-                <dl className="space-y-2 text-base">
+                <dl className="space-y-2 text-lg">
                   <Fila rotulo="Tratamiento" valor={tratamiento?.nombre} />
                   <Fila
                     rotulo="Día"
@@ -180,7 +180,7 @@ export default function Reservas() {
                   placeholder="Tu nombre (opcional)"
                   autoComplete="given-name"
                   aria-label="Tu nombre"
-                  className="mt-4 min-h-13 w-full rounded-2xl border border-borde bg-white px-4 text-base text-tinta outline-none transition-colors placeholder:text-tinta-suave/60 focus:border-vino"
+                  className="mt-4 min-h-13 w-full rounded-chico border border-borde bg-white px-4 text-lg text-tinta outline-none transition-colors placeholder:text-tinta-suave/60 focus:border-vino"
                 />
 
                 {completo ? (
@@ -195,7 +195,7 @@ export default function Reservas() {
                     Confirmar turno
                   </a>
                 ) : (
-                  <p className="mt-3 rounded-full bg-vino/12 px-6 py-3.5 text-center text-base text-tinta-suave">
+                  <p className="mt-3 rounded-full bg-vino/12 px-6 py-3.5 text-center text-lg text-tinta-suave">
                     Completá los pasos 1 y 2
                   </p>
                 )}
@@ -204,7 +204,7 @@ export default function Reservas() {
                   Queda confirmado cuando Valen te responde.
                 </p>
 
-                <p className="mt-4 border-t border-vino/15 pt-4 text-base leading-snug text-tinta-suave">
+                <p className="mt-4 border-t border-vino/15 pt-4 text-lg leading-snug text-tinta-suave">
                   {CONSULTORIO.comoVenir}
                 </p>
               </div>
@@ -238,9 +238,9 @@ function TurnoEnviado({
         Tu horario quedó reservado
       </h4>
 
-      <p className="mt-2 text-base leading-snug text-tinta">{detalle}</p>
+      <p className="mt-2 text-lg leading-snug text-tinta">{detalle}</p>
 
-      <p className="mt-3 text-base leading-snug text-tinta-suave">
+      <p className="mt-3 text-lg leading-snug text-tinta-suave">
         Ya nadie más puede tomarlo. Queda confirmado cuando Valen te responda el
         mensaje de WhatsApp.
       </p>
@@ -259,7 +259,7 @@ function TurnoEnviado({
         <button
           type="button"
           onClick={onEmpezarDeNuevo}
-          className="min-h-12 rounded-full border border-borde bg-white px-6 text-base text-tinta-suave transition-colors hover:border-vino hover:text-vino"
+          className="min-h-12 rounded-full border border-borde bg-white px-6 text-lg text-tinta-suave transition-colors hover:border-vino hover:text-vino"
         >
           Reservar otro turno
         </button>
@@ -271,7 +271,7 @@ function TurnoEnviado({
 function Paso({ numero, titulo }: { numero: number; titulo: string }) {
   return (
     <div className="mt-6 flex items-center gap-3 first:mt-0">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino text-base font-medium text-white">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino text-lg font-medium text-white">
         {numero}
       </span>
       <h3 className="text-xl font-semibold text-tinta">{titulo}</h3>

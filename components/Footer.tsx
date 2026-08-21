@@ -38,7 +38,7 @@ export default function Footer() {
                 y aca el fondo es tinta. Por eso va sobre una placa crema,
                 que ademas lo convierte en marca y no en un texto mas.
               */}
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-crema">
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-chico bg-crema">
                 <LogoMarca alto={24} />
               </span>
 
@@ -46,7 +46,7 @@ export default function Footer() {
                 <p className="text-2xl font-semibold tracking-tight">
                   {CONSULTORIO.nombre}
                 </p>
-                <p className="mt-0.5 text-base text-crema/55">
+                <p className="mt-0.5 text-lg text-crema/55">
                   {CONSULTORIO.profesional} · {CONSULTORIO.titulo}
                 </p>
               </div>
@@ -65,12 +65,12 @@ export default function Footer() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-4 rounded-2xl border border-crema/15 bg-crema/5 px-4 py-3.5 transition-colors hover:border-crema/35 hover:bg-crema/10"
+                  className="flex items-center gap-4 rounded-chico border border-crema/15 bg-crema/5 px-4 py-3.5 transition-colors hover:border-crema/35 hover:bg-crema/10"
                 >
                   <Icono className="h-5 w-5 shrink-0 text-crema/60" />
                   <span className="flex min-w-0 flex-col leading-tight">
                     <span className="text-sm text-crema/60">{titulo}</span>
-                    <span className="truncate text-base font-medium">
+                    <span className="truncate text-lg font-medium">
                       {detalle}
                     </span>
                   </span>
@@ -85,7 +85,7 @@ export default function Footer() {
           Barra inferior. El padding de abajo deja libre la esquina donde flota
           el boton de WhatsApp: sin el, tapa el acceso de Valen a su agenda.
         */}
-        <div className="mt-10 flex flex-col items-center gap-3 border-t border-crema/15 pt-5 pb-20 text-sm text-crema/40 sm:flex-row sm:justify-between sm:pb-0 sm:pr-44">
+        <div className="mt-10 flex flex-col items-center gap-3 border-t border-crema/15 pt-5 pb-20 text-sm text-crema/60 sm:flex-row sm:justify-between sm:pb-0 sm:pr-44">
           <p>
             © {new Date().getFullYear()} {CONSULTORIO.nombre} · Caballito, CABA
           </p>
@@ -93,7 +93,7 @@ export default function Footer() {
           {/* Acceso de Valen a su agenda: discreto, pero siempre a mano. */}
           <a
             href="/admin"
-            className="rounded-full border border-crema/20 px-4 py-2 transition-colors hover:border-crema/50 hover:text-crema/80"
+            className="rounded-full border border-crema/30 px-4 py-2 transition-colors hover:border-crema/50 hover:text-crema/80"
           >
             Acceso profesional
           </a>

@@ -99,7 +99,7 @@ export default function Consultorio() {
               sizes="100vw"
               className="aspect-16/9 w-full rounded-suave object-cover shadow-suave"
             />
-            <figcaption className="mt-3 text-center text-base text-tinta-suave">
+            <figcaption className="mt-3 text-center text-lg text-tinta-suave">
               El consultorio, en {CONSULTORIO.direccion.split(",")[1].trim()}
             </figcaption>
           </figure>

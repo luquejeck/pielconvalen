@@ -31,10 +31,15 @@
     var(--font-inter), "Segoe UI", system-ui, sans-serif;
   --font-admin: var(--font-montserrat), var(--font-inter), system-ui, sans-serif;
 
-  /* Apple usa esquinas grandes y consistentes: 12px en controles chicos,
-     ~24px en tarjetas, ~32px en bloques grandes. */
+  /*
+    DOS radios, no mas. Antes convivian tres (24 en las tarjetas nuevas,
+    16 en los chips, 14 en los campos del panel) y eran tres decisiones
+    para el mismo gesto.
+      chico  -> lo que se toca: campos, chips, botones cuadrados
+      suave  -> lo que contiene: tarjetas y bloques
+  */
+  --radius-chico: 0.875rem;
   --radius-suave: 1.5rem;
-  --radius-grande: 2rem;
 
   /* Sombras teñidas con la tinta (30 16 21), no con gris: sobre el crema
      un gris neutro se ve sucio.
@@ -42,8 +47,6 @@
      sombra amplia y muy suave, casi imperceptible de cerca. */
   --shadow-suave:
     0 1px 2px rgb(30 16 21 / 0.03), 0 12px 32px -12px rgb(30 16 21 / 0.1);
-  --shadow-elevada:
-    0 2px 4px rgb(30 16 21 / 0.04), 0 20px 48px -16px rgb(30 16 21 / 0.16);
   --shadow-boton: 0 6px 18px -8px rgb(30 16 21 / 0.45);
 }
 
@@ -147,6 +150,16 @@
   }
 
   /*
+    Variante para la barra superior. Mismo tipo y mismo peso que el boton
+    grande: antes el encabezado y el hero decian los dos "Reservar turno"
+    con dos tratamientos distintos, y se veian como dos cosas.
+  */
+  .boton-principal.compacto {
+    min-height: 3rem;
+    padding-inline: 1.5rem;
+  }
+
+  /*
     Tarjeta: blanco puro sobre el crema. Sin borde dibujado — lo que la
     despega del fondo es la sombra, como en las tarjetas de Apple. El
     borde de 1px las hacia ver como recuadros de formulario.
@@ -169,7 +182,7 @@
     border-radius: 9999px;
     background-color: var(--color-vino-suave);
     color: var(--color-vino);
-    font-size: 1.0625rem;
+    font-size: 1.125rem;
     font-weight: 600;
     transition:
       background-color 0.2s ease,

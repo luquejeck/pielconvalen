@@ -18,9 +18,15 @@ export default function Header() {
 
         <a
           href="#reservar"
-          className="shrink-0 whitespace-nowrap rounded-full bg-vino px-5 py-3 text-base font-medium text-crema transition-colors hover:bg-vino-oscuro sm:px-6"
+          className="boton-principal compacto shrink-0 whitespace-nowrap"
         >
-          Reservar<span className="hidden sm:inline"> turno</span>
+          {/*
+            Una etiqueta u otra, nunca partida en dos: el boton principal
+            separa sus hijos con un gap, y "Reservar" + " turno" quedaban
+            con doble espacio en el medio.
+          */}
+          <span className="sm:hidden">Reservar</span>
+          <span className="hidden sm:inline">Reservar turno</span>
         </a>
       </div>
     </header>

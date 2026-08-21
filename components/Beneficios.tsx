@@ -44,7 +44,7 @@ export default function Beneficios() {
                 <h3 className="text-xl font-semibold text-tinta sm:mt-5">
                   {titulo}
                 </h3>
-                <p className="mt-1 text-base leading-relaxed text-tinta-suave sm:mt-2">
+                <p className="mt-1 text-lg leading-relaxed text-tinta-suave sm:mt-2">
                   {texto}
                 </p>
               </div>
@@ -56,7 +56,7 @@ export default function Beneficios() {
           Las dos dudas que mas frenan a una clienta mayor: si su piel esta
           contemplada y si va a aguantar la camilla. Van juntas y cortas.
         */}
-        <p className="mx-auto mt-10 max-w-2xl text-center text-base leading-relaxed text-tinta-suave">
+        <p className="mx-auto mt-10 max-w-2xl text-center text-lg leading-relaxed text-tinta-suave">
           Cada tratamiento se adapta a tu piel, incluso si es{" "}
           <span className="font-medium text-tinta">
             madura, sensible o con rosácea

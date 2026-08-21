@@ -18,7 +18,7 @@ export default function GestionTurno() {
           <h3 className="text-xl font-semibold text-tinta">
             ¿Ya tenés un turno?
           </h3>
-          <p className="mt-1 text-base leading-snug text-tinta-suave">
+          <p className="mt-1 text-lg leading-snug text-tinta-suave">
             Avisá con al menos {agenda.anticipacionMinimaHs} horas para que el
             lugar lo pueda tomar otra persona.
           </p>
@@ -38,7 +38,7 @@ export default function GestionTurno() {
             href={linkCancelarTurno()}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex min-h-12 items-center justify-center rounded-full border border-borde bg-white px-6 text-base text-tinta-suave transition-colors hover:border-vino hover:text-vino"
+            className="flex min-h-12 items-center justify-center rounded-full border border-borde bg-white px-6 text-lg text-tinta-suave transition-colors hover:border-vino hover:text-vino"
           >
             Cancelar turno
           </a>

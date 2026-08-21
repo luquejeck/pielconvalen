@@ -203,7 +203,7 @@ export default function Calendario({
                   onClick={() => onCambio(fecha, turno.hora)}
                   aria-pressed={activo}
                   className={[
-                    "min-h-13 rounded-2xl text-base transition-colors",
+                    "min-h-13 rounded-chico text-lg transition-colors",
                     activo
                       ? "bg-vino font-semibold text-crema"
                       : libre

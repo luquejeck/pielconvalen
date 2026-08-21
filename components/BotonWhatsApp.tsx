@@ -23,7 +23,7 @@ export default function BotonWhatsApp() {
       className="fixed bottom-5 right-5 z-50 flex min-h-14 items-center justify-center gap-2.5 rounded-full bg-vino px-5 py-3.5 text-white ring-3 ring-white/85 shadow-xl shadow-tinta/25 transition-all hover:bg-vino-oscuro hover:scale-105 active:scale-95 md:px-6 md:py-4"
     >
       <IconoWhatsApp className="h-6 w-6" />
-      <span className="text-lg font-semibold md:text-base">
+      <span className="text-lg font-semibold">
         Escribile a Valen
       </span>
     </a>

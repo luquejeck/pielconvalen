@@ -68,10 +68,10 @@ export default function Tratamientos() {
                   />
                 )}
 
-                <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino-suave text-base font-semibold text-vino">
+                <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino-suave text-lg font-semibold text-vino">
                   {i + 1}
                 </span>
-                <span className="text-base leading-snug lg:text-[0.9375rem]">
+                <span className="text-lg leading-snug">
                   {paso}
                 </span>
               </li>
@@ -91,8 +91,8 @@ export default function Tratamientos() {
                 key={extra}
                 className="lg:border-l lg:border-borde lg:px-7 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
               >
-                <dt className="text-base font-semibold text-vino">{extra}</dt>
-                <dd className="mt-1.5 text-base leading-snug text-tinta-suave">
+                <dt className="text-lg font-semibold text-vino">{extra}</dt>
+                <dd className="mt-1.5 text-lg leading-snug text-tinta-suave">
                   {GLOSARIO[extra]}
                 </dd>
               </div>
@@ -113,7 +113,7 @@ export default function Tratamientos() {
                 }`}
               >
                 {esMasCompleto && (
-                  <span className="absolute right-5 top-5 rounded-full bg-vino px-3 py-1 text-xs font-semibold text-white">
+                  <span className="absolute right-5 top-5 rounded-full bg-vino px-3 py-1 text-sm font-semibold text-white">
                     El más completo
                   </span>
                 )}
@@ -134,7 +134,7 @@ export default function Tratamientos() {
                 </p>
 
                 <div className="mt-3 grow">
-                  <p className="text-base leading-snug text-tinta-suave">
+                  <p className="text-lg leading-snug text-tinta-suave">
                     {t.descripcion ? (
                       t.descripcion
                     ) : t.extras.length === 0 ? (
@@ -167,7 +167,7 @@ export default function Tratamientos() {
         </ul>
 
         {/* Debajo de los precios, que es donde aparece la duda */}
-        <p className="mt-6 text-center text-base text-tinta-suave">
+        <p className="mt-6 text-center text-lg text-tinta-suave">
           Se puede pagar con{" "}
           <span className="font-medium text-tinta">
             {CONSULTORIO.mediosDePago}
