@@ -58,7 +58,7 @@ export default function Consultorio() {
                 width={800}
                 height={600}
                 sizes="(min-width: 640px) 50vw, 100vw"
-                className="h-64 w-full object-cover sm:h-72"
+                className="aspect-4/3 w-full object-cover object-top"
               />
               <figcaption className="px-5 py-4 text-center text-base text-tinta-suave">
                 {epigrafe}
