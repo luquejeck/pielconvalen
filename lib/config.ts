@@ -5,6 +5,9 @@ export const CONSULTORIO = {
   nombre: "Piel con Valen",
   profesional: "Valentina Gallo",
   titulo: "Técnica UBA",
+  /** Siempre "UBA", nunca "Universidad de Buenos Aires": mas corto y es
+   *  como lo dice todo el mundo. */
+  carrera: "Tecnicatura Universitaria en Cosmetología Facial y Corporal",
   eslogan: "Tu piel es parte de tu salud",
   direccion: "Riglos 531, Caballito, CABA",
   mapsUrl: "https://maps.google.com/?q=Riglos+531+Caballito+CABA",
