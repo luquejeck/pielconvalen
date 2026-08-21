@@ -1,28 +1,56 @@
+import Adorno from "./Adorno";
+import { IconoBrillo, IconoGota, IconoHoja } from "./iconos";
+
 const BENEFICIOS = [
-  { titulo: "Piel más sana", texto: "Limpia, descongestionada y desinflamada." },
-  { titulo: "Piel más luminosa", texto: "Recupera el brillo natural." },
-  { titulo: "Piel más uniforme", texto: "Mejor textura, menos marcas y manchas." },
+  {
+    Icono: IconoHoja,
+    titulo: "Piel más sana",
+    texto: "Limpia, descongestionada y desinflamada.",
+  },
+  {
+    Icono: IconoBrillo,
+    titulo: "Piel más luminosa",
+    texto: "Recupera el brillo natural.",
+  },
+  {
+    Icono: IconoGota,
+    titulo: "Piel más uniforme",
+    texto: "Mejor textura, menos marcas y manchas.",
+  },
 ];
 
 export default function Beneficios() {
   return (
-    <section id="beneficios" className="bg-crema py-14 md:py-16">
+    <section
+      id="beneficios"
+      className="border-t border-borde bg-crema py-16 md:py-20 xl:py-24"
+    >
       <div className="contenedor">
         <h2 className="text-center text-3xl font-semibold text-tinta sm:text-4xl">
           Qué vas a notar
         </h2>
+        <Adorno className="mt-5" />
 
-        {/* Tres ideas, un renglon cada una. Lo que importa se lee de un vistazo. */}
-        <div className="mx-auto mt-8 grid max-w-4xl gap-4 sm:grid-cols-3">
-          {BENEFICIOS.map(({ titulo, texto }) => (
+        {/* Un icono por idea: la tarjeta se reconoce antes de leerla. */}
+        <div className="mx-auto mt-10 grid max-w-4xl gap-5 sm:grid-cols-3">
+          {BENEFICIOS.map(({ Icono, titulo, texto }) => (
+            /* En celular van apaisadas: apiladas y centradas ocupaban
+               tres pantallas para decir tres renglones. */
             <div
               key={titulo}
-              className="rounded-2xl border border-borde bg-white p-6 text-center shadow-suave"
+              className="tarjeta flex items-center gap-4 px-5 py-5 transition-shadow hover:shadow-lg hover:shadow-tinta/5 sm:flex-col sm:px-6 sm:py-8 sm:text-center"
             >
-              <h3 className="text-xl font-semibold text-tinta">{titulo}</h3>
-              <p className="mt-2 text-base leading-relaxed text-tinta-suave">
-                {texto}
-              </p>
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-vino-suave text-vino">
+                <Icono className="h-7 w-7" />
+              </span>
+              <div className="sm:contents">
+                <h3 className="text-xl font-semibold text-tinta sm:mt-5">
+                  {titulo}
+                </h3>
+                <p className="mt-1 text-base leading-relaxed text-tinta-suave sm:mt-2">
+                  {texto}
+                </p>
+              </div>
             </div>
           ))}
         </div>
@@ -31,7 +59,7 @@ export default function Beneficios() {
           Las dos dudas que mas frenan a una clienta mayor: si su piel esta
           contemplada y si va a aguantar la camilla. Van juntas y cortas.
         */}
-        <p className="mx-auto mt-6 max-w-3xl rounded-2xl border border-borde bg-crema-oscuro px-6 py-5 text-center text-base leading-relaxed text-tinta-suave">
+        <p className="mx-auto mt-8 max-w-3xl border-t border-borde pt-8 text-center text-base leading-relaxed text-tinta-suave">
           Cada tratamiento se adapta a tu piel, incluso si es{" "}
           <span className="font-medium text-tinta">
             madura, sensible o con rosácea

@@ -2,6 +2,7 @@
 
 import { GLOSARIO, esConsulta, formatearPrecio } from "@/lib/tratamientos";
 import { useReserva } from "./ReservaContext";
+import Adorno from "./Adorno";
 import { IconoCheck } from "./iconos";
 
 /** ["A", "B", "C"] -> "A, B y C" */
@@ -19,14 +20,18 @@ export default function Tratamientos() {
   ].filter((extra) => GLOSARIO[extra]);
 
   return (
-    <section id="tratamientos" className="bg-crema-oscuro py-12 md:py-16">
+    <section
+      id="tratamientos"
+      className="border-t border-borde bg-crema-oscuro py-16 md:py-20 xl:py-24"
+    >
       <div className="contenedor">
         <h2 className="text-center text-3xl font-semibold text-tinta sm:text-4xl">
           Tratamientos
         </h2>
+        <Adorno className="mt-5" />
 
         {/* Los pasos base se explican UNA sola vez */}
-        <div className="tarjeta mx-auto mt-6 max-w-4xl px-6 py-5 xl:max-w-none">
+        <div className="tarjeta mx-auto mt-10 max-w-4xl px-6 py-5 xl:max-w-none">
           <h3 className="text-lg font-semibold text-tinta">
             Todos incluyen estos {pasos.length} pasos
           </h3>

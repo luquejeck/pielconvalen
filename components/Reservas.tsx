@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Adorno from "./Adorno";
 import Calendario from "./Calendario";
 import FondoImagen from "./FondoImagen";
 import GestionTurno from "./GestionTurno";
@@ -61,7 +62,10 @@ export default function Reservas() {
   };
 
   return (
-    <section id="reservar" className="relative isolate py-12 md:py-16 xl:py-20">
+    <section
+      id="reservar"
+      className="relative isolate border-t border-borde py-16 md:py-20 xl:py-24"
+    >
       <FondoImagen
         imagen="/imagenes/reservas.jpg"
         intensidad={55}
@@ -72,13 +76,14 @@ export default function Reservas() {
         <h2 className="text-center text-3xl font-semibold text-tinta sm:text-4xl">
           Reservá tu turno
         </h2>
-        <p className="mt-2 text-center text-lg text-tinta-suave">
+        <Adorno className="mt-5" />
+        <p className="mt-5 text-center text-lg text-tinta-suave">
           Tres pasos. Al final se abre WhatsApp con el mensaje ya escrito.
         </p>
 
         {/* En celular es una sola columna en orden 1-2-3.
             En PC el resumen queda fijo al costado, siempre a la vista. */}
-        <div className="mx-auto mt-8 grid max-w-5xl items-start gap-6 lg:grid-cols-[1.15fr_0.85fr] xl:max-w-none">
+        <div className="mx-auto mt-10 grid max-w-5xl items-start gap-6 lg:grid-cols-[1.15fr_0.85fr] xl:max-w-none">
           <div>
             {/* ---------- Paso 1 ---------- */}
             <Paso numero={1} titulo="Elegí el tratamiento" />
