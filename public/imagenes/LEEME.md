@@ -8,6 +8,21 @@ Si un archivo no está, esa sección muestra el degradado y se ve bien igual.
 | `hero.jpg`   | detrás del nombre de Valen   | el consultorio, la camilla, textura de piel    |
 | `reservas.jpg` | detrás del calendario      | algo suave: toallas, frascos, luz natural      |
 
+## Fotos que se ven nítidas (no son fondo)
+
+Estas dos van en la sección "Quién te va a atender", sin desenfoque.
+**Si no están, la sección no aparece** y la web se ve bien igual; el día
+que las subas aparece sola, sin tocar código.
+
+| Archivo           | Qué conviene que muestre                                  |
+|-------------------|-----------------------------------------------------------|
+| `valen.jpg`       | Valen sonriendo, de frente, con buena luz                 |
+| `consultorio.jpg` | la camilla y el espacio, que se vea limpio y luminoso     |
+
+Acá sí importa la calidad: son las únicas fotos que se ven con detalle.
+Horizontales, 800 x 600 px o más, menos de 500 KB. Sacadas con el celular
+de día, cerca de una ventana, alcanza y sobra.
+
 ## Recomendaciones
 
 - **Formato:** .jpg (o .webp si querés que pese menos)

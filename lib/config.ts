@@ -12,6 +12,20 @@ export const CONSULTORIO = {
   whatsappVisible: "+54 9 11 2294-3672",
   instagram: "pielconvalen",
   instagramUrl: "https://instagram.com/pielconvalen",
+
+  /**
+   * Se avisan junto a los precios: nadie tiene que salir de su casa con
+   * $47.000 en la cartera por no saber si podia transferir.
+   * VALEN: confirmar que estos son los medios que aceptas.
+   */
+  mediosDePago: "Efectivo, transferencia o Mercado Pago",
+
+  /**
+   * La duda que nadie se anima a preguntar antes de un turno.
+   * VALEN: confirmar que desmaquillas vos en el consultorio.
+   */
+  comoVenir:
+    "Vení como estés: si venís maquillada, te desmaquillamos acá. No hace falta que llegues con la cara lavada.",
 } as const;
 
 export type Agenda = {

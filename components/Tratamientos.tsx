@@ -2,6 +2,7 @@
 
 import { GLOSARIO, esConsulta, formatearPrecio } from "@/lib/tratamientos";
 import { useReserva } from "./ReservaContext";
+import { CONSULTORIO } from "@/lib/config";
 import Adorno from "./Adorno";
 import { IconoCheck } from "./iconos";
 
@@ -121,6 +122,15 @@ export default function Tratamientos() {
             );
           })}
         </ul>
+
+        {/* Debajo de los precios, que es donde aparece la duda */}
+        <p className="mt-6 text-center text-base text-tinta-suave">
+          Se puede pagar con{" "}
+          <span className="font-medium text-tinta">
+            {CONSULTORIO.mediosDePago}
+          </span>
+          .
+        </p>
       </div>
     </section>
   );

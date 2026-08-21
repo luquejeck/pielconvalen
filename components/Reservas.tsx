@@ -7,6 +7,7 @@ import FondoImagen from "./FondoImagen";
 import GestionTurno from "./GestionTurno";
 import { useReserva } from "./ReservaContext";
 import { IconoCheck, IconoWhatsApp } from "./iconos";
+import { CONSULTORIO } from "@/lib/config";
 import { formatearFechaLarga } from "@/lib/fechas";
 import { CONSULTA, buscarTratamiento, esConsulta, formatearPrecio } from "@/lib/tratamientos";
 import { linkWhatsApp } from "@/lib/whatsapp";
@@ -204,6 +205,10 @@ export default function Reservas() {
 
                 <p className="mt-2.5 text-center text-sm text-tinta-suave">
                   Queda confirmado cuando Valen te responde.
+                </p>
+
+                <p className="mt-4 border-t border-vino/15 pt-4 text-base leading-snug text-tinta-suave">
+                  {CONSULTORIO.comoVenir}
                 </p>
               </div>
             )}

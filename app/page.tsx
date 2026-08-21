@@ -1,5 +1,6 @@
 import Beneficios from "@/components/Beneficios";
 import BotonWhatsApp from "@/components/BotonWhatsApp";
+import Consultorio from "@/components/Consultorio";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
@@ -70,6 +71,7 @@ export default async function Home() {
       <main>
         <Hero />
         <Beneficios />
+        <Consultorio />
         <Tratamientos />
         <Reservas />
       </main>
