@@ -53,12 +53,25 @@ export default function Consultorio() {
               Quién te va a atender
             </h2>
 
-            <p className="mt-5 text-xl leading-snug text-tinta">
-              {CONSULTORIO.profesional}, {CONSULTORIO.titulo}.
+            {/*
+              El nombre y el titulo, una sola vez cada uno. Antes decia
+              "Tecnica UBA" y abajo la carrera completa, que es lo mismo
+              dicho dos veces. Lo que se resalta es la UBA: es el dato que
+              decide a quien no la conoce.
+            */}
+            <p className="mt-6 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+              <span className="text-2xl font-semibold text-tinta">
+                {CONSULTORIO.profesional}
+              </span>
+              {/* Insignia y no texto corrido: colgaba sola al final del
+                  renglon y ahi no resaltaba nada. */}
+              <span className="rounded-full bg-vino-suave px-3 py-1 text-sm font-semibold text-vino">
+                UBA
+              </span>
             </p>
 
             <p className="mt-2 text-lg leading-snug text-tinta-suave">
-              {CONSULTORIO.carrera}, UBA.
+              {CONSULTORIO.carrera}
             </p>
 
             <p className="mt-5 text-lg leading-relaxed text-tinta-suave">
