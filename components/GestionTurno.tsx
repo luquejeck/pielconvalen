@@ -40,7 +40,7 @@ export default function GestionTurno() {
             rel="noopener noreferrer"
             className="flex min-h-12 items-center justify-center rounded-full border border-borde bg-white px-6 text-base text-tinta-suave transition-colors hover:border-vino hover:text-vino"
           >
-            Cancelar
+            Cancelar turno
           </a>
         </div>
       </div>
