@@ -4,7 +4,6 @@ import { GLOSARIO, esConsulta, formatearPrecio } from "@/lib/tratamientos";
 import { useReserva } from "./ReservaContext";
 import { CONSULTORIO } from "@/lib/config";
 import Adorno from "./Adorno";
-import { IconoCheck } from "./iconos";
 
 /** ["A", "B", "C"] -> "A, B y C" */
 const unir = (items: string[]) =>
@@ -31,39 +30,48 @@ export default function Tratamientos() {
         </h2>
         <Adorno className="mt-5" />
 
-        {/* Los pasos base se explican UNA sola vez */}
-        <div className="tarjeta mx-auto mt-10 max-w-4xl px-6 py-5 xl:max-w-none">
-          <h3 className="text-lg font-semibold text-tinta">
+        {/*
+          Los pasos base se explican UNA sola vez. Van numerados porque son
+          una secuencia, no una lista suelta: se lee el orden en que pasan
+          las cosas sobre la camilla.
+        */}
+        <div className="tarjeta mx-auto mt-10 max-w-4xl px-6 py-7 sm:px-8 xl:max-w-none">
+          <h3 className="text-center text-lg font-semibold text-tinta">
             Todos incluyen estos {pasos.length} pasos
           </h3>
-          <ul className="mt-3 grid gap-x-6 gap-y-1.5 sm:grid-cols-2 lg:grid-cols-3">
-            {pasos.map((paso) => (
-              <li key={paso} className="flex items-start gap-2 text-base">
-                <IconoCheck className="mt-1.5 h-3.5 w-3.5 shrink-0 text-vino" />
-                <span>{paso}</span>
+          <ol className="mt-6 grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+            {pasos.map((paso, i) => (
+              <li key={paso} className="flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino-suave text-base font-semibold text-vino">
+                  {i + 1}
+                </span>
+                <span className="text-base leading-snug">{paso}</span>
               </li>
             ))}
-          </ul>
+          </ol>
         </div>
 
         {/* Los nombres tecnicos se explican UNA sola vez, igual que los pasos.
             Repetirlos en cada tarjeta llenaba la pantalla de letra chica. */}
-        <div className="tarjeta mx-auto mt-3 max-w-4xl px-6 py-5 xl:max-w-none">
-          <h3 className="text-lg font-semibold text-tinta">
+        <div className="tarjeta mx-auto mt-4 max-w-4xl px-6 py-7 sm:px-8 xl:max-w-none">
+          <h3 className="text-center text-lg font-semibold text-tinta">
             Lo que se suma en algunos
           </h3>
-          <ul className="mt-3 grid gap-x-6 gap-y-2 lg:grid-cols-3">
+          <dl className="mt-6 grid gap-6 lg:grid-cols-3 lg:gap-0">
             {extrasDelCatalogo.map((extra) => (
-              <li key={extra} className="text-base leading-snug text-tinta-suave">
-                <span className="font-medium text-tinta">{extra}:</span>{" "}
-                {GLOSARIO[extra]}
-              </li>
+              <div
+                key={extra}
+                className="lg:border-l lg:border-borde lg:px-7 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
+              >
+                <dt className="text-base font-semibold text-vino">{extra}</dt>
+                <dd className="mt-1.5 text-base leading-snug text-tinta-suave">
+                  {GLOSARIO[extra]}
+                </dd>
+              </div>
             ))}
-          </ul>
+          </dl>
         </div>
 
-        {/* Una tarjeta por tratamiento. En PC van de a dos para no
-            obligar a scrollear de más. */}
         <ul className="mx-auto mt-6 grid max-w-5xl gap-3 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
           {tratamientos.map((t) => {
             const activo = tratamientoId === t.id;
