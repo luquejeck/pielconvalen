@@ -29,7 +29,7 @@ export default function GestionTurno() {
             href={linkMoverTurno()}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex min-h-12 items-center justify-center rounded-full border border-vino px-6 text-base font-medium text-vino transition-colors hover:bg-vino hover:text-white"
+            className="boton-suave"
           >
             Cambiar de día
           </a>

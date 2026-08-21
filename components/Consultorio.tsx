@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import Image from "next/image";
 import { CONSULTORIO } from "@/lib/config";
-import Adorno from "./Adorno";
+import TituloSeccion from "./TituloSeccion";
 
 /**
  * Cara de Valen y foto del lugar.
@@ -43,13 +43,10 @@ export default function Consultorio() {
       className="border-t border-borde bg-crema py-16 md:py-20 xl:py-24"
     >
       <div className="contenedor">
-        <h2 className="text-center text-3xl font-semibold text-tinta sm:text-4xl">
-          Quién te va a atender
-        </h2>
-        <Adorno className="mt-5" />
+        <TituloSeccion titulo="Quién te va a atender" />
 
         <div
-          className={`mx-auto mt-10 grid max-w-4xl gap-5 ${
+          className={`mx-auto mt-14 grid max-w-4xl gap-5 ${
             fotos.length > 1 ? "sm:grid-cols-2" : "max-w-xl"
           }`}
         >

@@ -3,7 +3,7 @@
 import { GLOSARIO, esConsulta, formatearPrecio } from "@/lib/tratamientos";
 import { useReserva } from "./ReservaContext";
 import { CONSULTORIO } from "@/lib/config";
-import Adorno from "./Adorno";
+import TituloSeccion from "./TituloSeccion";
 
 /** ["A", "B", "C"] -> "A, B y C" */
 const unir = (items: string[]) =>
@@ -25,17 +25,17 @@ export default function Tratamientos() {
       className="border-t border-borde bg-crema-oscuro py-16 md:py-20 xl:py-24"
     >
       <div className="contenedor">
-        <h2 className="text-center text-3xl font-semibold text-tinta sm:text-4xl">
-          Tratamientos
-        </h2>
-        <Adorno className="mt-5" />
+        <TituloSeccion
+          titulo="Tratamientos"
+          bajada="Todos parten de la misma limpieza profunda. La diferencia es lo que se le suma."
+        />
 
         {/*
           Los pasos base se explican UNA sola vez. Van numerados porque son
           una secuencia, no una lista suelta: se lee el orden en que pasan
           las cosas sobre la camilla.
         */}
-        <div className="tarjeta mx-auto mt-10 max-w-4xl px-6 py-7 sm:px-8 xl:max-w-none">
+        <div className="tarjeta mx-auto mt-14 max-w-4xl px-6 py-8 sm:px-8 xl:max-w-none">
           <h3 className="text-center text-lg font-semibold text-tinta">
             Todos incluyen estos {pasos.length} pasos
           </h3>
@@ -53,7 +53,7 @@ export default function Tratamientos() {
 
         {/* Los nombres tecnicos se explican UNA sola vez, igual que los pasos.
             Repetirlos en cada tarjeta llenaba la pantalla de letra chica. */}
-        <div className="tarjeta mx-auto mt-4 max-w-4xl px-6 py-7 sm:px-8 xl:max-w-none">
+        <div className="tarjeta mx-auto mt-4 max-w-4xl px-6 py-8 sm:px-8 xl:max-w-none">
           <h3 className="text-center text-lg font-semibold text-tinta">
             Lo que se suma en algunos
           </h3>
@@ -79,8 +79,8 @@ export default function Tratamientos() {
             return (
               <li
                 key={t.id}
-                className={`tarjeta flex flex-col px-5 py-4 transition-colors ${
-                  activo ? "border-vino bg-vino-suave" : ""
+                className={`tarjeta flex flex-col px-6 py-6 transition-shadow ${
+                  activo ? "ring-2 ring-vino" : ""
                 }`}
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4">
@@ -114,10 +114,8 @@ export default function Tratamientos() {
                 <button
                   type="button"
                   onClick={() => elegirYReservar(t.id)}
-                  className={`mt-3 min-h-12 w-full rounded-full px-6 text-base font-medium transition-colors ${
-                    activo
-                      ? "bg-vino text-crema"
-                      : "border border-vino text-vino hover:bg-vino hover:text-crema"
+                  className={`mt-5 w-full ${
+                    activo ? "boton-principal" : "boton-suave"
                   }`}
                 >
                   {activo

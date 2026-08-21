@@ -12,24 +12,24 @@ export default function Hero() {
       />
 
       <div className="contenedor animar-entrada py-16 text-center md:py-20 xl:py-24">
-        <h1 className="text-4xl font-semibold text-tinta sm:text-5xl">
+        <h1 className="text-5xl font-semibold text-tinta sm:text-6xl xl:text-7xl">
           {CONSULTORIO.profesional}
         </h1>
 
-        <p className="mt-2 text-lg text-vino sm:text-xl">
+        <p className="mt-4 text-lg font-medium text-vino sm:text-xl">
           Cosmetóloga · {CONSULTORIO.titulo}
         </p>
 
-        <p className="mx-auto mt-5 max-w-xl text-2xl leading-tight text-tinta sm:text-3xl">
+        <p className="mx-auto mt-6 max-w-2xl text-2xl leading-tight text-tinta-suave sm:text-3xl">
           {CONSULTORIO.eslogan}
         </p>
 
 
-        <a href="#reservar" className="boton-principal mt-7">
+        <a href="#reservar" className="boton-principal mt-9">
           Reservar turno
         </a>
 
-        <ul className="mt-6 flex flex-col items-center gap-1.5 text-base text-tinta-suave sm:flex-row sm:justify-center sm:gap-6">
+        <ul className="mt-8 flex flex-col items-center gap-1.5 text-base text-tinta-suave sm:flex-row sm:justify-center sm:gap-6">
           <li className="flex items-center gap-2">
             <IconoPin className="h-5 w-5 text-vino" />
             {CONSULTORIO.direccion}

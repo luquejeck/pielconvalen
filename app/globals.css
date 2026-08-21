@@ -31,12 +31,19 @@
     var(--font-inter), "Segoe UI", system-ui, sans-serif;
   --font-admin: var(--font-montserrat), var(--font-inter), system-ui, sans-serif;
 
-  --radius-suave: 1.25rem;
+  /* Apple usa esquinas grandes y consistentes: 12px en controles chicos,
+     ~24px en tarjetas, ~32px en bloques grandes. */
+  --radius-suave: 1.5rem;
+  --radius-grande: 2rem;
 
   /* Sombras teñidas con la tinta (30 16 21), no con gris: sobre el crema
-     un gris neutro se ve sucio. */
+     un gris neutro se ve sucio.
+     Apple no dibuja el borde de la tarjeta: la despega del fondo con una
+     sombra amplia y muy suave, casi imperceptible de cerca. */
   --shadow-suave:
-    0 1px 2px rgb(30 16 21 / 0.04), 0 10px 30px -18px rgb(30 16 21 / 0.2);
+    0 1px 2px rgb(30 16 21 / 0.03), 0 12px 32px -12px rgb(30 16 21 / 0.1);
+  --shadow-elevada:
+    0 2px 4px rgb(30 16 21 / 0.04), 0 20px 48px -16px rgb(30 16 21 / 0.16);
   --shadow-boton: 0 6px 18px -8px rgb(30 16 21 / 0.45);
 }
 
@@ -57,11 +64,21 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /*
+    La escala de Apple: el titulo pesa mucho mas que el resto y el aire lo
+    separa, en vez de adornos. Cuanto mas grande el texto, mas apretado el
+    tracking y mas corto el interlineado.
+  */
   h1,
   h2,
   h3 {
-    letter-spacing: -0.022em;
-    line-height: 1.1;
+    letter-spacing: -0.028em;
+    line-height: 1.05;
+  }
+
+  h3 {
+    letter-spacing: -0.02em;
+    line-height: 1.15;
   }
 
   section[id] {
@@ -114,7 +131,7 @@
     background-color: var(--color-vino);
     color: #fff;
     font-size: 1.125rem;
-    font-weight: 500;
+    font-weight: 600;
     box-shadow: var(--shadow-boton);
     transition:
       background-color 0.2s ease,
@@ -129,12 +146,42 @@
     transform: scale(0.985);
   }
 
-  /* Tarjeta: blanco puro sobre el crema, para que se despegue del fondo */
+  /*
+    Tarjeta: blanco puro sobre el crema. Sin borde dibujado — lo que la
+    despega del fondo es la sombra, como en las tarjetas de Apple. El
+    borde de 1px las hacia ver como recuadros de formulario.
+  */
   .tarjeta {
     background-color: #fff;
-    border: 1px solid var(--color-borde);
     border-radius: var(--radius-suave);
     box-shadow: var(--shadow-suave);
+  }
+
+  /* Boton secundario: relleno tenue en vez de contorno, como los botones
+     claros de Apple. El contorno de 1px competia con el boton principal. */
+  .boton-suave {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding-inline: 1.5rem;
+    border-radius: 9999px;
+    background-color: var(--color-vino-suave);
+    color: var(--color-vino);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    transition:
+      background-color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .boton-suave:hover {
+    background-color: color-mix(in srgb, var(--color-vino) 18%, #fff);
+  }
+
+  .boton-suave:active {
+    transform: scale(0.985);
   }
 }
 

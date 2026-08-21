@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Adorno from "./Adorno";
+import TituloSeccion from "./TituloSeccion";
 import Calendario from "./Calendario";
 import FondoImagen from "./FondoImagen";
 import GestionTurno from "./GestionTurno";
@@ -74,17 +74,14 @@ export default function Reservas() {
       />
 
       <div className="contenedor">
-        <h2 className="text-center text-3xl font-semibold text-tinta sm:text-4xl">
-          Reservá tu turno
-        </h2>
-        <Adorno className="mt-5" />
-        <p className="mt-5 text-center text-lg text-tinta-suave">
-          Tres pasos. Al final se abre WhatsApp con el mensaje ya escrito.
-        </p>
+        <TituloSeccion
+          titulo="Reservá tu turno"
+          bajada="Tres pasos. Al final se abre WhatsApp con el mensaje ya escrito."
+        />
 
         {/* En celular es una sola columna en orden 1-2-3.
             En PC el resumen queda fijo al costado, siempre a la vista. */}
-        <div className="mx-auto mt-10 grid max-w-5xl items-start gap-6 lg:grid-cols-[1.15fr_0.85fr] xl:max-w-none">
+        <div className="mx-auto mt-14 grid max-w-5xl items-start gap-6 lg:grid-cols-[1.15fr_0.85fr] xl:max-w-none">
           <div>
             {/* ---------- Paso 1 ---------- */}
             <Paso numero={1} titulo="Elegí el tratamiento" />
@@ -125,7 +122,7 @@ export default function Reservas() {
                 <button
                   type="button"
                   onClick={() => setTratamientoId(CONSULTA.id)}
-                  className="mt-3 min-h-12 w-full rounded-full border border-vino px-6 text-base font-medium text-vino transition-colors hover:bg-vino hover:text-white"
+                  className="boton-suave mt-4 w-full bg-white"
                 >
                   O que Valen me recomiende
                 </button>
@@ -253,7 +250,7 @@ function TurnoEnviado({
           href={enlace}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-vino px-6 text-base font-medium text-vino transition-colors hover:bg-vino hover:text-white"
+          className="boton-suave w-full"
         >
           <IconoWhatsApp className="h-5 w-5" />
           Abrir WhatsApp de nuevo

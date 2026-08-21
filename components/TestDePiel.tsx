@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Adorno from "./Adorno";
+import TituloSeccion from "./TituloSeccion";
 import { IconoCheck, IconoWhatsApp } from "./iconos";
 import {
   PREGUNTAS,
@@ -42,16 +42,13 @@ export default function TestDePiel({
   return (
     <section className="border-t border-borde bg-crema py-16 md:py-20 xl:py-24">
       <div className="contenedor">
-        <h1 className="text-center text-3xl font-semibold text-tinta sm:text-4xl">
-          ¿Cuál me conviene?
-        </h1>
-        <Adorno className="mt-5" />
-        <p className="mx-auto mt-5 max-w-xl text-center text-lg text-tinta-suave">
-          Cinco preguntas cortas y te decimos por cuál empezar. No reemplaza
-          que Valen te vea la piel.
-        </p>
+        <TituloSeccion
+          como="h1"
+          titulo="¿Cuál me conviene?"
+          bajada="Cinco preguntas cortas y te decimos por cuál empezar. No reemplaza que Valen te vea la piel."
+        />
 
-        <div className="tarjeta mx-auto mt-10 max-w-2xl px-6 py-8 sm:px-10">
+        <div className="tarjeta mx-auto mt-14 max-w-2xl px-6 py-8 sm:px-10">
           {terminado ? (
             <Resultado
               respuestas={respuestas}
@@ -165,7 +162,7 @@ function Resultado({
 
         <a
           href="/#reservar"
-          className="flex min-h-12 items-center justify-center rounded-full border border-vino px-6 text-base font-medium text-vino transition-colors hover:bg-vino hover:text-white"
+          className="boton-suave w-full"
         >
           Reservar día y hora
         </a>
