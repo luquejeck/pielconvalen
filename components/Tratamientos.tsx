@@ -47,13 +47,33 @@ export default function Tratamientos() {
           <h3 className="text-center text-lg font-semibold text-tinta">
             Todos incluyen estos {pasos.length} pasos
           </h3>
-          <ol className="mx-auto mt-6 grid max-w-2xl gap-x-10 gap-y-4 sm:grid-cols-2 lg:max-w-3xl">
+          {/*
+            En pantalla ancha los siete van en una sola fila, unidos por
+            una linea: se ve de un saque que es un recorrido de principio
+            a fin. Apilados al medio dejaban media tarjeta vacia a los
+            costados. En celular vuelven a ser una lista, que es como se
+            lee comodo en una columna angosta.
+          */}
+          <ol className="mt-8 grid gap-x-4 gap-y-5 sm:grid-cols-2 lg:grid-cols-7">
             {pasos.map((paso, i) => (
-              <li key={paso} className="flex items-center gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino-suave text-base font-semibold text-vino">
+              <li
+                key={paso}
+                className="relative flex items-center gap-3 lg:flex-col lg:items-center lg:gap-3 lg:text-center"
+              >
+                {/* Tramo de linea que une este paso con el anterior */}
+                {i > 0 && (
+                  <span
+                    aria-hidden
+                    className="absolute right-1/2 top-4 hidden h-px w-full bg-borde lg:block"
+                  />
+                )}
+
+                <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino-suave text-base font-semibold text-vino">
                   {i + 1}
                 </span>
-                <span className="text-base leading-snug">{paso}</span>
+                <span className="text-base leading-snug lg:text-[0.9375rem]">
+                  {paso}
+                </span>
               </li>
             ))}
           </ol>
