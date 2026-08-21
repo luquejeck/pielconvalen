@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { obtenerAgenda, obtenerTratamientos } from "@/lib/catalogo";
+import { obtenerAgenda, obtenerTratamientosPublicos } from "@/lib/catalogo";
 import { buscarTratamiento } from "@/lib/tratamientos";
 import { hayBaseDeDatos } from "@/lib/supabase";
 import { clienteServidor } from "@/lib/supabase-servidor";
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
   const [agenda, tratamientos] = await Promise.all([
     obtenerAgenda(),
-    obtenerTratamientos(),
+    obtenerTratamientosPublicos(),
   ]);
   const tratamiento = buscarTratamiento(tratamientos, tratamientoId ?? null);
 

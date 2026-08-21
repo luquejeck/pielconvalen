@@ -1,6 +1,6 @@
 "use client";
 
-import { formatearPrecio } from "@/lib/tratamientos";
+import { GLOSARIO, esConsulta, formatearPrecio } from "@/lib/tratamientos";
 import { useReserva } from "./ReservaContext";
 import { IconoCheck } from "./iconos";
 
@@ -13,6 +13,10 @@ const unir = (items: string[]) =>
 export default function Tratamientos() {
   const { tratamientos, agenda, tratamientoId, elegirYReservar } = useReserva();
   const pasos = agenda.pasosBase;
+
+  const extrasDelCatalogo = [
+    ...new Set(tratamientos.flatMap((t) => t.extras)),
+  ].filter((extra) => GLOSARIO[extra]);
 
   return (
     <section id="tratamientos" className="bg-crema-oscuro py-12 md:py-16">
@@ -36,13 +40,25 @@ export default function Tratamientos() {
           </ul>
         </div>
 
-        <p className="mt-8 text-center text-lg text-tinta-suave">
-          La diferencia entre uno y otro es lo que se suma:
-        </p>
+        {/* Los nombres tecnicos se explican UNA sola vez, igual que los pasos.
+            Repetirlos en cada tarjeta llenaba la pantalla de letra chica. */}
+        <div className="tarjeta mx-auto mt-3 max-w-4xl px-6 py-5 xl:max-w-none">
+          <h3 className="text-lg font-semibold text-tinta">
+            Lo que se suma en algunos
+          </h3>
+          <ul className="mt-3 grid gap-x-6 gap-y-2 lg:grid-cols-3">
+            {extrasDelCatalogo.map((extra) => (
+              <li key={extra} className="text-base leading-snug text-tinta-suave">
+                <span className="font-medium text-tinta">{extra}:</span>{" "}
+                {GLOSARIO[extra]}
+              </li>
+            ))}
+          </ul>
+        </div>
 
         {/* Una tarjeta por tratamiento. En PC van de a dos para no
             obligar a scrollear de más. */}
-        <ul className="mx-auto mt-4 grid max-w-5xl gap-3 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
+        <ul className="mx-auto mt-6 grid max-w-5xl gap-3 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
           {tratamientos.map((t) => {
             const activo = tratamientoId === t.id;
 
@@ -62,19 +78,24 @@ export default function Tratamientos() {
                   </p>
                 </div>
 
-                <p className="mt-1 grow text-base leading-snug text-tinta-suave">
-                  {t.extras.length === 0 ? (
-                    `Los ${pasos.length} pasos base.`
-                  ) : (
-                    <>
-                      Los {pasos.length} pasos base{" "}
-                      <span className="text-tinta">+ {unir(t.extras)}</span>.
-                    </>
-                  )}
-                  {t.destacado && (
-                    <span className="ml-1 text-vino">El más completo.</span>
-                  )}
-                </p>
+                <div className="mt-1 grow">
+                  <p className="text-base leading-snug text-tinta-suave">
+                    {t.descripcion ? (
+                      t.descripcion
+                    ) : t.extras.length === 0 ? (
+                      `Los ${pasos.length} pasos base.`
+                    ) : (
+                      <>
+                        Los {pasos.length} pasos base{" "}
+                        <span className="text-tinta">+ {unir(t.extras)}</span>.
+                      </>
+                    )}
+                    {t.destacado && (
+                      <span className="ml-1 text-vino">El más completo.</span>
+                    )}
+                  </p>
+
+                </div>
 
                 <button
                   type="button"
@@ -85,7 +106,11 @@ export default function Tratamientos() {
                       : "border border-vino text-vino hover:bg-vino hover:text-crema"
                   }`}
                 >
-                  {activo ? "Elegido ✓" : "Reservar este"}
+                  {activo
+                    ? "Elegido ✓"
+                    : esConsulta(t)
+                      ? "Pedir la consulta"
+                      : "Reservar este"}
                 </button>
               </li>
             );

@@ -4,6 +4,7 @@ import { AGENDA_POR_DEFECTO, type Agenda } from "./config";
 import { hayBaseDeDatos } from "./supabase";
 import { clienteServidor } from "./supabase-servidor";
 import {
+  CONSULTA,
   TRATAMIENTOS_POR_DEFECTO,
   type Tratamiento,
 } from "./tratamientos";
@@ -44,6 +45,16 @@ export async function obtenerTratamientos(): Promise<Tratamiento[]> {
     extras: t.extras ?? [],
     destacado: t.destacado,
   }));
+}
+
+/**
+ * Lo que ve la clienta: el catalogo mas la consulta de evaluacion.
+ * La consulta no vive en la base (no es algo que Valen edite), es una
+ * opcion fija para que nadie se quede sin reservar por no saber que
+ * tratamiento elegir. El panel de admin usa `obtenerTratamientos`.
+ */
+export async function obtenerTratamientosPublicos(): Promise<Tratamiento[]> {
+  return [...(await obtenerTratamientos()), CONSULTA];
 }
 
 type FilaAgenda = {

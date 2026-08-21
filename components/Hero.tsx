@@ -24,9 +24,6 @@ export default function Hero() {
           {CONSULTORIO.eslogan}
         </p>
 
-        <p className="mx-auto mt-3 max-w-md text-lg leading-snug text-tinta-suave">
-          Tratamientos faciales personalizados en Caballito.
-        </p>
 
         <a href="#reservar" className="boton-principal mt-7">
           Reservar turno

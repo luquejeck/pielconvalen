@@ -7,7 +7,7 @@ import GestionTurno from "./GestionTurno";
 import { useReserva } from "./ReservaContext";
 import { IconoCheck, IconoWhatsApp } from "./iconos";
 import { formatearFechaLarga } from "@/lib/fechas";
-import { buscarTratamiento, formatearPrecio } from "@/lib/tratamientos";
+import { CONSULTA, buscarTratamiento, esConsulta, formatearPrecio } from "@/lib/tratamientos";
 import { linkWhatsApp } from "@/lib/whatsapp";
 
 export default function Reservas() {
@@ -111,9 +111,19 @@ export default function Reservas() {
             <Paso numero={2} titulo="Elegí el día y la hora" />
 
             {!tratamiento ? (
-              <p className="mt-3 rounded-2xl bg-crema-oscuro px-5 py-4 text-lg text-tinta">
-                Primero elegí un tratamiento arriba.
-              </p>
+              <div className="mt-3 rounded-2xl bg-crema-oscuro px-5 py-4">
+                <p className="text-lg text-tinta">
+                  Primero elegí un tratamiento arriba.
+                </p>
+                {/* Para no obligar a subir y bajar la pantalla */}
+                <button
+                  type="button"
+                  onClick={() => setTratamientoId(CONSULTA.id)}
+                  className="mt-3 min-h-12 w-full rounded-full border border-vino px-6 text-base font-medium text-vino transition-colors hover:bg-vino hover:text-white"
+                >
+                  O que Valen me recomiende
+                </button>
+              </div>
             ) : (
               <div className="tarjeta mt-3 p-4 sm:p-5">
                 <Calendario
@@ -151,7 +161,11 @@ export default function Reservas() {
                   <Fila
                     rotulo="Precio"
                     valor={
-                      tratamiento ? formatearPrecio(tratamiento.precio) : null
+                      tratamiento
+                        ? esConsulta(tratamiento)
+                          ? "Se define en el momento"
+                          : formatearPrecio(tratamiento.precio)
+                        : null
                     }
                   />
                 </dl>

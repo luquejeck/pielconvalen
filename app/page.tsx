@@ -6,7 +6,7 @@ import Hero from "@/components/Hero";
 import { ReservaProvider } from "@/components/ReservaContext";
 import Reservas from "@/components/Reservas";
 import Tratamientos from "@/components/Tratamientos";
-import { obtenerAgenda, obtenerTratamientos } from "@/lib/catalogo";
+import { obtenerAgenda, obtenerTratamientosPublicos } from "@/lib/catalogo";
 import { CONSULTORIO } from "@/lib/config";
 
 const DIAS_SCHEMA = [
@@ -23,7 +23,7 @@ export default async function Home() {
   // Precios, tratamientos y horarios salen de la base: lo que Valen
   // edita en el panel se ve en la web sin tocar el codigo.
   const [tratamientos, agenda] = await Promise.all([
-    obtenerTratamientos(),
+    obtenerTratamientosPublicos(),
     obtenerAgenda(),
   ]);
 
@@ -49,12 +49,15 @@ export default async function Home() {
       opens: agenda.horarios[0],
       closes: "20:00",
     })),
-    makesOffer: tratamientos.map((t) => ({
-      "@type": "Offer",
-      name: t.nombre,
-      price: t.precio,
-      priceCurrency: "ARS",
-    })),
+    // La consulta de evaluacion no lleva precio: no va como oferta.
+    makesOffer: tratamientos
+      .filter((t) => t.precio > 0)
+      .map((t) => ({
+        "@type": "Offer",
+        name: t.nombre,
+        price: t.precio,
+        priceCurrency: "ARS",
+      })),
   };
 
   return (

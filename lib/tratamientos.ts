@@ -7,7 +7,38 @@ export type Tratamiento = {
   /** Lo que suma por encima de los pasos base. Vacio = solo los pasos base. */
   extras: string[];
   destacado?: boolean;
+  /** Texto propio para las opciones que no son un tratamiento del catalogo. */
+  descripcion?: string;
 };
+
+/**
+ * Los nombres tecnicos no le dicen nada a quien no esta en el tema.
+ * Cada extra se explica en un renglon, en castellano de todos los dias.
+ */
+export const GLOSARIO: Record<string, string> = {
+  "Ácidos": "una mascarilla que renueva la piel de a poco, sin lastimarla",
+  Dermaplaning:
+    "se pasa una hojita estéril que saca el vello finito y la piel muerta; no duele ni pincha",
+  Microneedling:
+    "microestimulaciones que despiertan el colágeno; se usa crema anestésica y no sangra",
+};
+
+/**
+ * Opcion para quien no sabe que necesita: saca el turno igual y Valen
+ * le recomienda el tratamiento en el momento, mirandole la piel.
+ */
+export const CONSULTA: Tratamiento = {
+  id: "consulta",
+  nombre: "Consulta y Evaluación Facial",
+  nombreCorto: "No sé cuál elegir",
+  precio: 0,
+  duracion: "1.5 a 2 horas",
+  extras: [],
+  descripcion:
+    "Valen te mira la piel y te recomienda el tratamiento en el momento. Reservás el turno igual y el precio se define ahí, sin compromiso.",
+};
+
+export const esConsulta = (t: Tratamiento) => t.id === CONSULTA.id;
 
 /**
  * Valores de arranque. La fuente real es la tabla `tratamientos` de la
@@ -59,11 +90,13 @@ export const TRATAMIENTOS_POR_DEFECTO: Tratamiento[] = [
 ];
 
 export const formatearPrecio = (precio: number) =>
-  new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    maximumFractionDigits: 0,
-  }).format(precio);
+  precio === 0
+    ? "A convenir"
+    : new Intl.NumberFormat("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        maximumFractionDigits: 0,
+      }).format(precio);
 
 export const buscarTratamiento = (
   lista: Tratamiento[],

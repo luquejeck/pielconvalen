@@ -1,6 +1,6 @@
 import { CONSULTORIO } from "./config";
 import { formatearFechaLarga } from "./fechas";
-import { formatearPrecio, type Tratamiento } from "./tratamientos";
+import { esConsulta, formatearPrecio, type Tratamiento } from "./tratamientos";
 
 /**
  * Deja un telefono en el formato que espera wa.me: 549 + area + numero.
