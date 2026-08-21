@@ -4,12 +4,24 @@ import { GLOSARIO, esConsulta, formatearPrecio } from "@/lib/tratamientos";
 import { useReserva } from "./ReservaContext";
 import { CONSULTORIO } from "@/lib/config";
 import TituloSeccion from "./TituloSeccion";
+import { IconoAgujas, IconoGota, IconoHoja, IconoHojilla } from "./iconos";
 
 /** ["A", "B", "C"] -> "A, B y C" */
 const unir = (items: string[]) =>
   new Intl.ListFormat("es-AR", { style: "long", type: "conjunction" }).format(
     items
   );
+
+/**
+ * Un icono por extra. La clave es el nombre del extra tal como viene del
+ * catalogo; si Valen agrega uno nuevo, la tarjeta sale igual pero sin
+ * icono, que es preferible a un icono que no signifique nada.
+ */
+const ICONOS: Record<string, (p: { className?: string }) => React.ReactElement> = {
+  "Ácidos": IconoGota,
+  Dermaplaning: IconoHojilla,
+  Microneedling: IconoAgujas,
+};
 
 export default function Tratamientos() {
   const { tratamientos, agenda, tratamientoId, elegirYReservar } = useReserva();
@@ -30,8 +42,20 @@ export default function Tratamientos() {
   return (
     <section
       id="tratamientos"
-      className="border-t border-borde bg-crema-oscuro py-16 md:py-20 xl:py-24"
+      className="relative isolate overflow-hidden border-t border-borde bg-crema-oscuro py-16 md:py-20 xl:py-24"
     >
+      {/* Botanica de fondo: apenas visible, solo para que el bloque no sea
+          una sucesion de rectangulos. Decorativa, fuera del arbol de
+          accesibilidad, y se esconde en celular donde solo haria ruido. */}
+      <IconoHoja
+        aria-hidden
+        className="pointer-events-none absolute -left-10 top-12 -z-10 hidden h-56 w-56 -rotate-12 text-vino/6 lg:block"
+      />
+      <IconoHoja
+        aria-hidden
+        className="pointer-events-none absolute -right-12 bottom-16 -z-10 hidden h-64 w-64 rotate-[160deg] text-vino/6 lg:block"
+      />
+
       <div className="contenedor">
         <TituloSeccion
           titulo="Tratamientos"
@@ -59,26 +83,32 @@ export default function Tratamientos() {
           </ol>
         </div>
 
-        {/* Los nombres tecnicos se explican UNA sola vez, igual que los pasos.
-            Repetirlos en cada tarjeta llenaba la pantalla de letra chica. */}
-        <div className="tarjeta mx-auto mt-4 max-w-4xl px-6 py-8 sm:px-8 xl:max-w-none">
-          <h3 className="text-center text-lg font-semibold text-tinta">
-            Lo que se suma en algunos
-          </h3>
-          <dl className="mt-6 grid gap-6 lg:grid-cols-3 lg:gap-0">
-            {extrasDelCatalogo.map((extra) => (
-              <div
-                key={extra}
-                className="lg:border-l lg:border-borde lg:px-7 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
-              >
-                <dt className="text-base font-semibold text-vino">{extra}</dt>
-                <dd className="mt-1.5 text-base leading-snug text-tinta-suave">
+        {/* Los nombres tecnicos se explican UNA sola vez, igual que los
+            pasos. Cada uno en su tarjeta y con su icono: separados se
+            reconocen de un vistazo, antes de leerlos. */}
+        <h3 className="mt-12 text-center text-lg font-semibold text-tinta">
+          Lo que se suma en algunos
+        </h3>
+
+        <ul className="mx-auto mt-5 grid max-w-4xl gap-4 sm:grid-cols-3 xl:max-w-none">
+          {extrasDelCatalogo.map((extra) => {
+            const Icono = ICONOS[extra];
+
+            return (
+              <li key={extra} className="tarjeta px-6 py-6">
+                {Icono && (
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-vino-suave text-vino">
+                    <Icono className="h-6 w-6" />
+                  </span>
+                )}
+                <h4 className="mt-4 text-lg font-semibold text-vino">{extra}</h4>
+                <p className="mt-1.5 text-base leading-snug text-tinta-suave">
                   {GLOSARIO[extra]}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
+                </p>
+              </li>
+            );
+          })}
+        </ul>
 
         <ul className="mx-auto mt-6 grid max-w-5xl gap-3 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
           {tratamientos.map((t) => {
