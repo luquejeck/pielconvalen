@@ -19,6 +19,14 @@ export default function Tratamientos() {
     ...new Set(tratamientos.flatMap((t) => t.extras)),
   ].filter((extra) => GLOSARIO[extra]);
 
+  /*
+    "El mas completo" se calcula: es el que suma mas extras. Antes salia
+    de la marca `destacado` de la base, y con dos tratamientos marcados
+    la etiqueta aparecia tambien sobre la higiene mas simple, que es
+    justo lo contrario de lo que dice.
+  */
+  const maxExtras = Math.max(...tratamientos.map((t) => t.extras.length));
+
   return (
     <section
       id="tratamientos"
@@ -39,7 +47,7 @@ export default function Tratamientos() {
           <h3 className="text-center text-lg font-semibold text-tinta">
             Todos incluyen estos {pasos.length} pasos
           </h3>
-          <ol className="mt-6 grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+          <ol className="mx-auto mt-6 grid max-w-2xl gap-x-10 gap-y-4 sm:grid-cols-2 lg:max-w-3xl">
             {pasos.map((paso, i) => (
               <li key={paso} className="flex items-center gap-3">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino-suave text-base font-semibold text-vino">
@@ -75,24 +83,37 @@ export default function Tratamientos() {
         <ul className="mx-auto mt-6 grid max-w-5xl gap-3 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
           {tratamientos.map((t) => {
             const activo = tratamientoId === t.id;
+            const esMasCompleto = maxExtras > 0 && t.extras.length === maxExtras;
 
             return (
               <li
                 key={t.id}
-                className={`tarjeta flex flex-col px-6 py-6 transition-shadow ${
+                className={`tarjeta relative flex flex-col px-6 py-6 transition-shadow ${
                   activo ? "ring-2 ring-vino" : ""
                 }`}
               >
-                <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-                  <h3 className="text-xl font-semibold text-tinta">
-                    {t.nombre}
-                  </h3>
-                  <p className="text-xl font-semibold whitespace-nowrap text-vino">
-                    {formatearPrecio(t.precio)}
-                  </p>
-                </div>
+                {esMasCompleto && (
+                  <span className="absolute right-5 top-5 rounded-full bg-vino px-3 py-1 text-xs font-semibold text-white">
+                    El más completo
+                  </span>
+                )}
 
-                <div className="mt-1 grow">
+                {/* Nombre arriba y precio debajo, siempre. Cuando iban en
+                    la misma linea, los nombres largos empujaban el precio
+                    al renglon siguiente y cada tarjeta quedaba distinta. */}
+                <h3
+                  className={`text-xl font-semibold text-tinta ${
+                    esMasCompleto ? "pr-28" : ""
+                  }`}
+                >
+                  {t.nombre}
+                </h3>
+
+                <p className="mt-2 text-2xl font-semibold text-vino">
+                  {formatearPrecio(t.precio)}
+                </p>
+
+                <div className="mt-3 grow">
                   <p className="text-base leading-snug text-tinta-suave">
                     {t.descripcion ? (
                       t.descripcion
@@ -104,11 +125,7 @@ export default function Tratamientos() {
                         <span className="text-tinta">+ {unir(t.extras)}</span>.
                       </>
                     )}
-                    {t.destacado && (
-                      <span className="ml-1 text-vino">El más completo.</span>
-                    )}
                   </p>
-
                 </div>
 
                 <button
