@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function Admin() {
   if (!hayBaseDeDatos) {
     return (
-      <main className="mx-auto max-w-md px-5 py-20 text-center">
+      <main className="pantalla-admin mx-auto max-w-md px-5 py-20 text-center">
         <h1 className="text-2xl font-semibold text-tinta">
           Panel no configurado
         </h1>
@@ -33,7 +33,7 @@ export default async function Admin() {
   ]);
 
   return (
-    <main className="mx-auto max-w-2xl px-5 py-10">
+    <main className="pantalla-admin mx-auto max-w-2xl px-5 py-10">
       <NavAdmin />
       <PanelAdmin tratamientos={tratamientos} agenda={agenda} />
     </main>

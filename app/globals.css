@@ -208,3 +208,69 @@
     animation: none;
   }
 }
+
+/* ==================================================================
+   PANEL DE VALEN
+   Va sin @layer a proposito: las reglas sin capa ganan sobre las
+   utilidades de Tailwind, y asi los 2700 renglones del panel toman el
+   estilo nuevo sin tener que reescribir clase por clase.
+
+   El criterio es el de los formularios de Apple: el campo es una
+   superficie rellena y sin borde, y al enfocarlo se aclara y aparece
+   el aro de color. El recuadro con borde de 1px ya no se usa.
+   ================================================================== */
+.pantalla-admin {
+  font-family: var(--font-admin);
+}
+
+.pantalla-admin input:not([type="checkbox"]):not([type="radio"]),
+.pantalla-admin select,
+.pantalla-admin textarea {
+  border: 1px solid transparent;
+  border-radius: 0.875rem;
+  background-color: var(--color-crema-oscuro);
+  color: var(--color-tinta);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.pantalla-admin input:not([type="checkbox"]):not([type="radio"]):focus,
+.pantalla-admin select:focus,
+.pantalla-admin textarea:focus {
+  background-color: #fff;
+  border-color: var(--color-vino);
+  outline: none;
+}
+
+/* Control segmentado: la pestaña activa es una pastilla blanca elevada
+   sobre un riel hundido. Es el patron de las tabs de Apple. */
+.segmentado {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 9999px;
+  background-color: var(--color-crema-oscuro);
+}
+
+.segmentado a {
+  border-radius: 9999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-tinta-suave);
+  white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.segmentado a:hover {
+  color: var(--color-vino);
+}
+
+.segmentado a[data-activo="true"] {
+  background-color: #fff;
+  color: var(--color-vino);
+  box-shadow: 0 1px 3px rgb(30 16 21 / 0.12);
+}

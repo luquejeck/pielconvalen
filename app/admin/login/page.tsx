@@ -40,7 +40,7 @@ export default function Login() {
   };
 
   return (
-    <main className="flex min-h-dvh items-center justify-center px-5 py-16">
+    <main className="pantalla-admin flex min-h-dvh items-center justify-center px-5 py-16">
       <form
         onSubmit={entrar}
         className="w-full max-w-sm rounded-suave border border-borde bg-white p-8"
@@ -52,7 +52,7 @@ export default function Login() {
           ← Volver al sitio
         </a>
         <LogoMarca alto={34} className="mb-5" />
-        <h1 className="text-2xl font-semibold text-tinta">Agenda de Valen</h1>
+        <h1 className="text-3xl font-semibold text-tinta">Agenda de Valen</h1>
         <p className="mt-2 text-base text-tinta-suave">
           Ingresá para gestionar los turnos.
         </p>
@@ -65,7 +65,7 @@ export default function Login() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            className="mt-2 min-h-13 w-full rounded-2xl border border-borde px-4 text-lg outline-none focus:border-vino"
+            className="mt-2 min-h-13 w-full px-4 text-lg"
           />
         </label>
 
@@ -77,7 +77,7 @@ export default function Login() {
             onChange={(e) => setClave(e.target.value)}
             required
             autoComplete="current-password"
-            className="mt-2 min-h-13 w-full rounded-2xl border border-borde px-4 text-lg outline-none focus:border-vino"
+            className="mt-2 min-h-13 w-full px-4 text-lg"
           />
         </label>
 
@@ -101,7 +101,7 @@ export default function Login() {
 
 function SinConfigurar() {
   return (
-    <main className="mx-auto max-w-md px-5 py-20 text-center">
+    <main className="pantalla-admin mx-auto max-w-md px-5 py-20 text-center">
       <h1 className="text-2xl font-semibold text-tinta">Panel no configurado</h1>
       <p className="mt-4 text-lg text-tinta-suave">
         Falta conectar la base de datos. Cargá{" "}

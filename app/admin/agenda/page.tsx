@@ -13,7 +13,7 @@ export default async function AdminAgenda() {
   const agenda = await obtenerAgenda();
 
   return (
-    <main className="mx-auto max-w-2xl px-5 py-10">
+    <main className="pantalla-admin mx-auto max-w-2xl px-5 py-10">
       <NavAdmin />
       <EditorAgenda agenda={agenda} />
     </main>
