@@ -77,26 +77,3 @@ export function IconoHoja({ className = "h-6 w-6" }: Props) {
     </svg>
   );
 }
-
-/** Dermaplaning: la hojita en angulo, sin filo dibujado para no asustar. */
-export function IconoHojilla({ className = "h-6 w-6" }: Props) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" className={className} aria-hidden="true">
-      <path d="M3.5 15.5 13 6a3 3 0 0 1 4.2 0l1.3 1.3a3 3 0 0 1 0 4.2l-9.5 9.5H3.5v-5.5z" strokeLinejoin="round" />
-      <path d="M12.5 7.5 17 12" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-/** Microneedling: los puntitos que trabajan sobre la superficie. */
-export function IconoAgujas({ className = "h-6 w-6" }: Props) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" className={className} aria-hidden="true">
-      <path d="M4 17.5h16" strokeLinecap="round" />
-      <path d="M7 13.5v-6M12 13.5v-8M17 13.5v-6" strokeLinecap="round" />
-      <circle cx="7" cy="5.5" r="1.1" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="3.5" r="1.1" fill="currentColor" stroke="none" />
-      <circle cx="17" cy="5.5" r="1.1" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
