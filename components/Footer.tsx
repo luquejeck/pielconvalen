@@ -1,4 +1,5 @@
 import { CONSULTORIO } from "@/lib/config";
+import { LogoMarca } from "./Logo";
 import { linkWhatsAppSimple } from "@/lib/whatsapp";
 import { IconoFlecha, IconoInstagram, IconoPin, IconoWhatsApp } from "./iconos";
 
@@ -30,13 +31,28 @@ export default function Footer() {
         <div className="grid gap-8 md:grid-cols-2 md:items-center md:gap-12">
           {/* Identidad */}
           <div>
-            <p className="text-2xl font-semibold tracking-tight">
-              {CONSULTORIO.nombre}
-            </p>
-            <p className="mt-1 text-base text-crema/55">
-              {CONSULTORIO.profesional} · {CONSULTORIO.titulo}
-            </p>
-            <p className="mt-5 max-w-xs text-xl leading-snug text-crema/85">
+            <div className="flex items-center gap-4">
+              {/*
+                El logo es un JPG con fondo blanco que se integra con
+                mix-blend-multiply: eso solo funciona sobre fondos claros,
+                y aca el fondo es tinta. Por eso va sobre una placa crema,
+                que ademas lo convierte en marca y no en un texto mas.
+              */}
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-crema">
+                <LogoMarca alto={24} />
+              </span>
+
+              <div className="min-w-0">
+                <p className="text-2xl font-semibold tracking-tight">
+                  {CONSULTORIO.nombre}
+                </p>
+                <p className="mt-0.5 text-base text-crema/55">
+                  {CONSULTORIO.profesional} · {CONSULTORIO.titulo}
+                </p>
+              </div>
+            </div>
+
+            <p className="mt-6 max-w-xs text-xl leading-snug text-crema/85">
               {CONSULTORIO.eslogan}
             </p>
           </div>
