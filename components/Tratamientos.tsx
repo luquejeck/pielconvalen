@@ -5,12 +5,6 @@ import { useReserva } from "./ReservaContext";
 import { CONSULTORIO } from "@/lib/config";
 import TituloSeccion from "./TituloSeccion";
 
-/** ["A", "B", "C"] -> "A, B y C" */
-const unir = (items: string[]) =>
-  new Intl.ListFormat("es-AR", { style: "long", type: "conjunction" }).format(
-    items
-  );
-
 export default function Tratamientos() {
   const { tratamientos, agenda, tratamientoId, elegirYReservar } = useReserva();
   const pasos = agenda.pasosBase;
@@ -26,6 +20,8 @@ export default function Tratamientos() {
     justo lo contrario de lo que dice.
   */
   const maxExtras = Math.max(...tratamientos.map((t) => t.extras.length));
+
+  const consulta = tratamientos.find(esConsulta);
 
   return (
     <section
@@ -101,16 +97,21 @@ export default function Tratamientos() {
         </div>
 
         <ul className="mx-auto mt-6 grid max-w-5xl gap-3 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
-          {tratamientos.map((t) => {
+          {tratamientos.filter((t) => !esConsulta(t)).map((t) => {
             const activo = tratamientoId === t.id;
             const esMasCompleto = maxExtras > 0 && t.extras.length === maxExtras;
 
             return (
               <li
                 key={t.id}
+                /*
+                  El mas completo ocupa dos columnas: cierra la grilla, que
+                  con cinco tarjetas dejaba un hueco, y de paso el que mas
+                  suma es el que mas espacio ocupa.
+                */
                 className={`tarjeta relative flex flex-col px-6 py-6 transition-shadow ${
-                  activo ? "ring-2 ring-vino" : ""
-                }`}
+                  esMasCompleto ? "sm:col-span-2 xl:col-span-2" : ""
+                } ${activo ? "ring-2 ring-vino" : ""}`}
               >
                 {esMasCompleto && (
                   <span className="absolute right-5 top-5 rounded-full bg-vino px-3 py-1 text-sm font-semibold text-white">
@@ -133,19 +134,34 @@ export default function Tratamientos() {
                   {formatearPrecio(t.precio)}
                 </p>
 
-                <div className="mt-3 grow">
-                  <p className="text-lg leading-snug text-tinta-suave">
-                    {t.descripcion ? (
-                      t.descripcion
-                    ) : t.extras.length === 0 ? (
-                      `Los ${pasos.length} pasos base.`
-                    ) : (
-                      <>
-                        Los {pasos.length} pasos base{" "}
-                        <span className="text-tinta">+ {unir(t.extras)}</span>.
-                      </>
-                    )}
-                  </p>
+                {/*
+                  Lo que suma, en fichas y no en una frase. Los seis
+                  decian "Los 7 pasos base + ..." y de lejos se leian
+                  todos iguales; asi se ve de un vistazo que cada uno
+                  agrega una ficha mas que el anterior.
+                */}
+                <div className="mt-4 grow">
+                  {t.extras.length === 0 ? (
+                    <p className="text-lg leading-snug text-tinta-suave">
+                      Los {pasos.length} pasos base, completos.
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-sm font-medium uppercase tracking-wide text-tinta-suave">
+                        Suma
+                      </p>
+                      <ul className="mt-2 flex flex-wrap gap-1.5">
+                        {t.extras.map((extra) => (
+                          <li
+                            key={extra}
+                            className="rounded-full bg-vino-suave px-3 py-1 text-base font-medium text-vino"
+                          >
+                            {extra}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
                 </div>
 
                 <button
@@ -155,16 +171,41 @@ export default function Tratamientos() {
                     activo ? "boton-principal" : "boton-suave"
                   }`}
                 >
-                  {activo
-                    ? "Elegido ✓"
-                    : esConsulta(t)
-                      ? "Pedir la consulta"
-                      : "Reservar este"}
+                  {activo ? "Elegido ✓" : "Reservar este"}
                 </button>
               </li>
             );
           })}
         </ul>
+
+        {/*
+          La consulta va aparte y con otro fondo: no es un tratamiento
+          mas de la lista, es la salida para quien no sabe cual elegir.
+          Metida entre las otras seis, pasaba desapercibida justo para
+          quien mas la necesita.
+        */}
+        {consulta && (
+          <div className="mx-auto mt-3 max-w-5xl rounded-suave bg-vino-suave px-6 py-6 sm:px-8 xl:max-w-none">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-xl font-semibold text-tinta">
+                  ¿No sabés cuál elegir?
+                </h3>
+                <p className="mt-1.5 max-w-xl text-lg leading-snug text-tinta-suave">
+                  {consulta.descripcion}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => elegirYReservar(consulta.id)}
+                className="boton-principal shrink-0 whitespace-nowrap"
+              >
+                Pedir la consulta
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Debajo de los precios, que es donde aparece la duda */}
         <p className="mt-6 text-center text-lg text-tinta-suave">
