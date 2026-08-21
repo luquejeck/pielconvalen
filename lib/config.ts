@@ -19,7 +19,7 @@ export const CONSULTORIO = {
   /**
    * Se avisan junto a los precios: nadie tiene que salir de su casa con
    * $47.000 en la cartera por no saber si podia transferir.
-   * VALEN: confirmar que estos son los medios que aceptas.
+   * Confirmado con Valen el 21/08/2026.
    */
   mediosDePago: "Efectivo, transferencia o Mercado Pago",
 
