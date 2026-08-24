@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import Image from "next/image";
 import { CONSULTORIO } from "@/lib/config";
+import { IconoPin } from "./iconos";
 
 /**
  * Cara de Valen y datos de quien atiende.
@@ -85,6 +86,42 @@ export default function Consultorio() {
             >
               Reservar turno
             </a>
+
+            {/*
+              Donde queda, con el mismo peso que el resto. La direccion
+              sola no ubica a nadie: el punto de referencia y el transporte
+              son lo que hace que una persona se anime a salir de la casa.
+              Cada dato aparece solo si esta cargado en config.
+            */}
+            <div className="mt-8 rounded-suave bg-crema-oscuro px-5 py-5 text-left sm:px-6">
+              <h3 className="text-lg font-semibold text-tinta">Dónde queda</h3>
+
+              <p className="mt-2 text-lg leading-snug text-tinta">
+                {CONSULTORIO.direccion}
+              </p>
+
+              {CONSULTORIO.referencia && (
+                <p className="mt-1.5 text-lg leading-snug text-tinta-suave">
+                  {CONSULTORIO.referencia}
+                </p>
+              )}
+
+              {CONSULTORIO.transporte && (
+                <p className="mt-1.5 text-lg leading-snug text-tinta-suave">
+                  {CONSULTORIO.transporte}
+                </p>
+              )}
+
+              <a
+                href={CONSULTORIO.mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="boton-suave mt-4 w-full bg-white sm:w-auto sm:px-7"
+              >
+                <IconoPin className="h-5 w-5" />
+                Ver en el mapa
+              </a>
+            </div>
           </div>
         </div>
 

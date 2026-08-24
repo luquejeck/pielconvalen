@@ -20,7 +20,8 @@ export default function GestionTurno() {
           </h3>
           <p className="mt-1 text-lg leading-snug text-tinta-suave">
             Avisá con al menos {agenda.anticipacionMinimaHs} horas para que el
-            lugar lo pueda tomar otra persona.
+            lugar lo pueda tomar otra persona. Los dos botones abren WhatsApp
+            con el mensaje escrito.
           </p>
         </div>
 

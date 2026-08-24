@@ -147,8 +147,8 @@ export default function Tratamientos() {
                     </p>
                   ) : (
                     <>
-                      <p className="text-sm font-medium uppercase tracking-wide text-tinta-suave">
-                        Suma
+                      <p className="text-lg leading-snug text-tinta-suave">
+                        Suma:
                       </p>
                       <ul className="mt-2 flex flex-wrap gap-1.5">
                         {t.extras.map((extra) => (

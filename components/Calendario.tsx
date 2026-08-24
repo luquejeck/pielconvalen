@@ -137,7 +137,7 @@ export default function Calendario({
       </div>
 
       {/* Dias de la semana */}
-      <div className="mt-4 grid grid-cols-7 gap-1.5 text-center text-sm text-tinta-suave">
+      <div className="mt-4 grid grid-cols-7 gap-1.5 text-center text-lg font-medium text-tinta-suave">
         {DIAS_SEMANA.map((d) => (
           <span key={d}>{d}</span>
         ))}
@@ -163,12 +163,12 @@ export default function Calendario({
                 disponible ? "" : ", sin turnos"
               }`}
               className={[
-                "flex aspect-square items-center justify-center rounded-xl text-lg transition-colors",
+                "flex aspect-square items-center justify-center rounded-chico text-lg transition-colors",
                 seleccionado
                   ? "bg-vino font-semibold text-crema"
                   : disponible
-                    ? "border border-vino/40 bg-white text-tinta hover:bg-vino-suave"
-                    : "text-tinta-suave/30",
+                    ? "border-2 border-vino/55 bg-white font-medium text-tinta hover:bg-vino-suave"
+                    : "text-tinta-suave/45",
               ].join(" ")}
             >
               {dia.getDate()}
@@ -177,17 +177,17 @@ export default function Calendario({
         })}
       </div>
 
-      <p className="mt-3 text-sm leading-snug text-tinta-suave">
+      <p className="mt-4 text-lg leading-snug text-tinta-suave">
         {cargando
           ? "Buscando turnos disponibles…"
-          : "Los días con borde tienen turnos libres. Tocá uno para ver los horarios."}
+          : "Tocá un día con recuadro para ver los horarios de ese día."}
       </p>
 
       {/* Horarios */}
       {fecha && (
         <div className="animar-entrada mt-5 border-t border-borde pt-4">
           <p className="text-lg font-medium text-tinta">
-            Horarios del {formatearFechaLarga(fecha)}
+            Tocá el horario que quieras · {formatearFechaLarga(fecha)}
           </p>
 
           <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
@@ -203,12 +203,12 @@ export default function Calendario({
                   onClick={() => onCambio(fecha, turno.hora)}
                   aria-pressed={activo}
                   className={[
-                    "min-h-13 rounded-chico text-lg transition-colors",
+                    "min-h-14 rounded-chico text-lg transition-colors",
                     activo
                       ? "bg-vino font-semibold text-crema"
                       : libre
-                        ? "border border-vino/40 bg-white text-tinta hover:bg-vino-suave"
-                        : "bg-crema-oscuro text-tinta-suave/50",
+                        ? "border-2 border-vino/55 bg-white font-medium text-tinta hover:bg-vino-suave"
+                        : "bg-crema-oscuro text-tinta-suave/60",
                   ].join(" ")}
                 >
                   {turno.hora}

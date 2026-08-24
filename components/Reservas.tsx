@@ -22,6 +22,7 @@ export default function Reservas() {
   const [version, setVersion] = useState(0);
 
   const tratamiento = buscarTratamiento(tratamientos, tratamientoId);
+  const consulta = tratamientos.find(esConsulta);
   const completo = Boolean(tratamiento && fecha && hora);
 
   const manejarCambio = (nuevaFecha: string | null, nuevaHora: string | null) => {
@@ -86,8 +87,12 @@ export default function Reservas() {
             {/* ---------- Paso 1 ---------- */}
             <Paso numero={1} titulo="Elegí el tratamiento" />
 
+            <p className="mt-2 text-lg text-tinta-suave">
+              Tocá una opción para elegirla.
+            </p>
+
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {tratamientos.map((t) => {
+              {tratamientos.filter((t) => !esConsulta(t)).map((t) => {
                 const activo = t.id === tratamientoId;
                 return (
                   <button
@@ -95,20 +100,61 @@ export default function Reservas() {
                     type="button"
                     onClick={() => setTratamientoId(activo ? null : t.id)}
                     aria-pressed={activo}
-                    className={`flex min-h-13 items-center justify-between gap-3 rounded-chico px-4 py-2.5 text-left text-lg transition-colors ${
+                    className={`flex min-h-14 items-center gap-3 rounded-chico border-2 px-4 py-2.5 text-left text-lg transition-colors ${
                       activo
-                        ? "bg-vino text-white"
-                        : "border border-borde bg-white hover:border-vino"
+                        ? "border-vino bg-vino text-white"
+                        : "border-borde bg-white hover:border-vino hover:bg-vino-suave"
                     }`}
                   >
+                    {/*
+                      El circulito dice "esto se elige". Sin el, un recuadro
+                      con texto no se lee como algo que haya que tocar.
+                    */}
+                    <span
+                      aria-hidden
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
+                        activo ? "border-white bg-white" : "border-vino/45"
+                      }`}
+                    >
+                      {activo && (
+                        <IconoCheck className="h-3.5 w-3.5 text-vino" />
+                      )}
+                    </span>
+
                     <span className="font-medium">{t.nombreCorto}</span>
-                    <span className={activo ? "text-white/80" : "text-tinta-suave"}>
+                    <span
+                      className={`ml-auto ${
+                        activo ? "text-white/85" : "text-tinta-suave"
+                      }`}
+                    >
                       {formatearPrecio(t.precio)}
                     </span>
                   </button>
                 );
               })}
             </div>
+
+            {/*
+              La consulta no es una opcion mas de la lista: es la salida
+              para quien se abruma con los nombres tecnicos. Va a lo ancho
+              y con peso propio, no como un chip mas entre seis.
+            */}
+            {consulta && (
+              <button
+                type="button"
+                onClick={() => setTratamientoId(consulta.id)}
+                aria-pressed={tratamientoId === consulta.id}
+                className={`mt-3 flex min-h-14 w-full items-center justify-center gap-3 rounded-chico border-2 px-5 py-3 text-lg font-semibold transition-colors ${
+                  tratamientoId === consulta.id
+                    ? "border-vino bg-vino text-white"
+                    : "border-vino bg-vino-suave text-vino hover:bg-vino hover:text-white"
+                }`}
+              >
+                {tratamientoId === consulta.id
+                  ? "Elegido: que Valen me recomiende ✓"
+                  : "No sé cuál elegir · que Valen me recomiende"}
+              </button>
+            )}
 
             {/* ---------- Paso 2 ---------- */}
             <Paso numero={2} titulo="Elegí el día y la hora" />
@@ -118,14 +164,6 @@ export default function Reservas() {
                 <p className="text-lg text-tinta">
                   Primero elegí un tratamiento arriba.
                 </p>
-                {/* Para no obligar a subir y bajar la pantalla */}
-                <button
-                  type="button"
-                  onClick={() => setTratamientoId(CONSULTA.id)}
-                  className="boton-suave mt-4 w-full bg-white"
-                >
-                  O que Valen me recomiende
-                </button>
               </div>
             ) : (
               <div className="tarjeta mt-3 p-4 sm:p-5">
@@ -184,23 +222,42 @@ export default function Reservas() {
                 />
 
                 {completo ? (
-                  <a
-                    href={enlace}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={reservarHorario}
-                    className="boton-principal mt-3 w-full"
-                  >
-                    <IconoWhatsApp className="h-5 w-5" />
-                    Confirmar turno
-                  </a>
+                  <>
+                    {/*
+                      El salto de app asusta si no se avisa: la clienta toca
+                      un boton y de golpe esta en otro lado. Se le cuenta
+                      antes, y se aclara que el mensaje no se manda solo.
+                    */}
+                    <p
+                      id="aviso-whatsapp"
+                      className="mt-4 flex items-start gap-2.5 rounded-chico bg-white px-4 py-3 text-lg leading-snug text-tinta"
+                    >
+                      <IconoWhatsApp className="mt-1 h-5 w-5 shrink-0 text-vino" />
+                      <span>
+                        Al tocar se abre <b>WhatsApp</b> con el mensaje ya
+                        escrito. Lo enviás vos. Esta página queda abierta.
+                      </span>
+                    </p>
+
+                    <a
+                      href={enlace}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={reservarHorario}
+                      aria-describedby="aviso-whatsapp"
+                      className="boton-principal mt-3 w-full"
+                    >
+                      <IconoWhatsApp className="h-5 w-5" />
+                      Abrir WhatsApp y confirmar
+                    </a>
+                  </>
                 ) : (
                   <p className="mt-3 rounded-full bg-vino/12 px-6 py-3.5 text-center text-lg text-tinta-suave">
                     Completá los pasos 1 y 2
                   </p>
                 )}
 
-                <p className="mt-2.5 text-center text-sm text-tinta-suave">
+                <p className="mt-3 text-center text-lg leading-snug text-tinta-suave">
                   Queda confirmado cuando Valen te responde.
                 </p>
 

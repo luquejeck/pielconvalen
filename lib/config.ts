@@ -11,6 +11,25 @@ export const CONSULTORIO = {
   eslogan: "Tu piel es parte de tu salud",
   direccion: "Riglos 531, Caballito, CABA",
   mapsUrl: "https://maps.google.com/?q=Riglos+531+Caballito+CABA",
+
+  /**
+   * Punto de referencia para ubicarse sin mapa. Una direccion sola no
+   * alcanza: mucha gente se orienta por lo que conoce del barrio, no por
+   * la numeracion.
+   *
+   * VALEN: completar con algo verificable y cercano de verdad, por
+   * ejemplo "a dos cuadras del Parque Rivadavia" o "frente a la plaza".
+   * Si queda vacio, el bloque no se muestra: preferible nada antes que
+   * mandar a alguien a caminar de mas.
+   */
+  referencia: "",
+
+  /**
+   * Como llegar en transporte. Mismo criterio: vacio = no se muestra.
+   * VALEN: completar con las lineas que paran cerca y la estacion mas
+   * proxima.
+   */
+  transporte: "",
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "5491122943672",
   whatsappVisible: "+54 9 11 2294-3672",
   instagram: "pielconvalen",
