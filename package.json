@@ -22,5 +22,13 @@
     "@types/react-dom": "^19.2.4",
     "tailwindcss": "^4.3.3",
     "typescript": "5.7.3"
-  }
+  },
+  "browserslist": [
+    "> 0.3%",
+    "last 4 versions",
+    "safari >= 13.1",
+    "ios_saf >= 13.4",
+    "android >= 8",
+    "not dead"
+  ]
 }
