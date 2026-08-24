@@ -70,7 +70,8 @@ export default function Reservas() {
     >
       <FondoImagen
         imagen="/imagenes/reservas.jpg"
-        intensidad={55}
+        intensidad={30}
+        filtro="saturate(0.72) contrast(0.95)"
         velo="bg-linear-to-b from-crema/88 via-crema/82 to-crema"
       />
 

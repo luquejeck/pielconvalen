@@ -16,6 +16,7 @@
   --color-vino-suave: #f6e3ea; /* el mismo vino, muy diluido */
 
   /* 2. CREMA — superficies, de mas clara a mas oscura */
+  --color-papel: #fefcfa; /* blanco roto: el #fff puro endurecia las tarjetas */
   --color-crema: #faf6f2;
   --color-crema-oscuro: #f1e8e1; /* secciones alternadas */
   --color-borde: #e5d8d0;
@@ -30,6 +31,14 @@
     -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     var(--font-inter), "Segoe UI", system-ui, sans-serif;
   --font-admin: var(--font-montserrat), var(--font-inter), system-ui, sans-serif;
+
+  /*
+    Titulos en Montserrat: geometrica y de trazo parejo, que es lo que le
+    da el aire de marca. El cuerpo sigue en la tipografia del sistema,
+    que es la que mejor se lee en parrafos largos y en pantallas viejas.
+    De paso la web y el panel dejan de usar dos familias distintas.
+  */
+  --font-display: var(--font-montserrat), var(--font-inter), system-ui, sans-serif;
 
   /*
     DOS radios, no mas. Antes convivian tres (24 en las tarjetas nuevas,
@@ -73,10 +82,11 @@
     tracking y mas corto el interlineado.
   */
   h1,
-  h2,
-  h3 {
-    letter-spacing: -0.028em;
-    line-height: 1.05;
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.022em;
+    line-height: 1.06;
   }
 
   h3 {
@@ -165,9 +175,32 @@
     borde de 1px las hacia ver como recuadros de formulario.
   */
   .tarjeta {
-    background-color: #fff;
+    background-color: var(--color-papel);
     border-radius: var(--radius-suave);
     box-shadow: var(--shadow-suave);
+  }
+
+  /*
+    Rotulo de seccion: mayusculas chicas con mucho espaciado. Es el
+    recurso editorial mas barato que hay: no agrega una linea de texto
+    nueva, reformatea la que ya estaba.
+  */
+  .rotulo-seccion {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-vino);
+  }
+
+  /* En pantalla angosta el espaciado ancho parte el rotulo en dos
+     lineas. Se achica el tracking antes que la letra: bajar el cuerpo
+     de texto es justo lo que no queremos con este publico. */
+  @media (max-width: 30rem) {
+    .rotulo-seccion {
+      letter-spacing: 0.1em;
+    }
   }
 
   /* Boton secundario: relleno tenue en vez de contorno, como los botones
