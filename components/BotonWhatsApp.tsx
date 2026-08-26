@@ -72,7 +72,15 @@ export default function BotonWhatsApp() {
       aria-label="Consultar por WhatsApp"
       aria-hidden={oculto}
       tabIndex={oculto ? -1 : undefined}
-      className={`fixed bottom-5 right-5 z-50 flex min-h-14 items-center justify-center gap-2.5 rounded-full bg-vino text-white ring-3 ring-white/85 shadow-xl shadow-tinta/25 transition-all duration-300 hover:bg-vino-oscuro active:scale-95 ${
+      /*
+        El `gap` se apaga al achicarse. La etiqueta se colapsa a ancho
+        cero pero sigue estando, y el hueco entre ella y el icono no:
+        flex lo cuenta igual al centrar, asi que el icono quedaba medio
+        gap corrido a la izquierda dentro del circulo.
+      */
+      className={`fixed bottom-5 right-5 z-50 flex min-h-14 items-center justify-center rounded-full bg-vino text-white ring-3 ring-white/85 shadow-xl shadow-tinta/25 transition-all duration-300 hover:bg-vino-oscuro active:scale-95 ${
+        compacto ? "gap-0" : "gap-2.5"
+      } ${
         oculto
           ? "pointer-events-none translate-y-24 opacity-0"
           : "translate-y-0 opacity-100 hover:scale-105"
