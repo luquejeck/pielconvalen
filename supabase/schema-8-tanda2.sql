@@ -77,8 +77,13 @@ create policy "gastos fijos: solo autenticada"
 alter table movimientos
   add column if not exists gasto_fijo_id uuid references gastos_fijos(id) on delete set null;
 
+-- El casteo a `timestamp` no es adorno: sin el, Postgres resuelve
+-- date_trunc contra `timestamptz`, que depende de la zona horaria de la
+-- sesion y por lo tanto no es IMMUTABLE. Un indice no puede depender de
+-- algo que cambia segun quien mire, asi que lo rechaza con
+-- "functions in index expression must be marked IMMUTABLE".
 create unique index if not exists movimientos_gasto_fijo_mes_idx
-  on movimientos (gasto_fijo_id, date_trunc('month', fecha))
+  on movimientos (gasto_fijo_id, (date_trunc('month', fecha::timestamp)))
   where gasto_fijo_id is not null;
 
 
