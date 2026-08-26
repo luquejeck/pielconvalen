@@ -1,4 +1,30 @@
-# Imágenes de fondo
+# Imágenes
+
+## ⚠ El nombre del archivo importa, y mucho
+
+Los archivos tienen que llamarse **exactamente** como dice esta guía:
+todo en minúscula y con la extensión que figura acá.
+
+- `valen.jpg` ✅
+- `Valen.jpeg` ❌ (mayúscula y extensión distinta)
+- `valen.JPG` ❌
+
+Si el nombre no coincide, **el sitio no compila y el deploy falla**. No es
+un descuido del código: es a propósito. La foto se importa por su nombre
+para que, cuando la cambies, la dirección lleve un código nuevo y ninguna
+caché pueda seguir mostrando la anterior. El precio de esa garantía es que
+el nombre no puede variar.
+
+Si tenés una foto que se llama distinto, renombrala antes de copiarla acá.
+En Windows: clic derecho → Cambiar nombre. Ojo que Windows a veces esconde
+la extensión; conviene activar "Extensiones de nombre de archivo" en la
+pestaña Vista del explorador.
+
+**El peso no importa.** Podés subir la foto tal como sale de la cámara,
+aunque pese varios MB: el sitio la achica solo y a la clienta le llegan
+unos 10 KB. No hace falta que la comprimas.
+
+---
 
 Poné acá las fotos con EXACTAMENTE estos nombres y aparecen solas en la web.
 Si un archivo no está, esa sección muestra el degradado y se ve bien igual.
