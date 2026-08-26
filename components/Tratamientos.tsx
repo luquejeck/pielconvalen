@@ -1,12 +1,15 @@
 "use client";
 
-import { GLOSARIO, esConsulta, formatearPrecio } from "@/lib/tratamientos";
+import { esConsulta, formatearPrecio } from "@/lib/tratamientos";
 import { useReserva } from "./ReservaContext";
-import { CONSULTORIO } from "@/lib/config";
 import TituloSeccion from "./TituloSeccion";
 
 export default function Tratamientos() {
-  const { tratamientos, agenda, tratamientoId, elegirYReservar } = useReserva();
+  const { tratamientos, agenda, consultorio, tratamientoId, elegirYReservar } =
+    useReserva();
+  /* El glosario tambien se edita desde el panel: son las explicaciones
+     en castellano de los nombres tecnicos. */
+  const GLOSARIO = consultorio.glosario;
   const pasos = agenda.pasosBase;
 
   const extrasDelCatalogo = [
@@ -233,7 +236,7 @@ export default function Tratamientos() {
         <p className="mt-6 text-center text-lg text-tinta-suave">
           Se puede pagar con{" "}
           <span className="font-medium text-tinta">
-            {CONSULTORIO.mediosDePago}
+            {consultorio.mediosDePago}
           </span>
           .
         </p>

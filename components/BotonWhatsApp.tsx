@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { linkWhatsAppSimple } from "@/lib/whatsapp";
+import { useReserva } from "./ReservaContext";
 import { IconoWhatsApp } from "./iconos";
 
 /**
@@ -35,6 +36,8 @@ import { IconoWhatsApp } from "./iconos";
  *      solo puede hacer daño.
  * ---------------------------------------------------------------------- */
 export default function BotonWhatsApp() {
+  const { consultorio } = useReserva();
+
   /* Arranca expandido y visible para que el HTML del servidor y el del
      navegador coincidan. Los efectos lo ajustan despues. */
   const [compacto, setCompacto] = useState(false);
@@ -63,7 +66,7 @@ export default function BotonWhatsApp() {
 
   return (
     <a
-      href={linkWhatsAppSimple()}
+      href={linkWhatsAppSimple(undefined, consultorio.whatsapp)}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Consultar por WhatsApp"

@@ -1,7 +1,11 @@
-import { CONSULTORIO } from "@/lib/config";
+import type { ConfiguracionWeb } from "@/lib/consultorio";
 import { LogoMarca } from "./Logo";
 
-export default function Header() {
+export default function Header({
+  consultorio: CONSULTORIO,
+}: {
+  consultorio: ConfiguracionWeb;
+}) {
   return (
     <header className="sticky top-0 z-40 border-b border-borde bg-crema/90 backdrop-blur-md">
       <div className="contenedor flex h-16 items-center justify-between gap-3">

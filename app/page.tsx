@@ -8,7 +8,7 @@ import { ReservaProvider } from "@/components/ReservaContext";
 import Reservas from "@/components/Reservas";
 import Tratamientos from "@/components/Tratamientos";
 import { obtenerAgenda, obtenerTratamientosPublicos } from "@/lib/catalogo";
-import { CONSULTORIO } from "@/lib/config";
+import { obtenerConfiguracion } from "@/lib/consultorio";
 
 const DIAS_SCHEMA = [
   "Sunday",
@@ -23,9 +23,10 @@ const DIAS_SCHEMA = [
 export default async function Home() {
   // Precios, tratamientos y horarios salen de la base: lo que Valen
   // edita en el panel se ve en la web sin tocar el codigo.
-  const [tratamientos, agenda] = await Promise.all([
+  const [tratamientos, agenda, CONSULTORIO] = await Promise.all([
     obtenerTratamientosPublicos(),
     obtenerAgenda(),
+    obtenerConfiguracion(),
   ]);
 
   /** Ficha de negocio local para Google. */
@@ -36,8 +37,8 @@ export default async function Home() {
     description: `${CONSULTORIO.queSeHace} por ${CONSULTORIO.profesional}, ${CONSULTORIO.profesion}, ${CONSULTORIO.titulo}. ${CONSULTORIO.eslogan}`,
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Riglos 531",
-      addressLocality: "Caballito",
+      streetAddress: CONSULTORIO.direccion.split(",")[0].trim(),
+      addressLocality: CONSULTORIO.direccion.split(",")[1]?.trim() ?? "Caballito",
       addressRegion: "Ciudad Autónoma de Buenos Aires",
       addressCountry: "AR",
     },
@@ -62,20 +63,24 @@ export default async function Home() {
   };
 
   return (
-    <ReservaProvider tratamientos={tratamientos} agenda={agenda}>
+    <ReservaProvider
+      tratamientos={tratamientos}
+      agenda={agenda}
+      consultorio={CONSULTORIO}
+    >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Header />
+      <Header consultorio={CONSULTORIO} />
       <main>
-        <Hero />
-        <Beneficios />
-        <Consultorio />
+        <Hero consultorio={CONSULTORIO} />
+        <Beneficios consultorio={CONSULTORIO} />
+        <Consultorio consultorio={CONSULTORIO} />
         <Tratamientos />
         <Reservas />
       </main>
-      <Footer />
+      <Footer consultorio={CONSULTORIO} />
       <BotonWhatsApp />
     </ReservaProvider>
   );

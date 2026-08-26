@@ -1,6 +1,7 @@
 import NavAdmin from "@/components/admin/NavAdmin";
 import PanelAdmin from "@/components/admin/PanelAdmin";
 import { obtenerAgenda, obtenerTratamientos } from "@/lib/catalogo";
+import { obtenerConfiguracion } from "@/lib/consultorio";
 import { hayBaseDeDatos } from "@/lib/supabase";
 
 export const metadata = {
@@ -27,15 +28,20 @@ export default async function Admin() {
     );
   }
 
-  const [tratamientos, agenda] = await Promise.all([
+  const [tratamientos, agenda, configuracion] = await Promise.all([
     obtenerTratamientos(),
     obtenerAgenda(),
+    obtenerConfiguracion(),
   ]);
 
   return (
     <main className="pantalla-admin mx-auto max-w-2xl px-5 py-10">
       <NavAdmin />
-      <PanelAdmin tratamientos={tratamientos} agenda={agenda} />
+      <PanelAdmin
+        tratamientos={tratamientos}
+        agenda={agenda}
+        direccion={configuracion.direccion}
+      />
     </main>
   );
 }

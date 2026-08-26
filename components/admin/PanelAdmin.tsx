@@ -18,6 +18,7 @@ import {
 } from "@/lib/whatsapp";
 import BuscadorCliente from "./BuscadorCliente";
 import BandejaPendientes from "./BandejaPendientes";
+import Recordatorios from "./Recordatorios";
 import FormularioCobro from "./FormularioCobro";
 import { IconoCheck } from "../iconos";
 
@@ -76,9 +77,14 @@ const ETIQUETAS: Record<EstadoTurno, { texto: string; clase: string }> = {
   },
 };
 
-type Props = { tratamientos: Tratamiento[]; agenda: Agenda };
+type Props = {
+  tratamientos: Tratamiento[];
+  agenda: Agenda;
+  /** Sale de la configuracion: va en el mensaje de recordatorio. */
+  direccion: string;
+};
 
-export default function PanelAdmin({ tratamientos, agenda }: Props) {
+export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
   const supabase = clienteNavegador();
 
   const [fecha, setFecha] = useState(() => claveFecha(new Date()));
@@ -282,8 +288,10 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
 
   return (
     <section>
-      {/* Los pedidos sin responder, de cualquier fecha. Va primero
-          porque es lo unico que tiene a una clienta esperando. */}
+      {/* Primero lo que tiene a alguien esperando, despues lo de mañana. */}
+      <Recordatorios direccion={direccion} />
+
+      {/* Los pedidos sin responder, de cualquier fecha. */}
       <BandejaPendientes
         onCambio={() => {
           void cargar();

@@ -1,7 +1,36 @@
 /**
- * Datos del consultorio. Punto unico de edicion para Valentina.
+ * Forma de los datos del consultorio.
+ *
+ * Los valores de abajo son el respaldo: la fuente real es la tabla
+ * `configuracion`, que Valen edita desde /admin/web. Ver
+ * `lib/consultorio.ts`.
  */
-export const CONSULTORIO = {
+export type DatosConsultorio = {
+  nombre: string;
+  profesional: string;
+  profesion: string;
+  titulo: string;
+  carrera: string;
+  eslogan: string;
+  direccion: string;
+  mapsUrl: string;
+  referencia: string;
+  transporte: string;
+  whatsapp: string;
+  whatsappVisible: string;
+  telefono: string;
+  instagram: string;
+  instagramUrl: string;
+  queSeHace: string;
+  fotos: { valen: boolean; consultorio: boolean };
+  mediosDePago: string;
+  comoVenir: string;
+};
+
+/**
+ * Valores de arranque. Se usan mientras la base no tenga nada cargado.
+ */
+export const CONSULTORIO: DatosConsultorio = {
   nombre: "Piel con Valen",
   profesional: "Valentina Gallo",
 
@@ -98,7 +127,7 @@ export const CONSULTORIO = {
    */
   comoVenir:
     "Vení como estés: si venís maquillada, te desmaquillamos acá. No hace falta que llegues con la cara lavada.",
-} as const;
+};
 
 export type Agenda = {
   /** 0 = domingo ... 6 = sabado */

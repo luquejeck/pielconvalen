@@ -1,25 +1,25 @@
 import TituloSeccion from "./TituloSeccion";
+import type { ConfiguracionWeb } from "@/lib/consultorio";
 import { IconoBrillo, IconoGota, IconoHoja } from "./iconos";
 
-const BENEFICIOS = [
-  {
-    Icono: IconoHoja,
-    titulo: "Piel más sana",
-    texto: "Limpia, descongestionada y desinflamada.",
-  },
-  {
-    Icono: IconoBrillo,
-    titulo: "Piel más luminosa",
-    texto: "Recupera el brillo natural.",
-  },
-  {
-    Icono: IconoGota,
-    titulo: "Piel más uniforme",
-    texto: "Mejor textura, menos marcas y manchas.",
-  },
-];
+/*
+  Los iconos siguen en el codigo: son dibujos, no texto. Los titulos y
+  las frases salen de la configuracion, que Valen edita desde el panel.
+  Van emparejados por posicion, y si algun dia carga mas de tres, los
+  iconos se repiten en vez de dejar huecos.
+*/
+const ICONOS = [IconoHoja, IconoBrillo, IconoGota];
 
-export default function Beneficios() {
+export default function Beneficios({
+  consultorio: CONSULTORIO,
+}: {
+  consultorio: ConfiguracionWeb;
+}) {
+  const BENEFICIOS = CONSULTORIO.beneficios.map((b, i) => ({
+    ...b,
+    Icono: ICONOS[i % ICONOS.length],
+  }));
+
   return (
     <section
       id="beneficios"

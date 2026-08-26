@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
-import { CONSULTORIO, SITIO_URL } from "@/lib/config";
+import { SITIO_URL } from "@/lib/config";
+import { obtenerConfiguracion } from "@/lib/consultorio";
 import "./globals.css";
 
 /**
@@ -20,28 +21,33 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
-export const metadata: Metadata = {
+/* Se genera en cada visita y no se escribe fijo: el titulo, la
+   descripcion y las palabras clave salen de la configuracion que Valen
+   edita en el panel. */
+export async function generateMetadata(): Promise<Metadata> {
+  const CONSULTORIO = await obtenerConfiguracion();
+
+  return {
   /* Sin esto, la imagen de la vista previa se pide con una ruta
      relativa y ningun cliente de mensajeria la resuelve. */
-  metadataBase: new URL(SITIO_URL),
-  title: `${CONSULTORIO.nombre} | ${CONSULTORIO.profesional} · ${CONSULTORIO.titulo}`,
-  description:
-    "Higiene facial profunda, dermaplaning y microneedling en Caballito, CABA. Tratamientos personalizados con Valentina Gallo, Técnica UBA. Reservá tu turno por WhatsApp.",
-  keywords: [
-    "cosmetología Caballito",
-    "higiene facial profunda",
-    "dermaplaning",
-    "microneedling",
-    "limpieza de cutis CABA",
-  ],
-  openGraph: {
-    title: `${CONSULTORIO.nombre} | ${CONSULTORIO.eslogan}`,
-    description:
-      "Tratamientos faciales personalizados en Caballito, CABA. Reservá tu turno online.",
-    locale: "es_AR",
-    type: "website",
-  },
-};
+    metadataBase: new URL(SITIO_URL),
+    title: `${CONSULTORIO.nombre} | ${CONSULTORIO.profesional} · ${CONSULTORIO.titulo}`,
+    description: `${CONSULTORIO.queSeHace} en ${CONSULTORIO.direccion}. Con ${CONSULTORIO.profesional}, ${CONSULTORIO.titulo}. Reservá tu turno por WhatsApp.`,
+    keywords: [
+      `${CONSULTORIO.profesion} ${CONSULTORIO.direccion.split(",")[1]?.trim() ?? ""}`,
+      CONSULTORIO.queSeHace,
+      "higiene facial profunda",
+      "dermaplaning",
+      "microneedling",
+    ],
+    openGraph: {
+      title: `${CONSULTORIO.nombre} | ${CONSULTORIO.eslogan}`,
+      description: `${CONSULTORIO.queSeHace} en ${CONSULTORIO.direccion}. Reservá tu turno online.`,
+      locale: "es_AR",
+      type: "website",
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#faf6f2",

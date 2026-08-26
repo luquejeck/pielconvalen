@@ -7,13 +7,13 @@ import FondoImagen from "./FondoImagen";
 import GestionTurno from "./GestionTurno";
 import { useReserva } from "./ReservaContext";
 import { IconoCheck, IconoWhatsApp } from "./iconos";
-import { CONSULTORIO } from "@/lib/config";
 import { formatearFechaLarga } from "@/lib/fechas";
 import { CONSULTA, buscarTratamiento, esConsulta, formatearPrecio } from "@/lib/tratamientos";
 import { linkWhatsApp } from "@/lib/whatsapp";
 
 export default function Reservas() {
-  const { tratamientos, agenda, tratamientoId, setTratamientoId } = useReserva();
+  const { tratamientos, agenda, consultorio, tratamientoId, setTratamientoId } =
+    useReserva();
   const [fecha, setFecha] = useState<string | null>(null);
   const [hora, setHora] = useState<string | null>(null);
   const [nombre, setNombre] = useState("");
@@ -67,12 +67,15 @@ export default function Reservas() {
   };
 
   const enlace = completo
-    ? linkWhatsApp({
-        tratamiento: tratamiento!,
-        fecha: fecha!,
-        hora: hora!,
-        nombre,
-      })
+    ? linkWhatsApp(
+        {
+          tratamiento: tratamiento!,
+          fecha: fecha!,
+          hora: hora!,
+          nombre,
+        },
+        consultorio.whatsapp
+      )
     : "";
 
   /**
@@ -265,6 +268,16 @@ export default function Reservas() {
               <TurnoEnviado
                 resultado={resultado}
                 enlace={enlace}
+                /* Para que le quede el turno anotado en el telefono, con
+                   alarma el dia antes. Hasta ahora lo unico que le
+                   quedaba era el mensaje que ella misma habia mandado. */
+                calendario={
+                  fecha && hora
+                    ? `/api/turnos/calendario?fecha=${fecha}&hora=${hora}&tratamiento=${encodeURIComponent(
+                        tratamiento?.nombre ?? "Turno"
+                      )}`
+                    : null
+                }
                 onEmpezarDeNuevo={empezarDeNuevo}
                 onElegirOtroHorario={elegirOtroHorario}
               />
@@ -340,7 +353,7 @@ export default function Reservas() {
                 </p>
 
                 <p className="mt-4 border-t border-vino/15 pt-4 text-lg leading-snug text-tinta-suave">
-                  {CONSULTORIO.comoVenir}
+                  {consultorio.comoVenir}
                 </p>
               </div>
             )}
@@ -368,11 +381,13 @@ type Resultado = {
 function TurnoEnviado({
   resultado,
   enlace,
+  calendario,
   onEmpezarDeNuevo,
   onElegirOtroHorario,
 }: {
   resultado: NonNullable<Resultado>;
   enlace: string;
+  calendario: string | null;
   onEmpezarDeNuevo: () => void;
   onElegirOtroHorario: () => void;
 }) {
@@ -476,6 +491,12 @@ function TurnoEnviado({
 
       {!guardando && (
         <div className="mt-5 flex flex-col gap-2">
+          {calendario && (
+            <a href={calendario} download className="boton-principal w-full">
+              Agendar en mi celular
+            </a>
+          )}
+
           <a
             href={enlace}
             target="_blank"

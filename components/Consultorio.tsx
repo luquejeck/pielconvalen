@@ -1,6 +1,6 @@
 import Image from "next/image";
 import fotoValen from "@/public/imagenes/valen.jpg";
-import { CONSULTORIO } from "@/lib/config";
+import type { ConfiguracionWeb } from "@/lib/consultorio";
 import { IconoPin } from "./iconos";
 
 /**
@@ -22,7 +22,11 @@ import { IconoPin } from "./iconos";
  * esta" y la seccion entera desaparecia del sitio publicado.
  */
 
-export default function Consultorio() {
+export default function Consultorio({
+  consultorio: CONSULTORIO,
+}: {
+  consultorio: ConfiguracionWeb;
+}) {
   const { valen: hayValen, consultorio: hayConsultorio } = CONSULTORIO.fotos;
   if (!hayValen && !hayConsultorio) return null;
 

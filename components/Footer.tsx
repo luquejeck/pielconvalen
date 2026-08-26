@@ -1,4 +1,4 @@
-import { CONSULTORIO } from "@/lib/config";
+import type { ConfiguracionWeb } from "@/lib/consultorio";
 import { LogoMarca } from "./Logo";
 import { linkWhatsAppSimple } from "@/lib/whatsapp";
 import {
@@ -9,12 +9,12 @@ import {
   IconoWhatsApp,
 } from "./iconos";
 
-const CONTACTO = [
+const contactoDe = (CONSULTORIO: ConfiguracionWeb) => [
   {
     Icono: IconoWhatsApp,
     titulo: "Escribime",
     detalle: CONSULTORIO.whatsappVisible,
-    href: linkWhatsAppSimple(),
+    href: linkWhatsAppSimple(undefined, CONSULTORIO.whatsapp),
     externo: true,
   },
   /*
@@ -42,13 +42,19 @@ const CONTACTO = [
   {
     Icono: IconoPin,
     titulo: "Cómo llegar",
-    detalle: "Riglos 531, Caballito",
+    detalle: CONSULTORIO.direccion.split(",").slice(0, 2).join(",").trim(),
     href: CONSULTORIO.mapsUrl,
     externo: true,
   },
 ];
 
-export default function Footer() {
+export default function Footer({
+  consultorio: CONSULTORIO,
+}: {
+  consultorio: ConfiguracionWeb;
+}) {
+  const CONTACTO = contactoDe(CONSULTORIO);
+
   return (
     <footer id="contacto" className="bg-tinta text-crema">
       <div className="contenedor py-12 md:py-14 xl:py-16">

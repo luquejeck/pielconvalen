@@ -59,17 +59,25 @@ export function mensajeReserva({
   return lineas.join("\n");
 }
 
-/** Link wa.me listo para usar en un <a href>. */
-export function linkWhatsApp(datos: DatosReserva): string {
+/**
+ * Link wa.me listo para usar en un <a href>.
+ *
+ * El numero se pasa desde afuera y solo cae en el del codigo si no
+ * llega ninguno: ahora sale de la tabla `configuracion`, que Valen edita
+ * desde el panel, y este archivo lo usan tanto el servidor como el
+ * navegador.
+ */
+export function linkWhatsApp(datos: DatosReserva, numero?: string): string {
   const texto = encodeURIComponent(mensajeReserva(datos));
-  return `https://wa.me/${CONSULTORIO.whatsapp}?text=${texto}`;
+  return `https://wa.me/${numero ?? CONSULTORIO.whatsapp}?text=${texto}`;
 }
 
 /** Link generico (footer, consultas sueltas). */
 export function linkWhatsAppSimple(
-  texto = "Hola Valen! Quería hacerte una consulta 🌿"
+  texto = "Hola Valen! Quería hacerte una consulta 🌿",
+  numero?: string
 ): string {
-  return `https://wa.me/${CONSULTORIO.whatsapp}?text=${encodeURIComponent(texto)}`;
+  return `https://wa.me/${numero ?? CONSULTORIO.whatsapp}?text=${encodeURIComponent(texto)}`;
 }
 
 /**
@@ -77,9 +85,10 @@ export function linkWhatsAppSimple(
  * El mensaje ya viene planteado para que la clienta no tenga que
  * explicar nada: solo completa cuando puede.
  */
-export const linkMoverTurno = () =>
+export const linkMoverTurno = (numero?: string) =>
   linkWhatsAppSimple(
-    "Hola Valen! Tengo un turno reservado y necesito cambiarlo de día. ¿Qué horarios tenés disponibles?"
+    "Hola Valen! Tengo un turno reservado y necesito cambiarlo de día. ¿Qué horarios tenés disponibles?",
+    numero
   );
 
 /**
@@ -87,9 +96,10 @@ export const linkMoverTurno = () =>
  * Pide avisar con anticipacion sin sonar a reproche: el objetivo es
  * que el lugar se libere y lo pueda tomar otra persona.
  */
-export const linkCancelarTurno = () =>
+export const linkCancelarTurno = (numero?: string) =>
   linkWhatsAppSimple(
-    "Hola Valen! Tengo un turno reservado y no voy a poder ir. Te aviso para liberar el lugar."
+    "Hola Valen! Tengo un turno reservado y no voy a poder ir. Te aviso para liberar el lugar.",
+    numero
   );
 
 /* -------------------------------------------------------------------------
@@ -104,6 +114,8 @@ type DatosTurno = {
   hora: string;
   cliente?: string | null;
   tratamiento?: string | null;
+  /** La direccion sale de la configuracion, que Valen puede cambiar. */
+  direccion?: string;
 };
 
 /** Link para escribirle a un telefono concreto, ya normalizado. */
@@ -119,6 +131,7 @@ export const mensajeTurnoAceptado = ({
   hora,
   cliente,
   tratamiento,
+  direccion = CONSULTORIO.direccion,
 }: DatosTurno) =>
   [
     `${saludo(cliente)} Te confirmo el turno 🌿`,
@@ -127,7 +140,7 @@ export const mensajeTurnoAceptado = ({
     `• ${formatearFechaLarga(fecha)}`,
     `• ${hora} hs`,
     ``,
-    `Te espero en ${CONSULTORIO.direccion}. Si te surge algo, avisame.`,
+    `Te espero en ${direccion}. Si te surge algo, avisame.`,
   ]
     .filter((l) => l !== null)
     .join("\n");

@@ -751,6 +751,21 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
         </span>
       </div>
 
+      {/*
+        Para el contador y para el monotributo. Hasta ahora no habia forma
+        de sacar los numeros del panel: habia que copiarlos a mano de la
+        pantalla.
+      */}
+      {delMes.length > 0 && (
+        <a
+          href={`/api/movimientos/exportar?mes=${mes}`}
+          download
+          className="inline-flex min-h-11 items-center rounded-full border border-borde px-5 text-sm text-tinta-suave hover:border-vino hover:text-vino"
+        >
+          Bajar {formatoMes(mes)} en planilla
+        </a>
+      )}
+
       {/* Lista */}
       {delMes.length === 0 ? (
         <p className="text-center text-tinta-suave">Sin movimientos este mes.</p>

@@ -1,8 +1,12 @@
-import { CONSULTORIO } from "@/lib/config";
+import type { ConfiguracionWeb } from "@/lib/consultorio";
 import FondoImagen from "./FondoImagen";
 import { IconoPin, IconoReloj } from "./iconos";
 
-export default function Hero() {
+export default function Hero({
+  consultorio: CONSULTORIO,
+}: {
+  consultorio: ConfiguracionWeb;
+}) {
   return (
     <section id="inicio" className="relative isolate bg-crema-oscuro">
       {/*

@@ -9,7 +9,7 @@ import { useReserva } from "./ReservaContext";
  * si no encuentra como hacerlo, o no avisa o reserva otro turno encima.
  */
 export default function GestionTurno() {
-  const { agenda } = useReserva();
+  const { agenda, consultorio } = useReserva();
 
   return (
     <div className="mx-auto mt-12 max-w-5xl xl:max-w-none rounded-suave border border-borde bg-crema-oscuro px-5 py-5 sm:px-7">
@@ -27,7 +27,7 @@ export default function GestionTurno() {
 
         <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
           <a
-            href={linkMoverTurno()}
+            href={linkMoverTurno(consultorio.whatsapp)}
             target="_blank"
             rel="noopener noreferrer"
             className="boton-suave"
@@ -36,7 +36,7 @@ export default function GestionTurno() {
           </a>
 
           <a
-            href={linkCancelarTurno()}
+            href={linkCancelarTurno(consultorio.whatsapp)}
             target="_blank"
             rel="noopener noreferrer"
             className="flex min-h-12 items-center justify-center rounded-full border border-borde bg-white px-6 text-lg text-tinta-suave transition-colors hover:border-vino hover:text-vino"

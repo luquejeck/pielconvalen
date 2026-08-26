@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { CONSULTORIO } from "@/lib/config";
+import { obtenerConfiguracion } from "@/lib/consultorio";
 
 /**
  * La imagen que se ve cuando alguien pasa el link.
@@ -16,9 +16,11 @@ import { CONSULTORIO } from "@/lib/config";
  */
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = `${CONSULTORIO.nombre} · ${CONSULTORIO.profesional}`;
+export const alt = "Piel con Valen";
 
-export default function Imagen() {
+export default async function Imagen() {
+  const CONSULTORIO = await obtenerConfiguracion();
+
   return new ImageResponse(
     (
       <div
