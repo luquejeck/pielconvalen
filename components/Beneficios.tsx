@@ -23,13 +23,16 @@ export default function Beneficios({
   return (
     <section
       id="beneficios"
-      className="border-t border-borde bg-crema py-16 md:py-20 xl:py-24"
+      /* Fondo mas oscuro que la seccion de al lado: alterna, y ademas
+         las tarjetas blancas se despegan. Con crema quedaban casi
+         invisibles sobre casi el mismo color. */
+      className="border-t border-borde bg-crema-oscuro py-14 md:py-16 xl:py-20"
     >
       <div className="contenedor">
         <TituloSeccion titulo="Qué vas a notar" />
 
         {/* Un icono por idea: la tarjeta se reconoce antes de leerla. */}
-        <div className="mx-auto mt-14 grid max-w-4xl gap-5 sm:grid-cols-3">
+        <div className="mx-auto mt-10 grid max-w-4xl gap-5 sm:grid-cols-3">
           {BENEFICIOS.map(({ Icono, titulo, texto }) => (
             /* En celular van apaisadas: apiladas y centradas ocupaban
                tres pantallas para decir tres renglones. */
@@ -56,7 +59,7 @@ export default function Beneficios({
           Las dos dudas que mas frenan a una clienta mayor: si su piel esta
           contemplada y si va a aguantar la camilla. Van juntas y cortas.
         */}
-        <p className="mx-auto mt-10 max-w-2xl text-center text-lg leading-relaxed text-tinta-suave">
+        <p className="mx-auto mt-8 max-w-2xl text-center text-lg leading-relaxed text-tinta-suave">
           Cada tratamiento se adapta a tu piel, incluso si es{" "}
           <span className="font-medium text-tinta">
             madura, sensible o con rosácea

@@ -16,11 +16,11 @@ export type Tratamiento = {
  * Cada extra se explica en un renglon, en castellano de todos los dias.
  */
 export const GLOSARIO: Record<string, string> = {
-  "Ácidos": "una mascarilla que renueva la piel de a poco, sin lastimarla",
+  "Ácidos": "Una mascarilla que renueva la piel de a poco, sin lastimarla.",
   Dermaplaning:
-    "se pasa una hojita estéril que saca el vello finito y la piel muerta; no duele ni pincha",
+    "Se pasa una hojita estéril que saca el vello finito y la piel muerta. No duele ni pincha.",
   Microneedling:
-    "microestimulaciones que despiertan el colágeno; se usa crema anestésica y no sangra",
+    "Microestimulaciones que despiertan el colágeno. Se usa crema anestésica y no sangra.",
 };
 
 /**

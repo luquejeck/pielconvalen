@@ -21,7 +21,7 @@ export default function Hero({
         velo="bg-linear-to-b from-crema/72 via-crema/82 to-crema"
       />
 
-      <div className="contenedor animar-entrada py-16 text-center md:py-20 xl:py-24">
+      <div className="contenedor animar-entrada py-14 text-center md:py-16 xl:py-20">
         <h1 className="text-5xl font-semibold text-tinta sm:text-6xl xl:text-7xl">
           {CONSULTORIO.profesional}
         </h1>
@@ -62,11 +62,11 @@ export default function Hero({
           {CONSULTORIO.queSeHace} en {CONSULTORIO.direccion.split(",")[1].trim()}
         </p>
 
-        <a href="#reservar" className="boton-principal mt-10">
+        <a href="#reservar" className="boton-principal mt-8">
           Reservar turno
         </a>
 
-        <ul className="mt-10 flex flex-col items-center gap-1.5 text-lg text-tinta-suave sm:flex-row sm:justify-center sm:gap-6">
+        <ul className="mt-8 flex flex-col items-center gap-1.5 text-lg text-tinta-suave sm:flex-row sm:justify-center sm:gap-6">
           <li className="flex items-center gap-2">
             <IconoPin className="h-5 w-5 text-vino" />
             {CONSULTORIO.direccion}

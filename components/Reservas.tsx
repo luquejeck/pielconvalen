@@ -129,7 +129,7 @@ export default function Reservas() {
   return (
     <section
       id="reservar"
-      className="relative isolate border-t border-borde py-16 md:py-20 xl:py-24"
+      className="relative isolate border-t border-borde py-14 md:py-16 xl:py-20"
     >
       <FondoImagen
         imagen="/imagenes/reservas.jpg"
@@ -155,7 +155,7 @@ export default function Reservas() {
           el horario el boton de confirmar quedaba fuera de pantalla,
           que es justo el momento en que hace falta.
         */}
-        <div className="mx-auto mt-14 grid max-w-5xl gap-6 lg:grid-cols-[1.15fr_0.85fr] xl:max-w-none">
+        <div className="mx-auto mt-10 grid max-w-5xl gap-6 lg:grid-cols-[1.15fr_0.85fr] xl:max-w-none">
           <div>
             {/* ---------- Paso 1 ---------- */}
             <Paso numero={1} titulo="Elegí el tratamiento" />

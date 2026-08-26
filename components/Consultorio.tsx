@@ -33,7 +33,7 @@ export default function Consultorio({
   return (
     <section
       id="consultorio"
-      className="border-t border-borde bg-crema py-16 md:py-20 xl:py-24"
+      className="border-t border-borde bg-crema py-14 md:py-16 xl:py-20"
     >
       <div className="contenedor">
         <div className="mx-auto grid max-w-5xl items-center gap-10 lg:grid-cols-2 lg:gap-14 xl:max-w-6xl">

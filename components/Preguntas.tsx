@@ -24,7 +24,7 @@ export default function Preguntas({
   return (
     <section
       id="preguntas"
-      className="border-t border-borde bg-crema py-12 md:py-14"
+      className="border-t border-borde bg-crema-oscuro py-12 md:py-14"
     >
       <div className="contenedor">
         <div className="mx-auto max-w-3xl">

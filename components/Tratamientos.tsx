@@ -29,7 +29,7 @@ export default function Tratamientos() {
   return (
     <section
       id="tratamientos"
-      className="border-t border-borde bg-crema-oscuro py-16 md:py-20 xl:py-24"
+      className="border-t border-borde bg-crema-oscuro py-14 md:py-16 xl:py-20"
     >
       <div className="contenedor">
         <TituloSeccion
@@ -42,7 +42,7 @@ export default function Tratamientos() {
           una secuencia, no una lista suelta: se lee el orden en que pasan
           las cosas sobre la camilla.
         */}
-        <div className="tarjeta mx-auto mt-14 max-w-4xl px-6 py-8 sm:px-8 xl:max-w-none">
+        <div className="tarjeta mx-auto mt-10 max-w-4xl px-6 py-8 sm:px-8 xl:max-w-none">
           {/* Mismo rotulo que el bloque de abajo: son un par y antes
               tenian dos titulos distintos, uno centrado y otro no. */}
           <h3 className="rotulo-seccion">

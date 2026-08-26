@@ -10,16 +10,29 @@
      Sin rosa ni dorado: cada color extra ensuciaba el conjunto.
      ------------------------------------------------------------------ */
 
-  /* 1. VINO — la marca */
-  --color-vino: #7a0f45;
-  --color-vino-oscuro: #5b0a33; /* hover de botones */
-  --color-vino-suave: #f6e3ea; /* el mismo vino, muy diluido */
+  /* 1. VINO — la marca, tomada del logo (que mide #840c48) */
+  --color-vino: #7d0d46;
+  --color-vino-oscuro: #5d0a34; /* hover de botones */
+  --color-vino-suave: #f7e8ee; /* el mismo vino, muy diluido */
 
-  /* 2. CREMA — superficies, de mas clara a mas oscura */
-  --color-papel: #fefcfa; /* blanco roto: el #fff puro endurecia las tarjetas */
-  --color-crema: #faf6f2;
-  --color-crema-oscuro: #f1e8e1; /* secciones alternadas */
-  --color-borde: #e5d8d0;
+  /* 2. CREMA — superficies, de mas clara a mas oscura
+     ------------------------------------------------------------------
+     Estas tres son el vino AGUADO, no un beige.
+
+     Antes eran beige de verdad: medidas en la rueda de color caian en
+     23-30 grados, o sea naranja, mientras el vino, la tinta y los bordes
+     de las fichas estaban en 330-343. Las superficies son lo mas grande
+     de la pagina, asi que el conjunto tiraba para dos lados a la vez: el
+     fondo hacia el naranja y la marca hacia el rosa. Se notaba sin poder
+     nombrarlo.
+
+     Ahora comparten tono con el vino y solo cambia cuanta agua tienen.
+     Las luminosidades son las mismas de antes, asi que ningun contraste
+     se movio. */
+  --color-papel: #fdfbfc; /* blanco roto: el #fff puro endurecia las tarjetas */
+  --color-crema: #faf5f6;
+  --color-crema-oscuro: #f3e8ec; /* secciones alternadas */
+  --color-borde: #e6d6dc;
 
   /*
     COLOR CON SIGNIFICADO — solo en el panel, nunca en la web publica.
@@ -33,8 +46,8 @@
   --color-negativo-suave: #f8e6e4;
 
   /* 3. TINTA — texto, y fondo de las secciones oscuras */
-  --color-tinta: #1e1015;
-  --color-tinta-suave: #6b5259;
+  --color-tinta: #1d0f14;
+  --color-tinta-suave: #6b525a;
 
   /* La tipografia que ya trae cada aparato: San Francisco en iPhone y
      Mac, Segoe en Windows, Roboto en Android. Ninguna se descarga, y son
