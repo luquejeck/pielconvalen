@@ -33,6 +33,8 @@ const CLAVES = new Set([
   "beneficios",
   "glosario",
   "fotos",
+  "preguntas",
+  "contraindicaciones",
 ]);
 
 export async function GET() {

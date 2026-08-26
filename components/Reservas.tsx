@@ -41,7 +41,9 @@ export default function Reservas() {
     if (id) bajarA(pasoDos.current);
   };
 
-  const completo = Boolean(tratamiento && fecha && hora);
+  /* El nombre entra en la cuenta: sin el, el turno llega a la agenda
+     sin decir de quien es. */
+  const completo = Boolean(tratamiento && fecha && hora && nombre.trim());
 
   const manejarCambio = (nuevaFecha: string | null, nuevaHora: string | null) => {
     setFecha(nuevaFecha);
@@ -307,15 +309,27 @@ export default function Reservas() {
                   />
                 </dl>
 
-                <input
-                  type="text"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  placeholder="Tu nombre (opcional)"
-                  autoComplete="given-name"
-                  aria-label="Tu nombre"
-                  className="mt-4 min-h-13 w-full rounded-chico border border-borde bg-white px-4 text-lg text-tinta outline-none transition-colors placeholder:text-tinta-suave focus:border-vino"
-                />
+                {/*
+                  El nombre pasa a ser obligatorio. Sin el, en la agenda
+                  quedaba un turno anonimo: Valen no sabia a quien
+                  esperaba ni a quien escribirle si tenia que mover el
+                  horario. Va con etiqueta visible y no solo con
+                  placeholder, que desaparece apenas se empieza a
+                  escribir y deja el campo sin decir que es.
+                */}
+                <label className="mt-4 block">
+                  <span className="text-lg text-tinta">Tu nombre</span>
+                  <input
+                    type="text"
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    placeholder="Como te llamás"
+                    autoComplete="given-name"
+                    required
+                    aria-required="true"
+                    className="mt-1.5 min-h-13 w-full rounded-chico border border-borde bg-white px-4 text-lg text-tinta outline-none transition-colors placeholder:text-tinta-suave focus:border-vino"
+                  />
+                </label>
 
                 {completo ? (
                   <>
@@ -348,8 +362,16 @@ export default function Reservas() {
                     </a>
                   </>
                 ) : (
+                  /* Antes decia siempre "completa los pasos 1 y 2",
+                     tambien cuando lo unico que faltaba era el nombre.
+                     Quien lee eso vuelve a mirar arriba y no encuentra
+                     nada mal. */
                   <p className="mt-3 rounded-full bg-vino/12 px-6 py-3.5 text-center text-lg text-tinta-suave">
-                    Completá los pasos 1 y 2
+                    {tratamiento && fecha && hora
+                      ? "Escribí tu nombre para confirmar"
+                      : !tratamiento
+                        ? "Elegí un tratamiento arriba"
+                        : "Elegí el día y la hora"}
                   </p>
                 )}
 

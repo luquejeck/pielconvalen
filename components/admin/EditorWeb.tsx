@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { Beneficio, ConfiguracionWeb } from "@/lib/consultorio";
+import type { Beneficio, ConfiguracionWeb, Pregunta } from "@/lib/consultorio";
 
 /**
  * "Mi web": lo que se ve en la pagina, editable sin programador.
@@ -36,6 +36,38 @@ export default function EditorWeb({ inicial }: { inicial: ConfiguracionWeb }) {
       beneficios: d.beneficios.map((b, j) =>
         j === i ? { ...b, [parte]: valor } : b
       ),
+    }));
+
+  const setPregunta = (i: number, parte: keyof Pregunta, valor: string) =>
+    setDatos((d) => ({
+      ...d,
+      preguntas: d.preguntas.map((p, j) =>
+        j === i ? { ...p, [parte]: valor } : p
+      ),
+    }));
+
+  const agregarPregunta = () =>
+    setDatos((d) => ({
+      ...d,
+      preguntas: [...d.preguntas, { pregunta: "", respuesta: "" }],
+    }));
+
+  const quitarPregunta = (i: number) =>
+    setDatos((d) => ({ ...d, preguntas: d.preguntas.filter((_, j) => j !== i) }));
+
+  const setContra = (i: number, valor: string) =>
+    setDatos((d) => ({
+      ...d,
+      contraindicaciones: d.contraindicaciones.map((c, j) => (j === i ? valor : c)),
+    }));
+
+  const agregarContra = () =>
+    setDatos((d) => ({ ...d, contraindicaciones: [...d.contraindicaciones, ""] }));
+
+  const quitarContra = (i: number) =>
+    setDatos((d) => ({
+      ...d,
+      contraindicaciones: d.contraindicaciones.filter((_, j) => j !== i),
     }));
 
   const setGlosario = (termino: string, texto: string) =>
@@ -231,6 +263,87 @@ export default function EditorWeb({ inicial }: { inicial: ConfiguracionWeb }) {
             />
           </label>
         ))}
+      </Grupo>
+
+      <Grupo titulo="Preguntas frecuentes">
+        <p className="text-base text-tinta-suave">
+          Se ven entre los precios y el módulo de reservas, que es donde
+          aparecen las dudas. Escribilas como te las hacen, no como las diría
+          un manual.
+        </p>
+
+        {datos.preguntas.map((p, i) => (
+          <div key={i} className="rounded-chico bg-crema-oscuro p-3">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={p.pregunta}
+                onChange={(e) => setPregunta(i, "pregunta", e.target.value)}
+                placeholder="¿Duele?"
+                className="min-h-12 w-full px-4 text-base font-medium"
+              />
+              <button
+                type="button"
+                onClick={() => quitarPregunta(i)}
+                aria-label={`Quitar la pregunta ${p.pregunta}`}
+                className="shrink-0 rounded-full px-4 text-base text-tinta-suave hover:text-vino"
+              >
+                Quitar
+              </button>
+            </div>
+            <textarea
+              rows={2}
+              value={p.respuesta}
+              onChange={(e) => setPregunta(i, "respuesta", e.target.value)}
+              placeholder="La respuesta, en dos o tres renglones."
+              className="mt-2 w-full px-4 py-2.5 text-base"
+            />
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={agregarPregunta}
+          className="min-h-12 rounded-full border border-vino px-6 text-base text-vino hover:bg-vino hover:text-white"
+        >
+          Agregar pregunta
+        </button>
+      </Grupo>
+
+      <Grupo titulo="Cuándo tiene que escribirte antes">
+        <p className="text-base text-tinta-suave">
+          Los casos en que conviene consultar antes de reservar. Evita que
+          alguien viaje hasta acá para que después haya que suspenderle la
+          sesión. Es criterio tuyo: revisá que la lista sea la que usás.
+        </p>
+
+        {datos.contraindicaciones.map((c, i) => (
+          <div key={i} className="flex gap-2">
+            <input
+              type="text"
+              value={c}
+              onChange={(e) => setContra(i, e.target.value)}
+              placeholder="Estás embarazada o amamantando"
+              className="min-h-12 w-full px-4 text-base"
+            />
+            <button
+              type="button"
+              onClick={() => quitarContra(i)}
+              aria-label="Quitar este caso"
+              className="shrink-0 rounded-full px-4 text-base text-tinta-suave hover:text-vino"
+            >
+              Quitar
+            </button>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={agregarContra}
+          className="min-h-12 rounded-full border border-vino px-6 text-base text-vino hover:bg-vino hover:text-white"
+        >
+          Agregar caso
+        </button>
       </Grupo>
 
       {error && (

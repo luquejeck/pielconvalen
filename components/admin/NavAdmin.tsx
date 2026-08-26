@@ -9,6 +9,7 @@ const SECCIONES = [
   { href: "/admin/tratamientos", texto: "Tratamientos" },
   { href: "/admin/agenda", texto: "Horarios" },
   { href: "/admin/economia", texto: "Economía" },
+  { href: "/admin/casos", texto: "Antes/después" },
   { href: "/admin/web", texto: "Mi web" },
 ];
 

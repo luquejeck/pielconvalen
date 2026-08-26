@@ -50,13 +50,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
   }
 
+  /*
+    El nombre es obligatorio y se controla tambien aca, no solo en el
+    formulario: sin el, en la agenda queda un turno anonimo y Valen no
+    sabe a quien espera. El navegador se puede saltear.
+  */
+  const nombreLimpio = nombre?.trim() ?? "";
+  if (nombreLimpio.length < 2) {
+    return NextResponse.json(
+      { error: "Falta tu nombre para reservar." },
+      { status: 400 }
+    );
+  }
+
   const supabase = await clienteServidor();
 
   const { error } = await supabase.from("turnos").insert({
     fecha,
     hora,
     estado: "pendiente",
-    cliente: nombre?.trim() || null,
+    cliente: nombreLimpio,
     tratamiento: tratamiento.nombre,
     precio: tratamiento.precio,
   });

@@ -20,10 +20,13 @@ import { clienteServidor } from "./supabase-servidor";
  */
 
 export type Beneficio = { titulo: string; texto: string };
+export type Pregunta = { pregunta: string; respuesta: string };
 
 export type ConfiguracionWeb = DatosConsultorio & {
   beneficios: Beneficio[];
   glosario: Record<string, string>;
+  preguntas: Pregunta[];
+  contraindicaciones: string[];
 };
 
 /** Los tres de "Que vas a notar", que estaban clavados en Beneficios.tsx */
@@ -36,10 +39,77 @@ export const BENEFICIOS_POR_DEFECTO: Beneficio[] = [
   },
 ];
 
+/**
+ * Las dudas que frenan a una clienta que nunca se hizo un tratamiento.
+ *
+ * Estan escritas como las pregunta ella, no como las nombraria un
+ * profesional: "¿duele?" y no "¿el procedimiento genera molestias?".
+ * Quien no encuentra la respuesta o escribe para preguntar, o se va.
+ *
+ * VALEN: revisalas y corregi lo que no sea exacto. Se editan desde el
+ * panel, en Mi web.
+ */
+export const PREGUNTAS_POR_DEFECTO: Pregunta[] = [
+  {
+    pregunta: "¿Duele?",
+    respuesta:
+      "La limpieza no duele: en las extracciones podés sentir alguna molestia y ahí frenamos las veces que necesites. Para el microneedling se usa crema anestésica.",
+  },
+  {
+    pregunta: "¿Cuánto dura la sesión?",
+    respuesta:
+      "Entre una hora y media y dos horas. No se apura: la piel necesita ese tiempo.",
+  },
+  {
+    pregunta: "¿Puedo salir maquillada después?",
+    respuesta:
+      "Mejor no ese día. La piel queda sensible y conviene dejarla descansar hasta el día siguiente, solo con protector solar.",
+  },
+  {
+    pregunta: "¿Se me va a poner roja la cara?",
+    respuesta:
+      "Puede quedar algo colorada unas horas, sobre todo si hubo extracciones. Al otro día ya está normal. Si tenés un evento, sacá el turno con unos días de anticipación.",
+  },
+  {
+    pregunta: "¿Cada cuánto conviene hacerse una?",
+    respuesta:
+      "En general cada 30 a 45 días, pero depende de tu piel. En la primera sesión te digo qué te conviene a vos.",
+  },
+  {
+    pregunta: "¿Sirve si tengo la piel madura o sensible?",
+    respuesta:
+      "Sí. Cada tratamiento se adapta: se eligen los productos y la intensidad según cómo esté tu piel ese día.",
+  },
+  {
+    pregunta: "¿Tengo que ir sin maquillaje?",
+    respuesta:
+      "No hace falta. Vení como estés, que te desmaquillamos acá.",
+  },
+];
+
+/**
+ * Cuando conviene consultar ANTES de reservar.
+ *
+ * No es letra chica legal: es evitar que alguien se tome el colectivo
+ * para que despues haya que suspenderle la sesion sobre la camilla.
+ *
+ * VALEN: esto es criterio profesional tuyo. Revisalo y ajustalo.
+ */
+export const CONTRAINDICACIONES_POR_DEFECTO: string[] = [
+  "Estás embarazada o amamantando",
+  "Tomaste isotretinoína (Roacután) en los últimos 6 meses",
+  "Tenés un herpes activo o una lesión en la piel sin cicatrizar",
+  "Estás con rosácea o acné en brote",
+  "Te expusiste mucho al sol o te hiciste camas solares esta semana",
+  "Estás en tratamiento oncológico o tomás anticoagulantes",
+];
+
 export const CONFIGURACION_POR_DEFECTO: ConfiguracionWeb = {
   ...CONSULTORIO,
   beneficios: BENEFICIOS_POR_DEFECTO,
   glosario: GLOSARIO,
+  preguntas: PREGUNTAS_POR_DEFECTO,
+  contraindicaciones: CONTRAINDICACIONES_POR_DEFECTO,
 };
 
 /**
@@ -49,7 +119,13 @@ export const CONFIGURACION_POR_DEFECTO: ConfiguracionWeb = {
  * corrupto en la base, un `JSON.parse` a ciegas tiraria abajo la pagina
  * entera en vez de caer en el valor por defecto.
  */
-const CAMPOS_JSON = new Set(["beneficios", "glosario", "fotos"]);
+const CAMPOS_JSON = new Set([
+  "beneficios",
+  "glosario",
+  "fotos",
+  "preguntas",
+  "contraindicaciones",
+]);
 
 type FilaConfig = { clave: string; valor: string };
 
