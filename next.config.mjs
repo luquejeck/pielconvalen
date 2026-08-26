@@ -11,20 +11,6 @@ const nextConfig = {
     */
     qualities: [45, 75],
     formats: ["image/avif", "image/webp"],
-
-    /*
-      Las fotos de antes/despues viven en Supabase Storage, no en
-      /public. Sin declarar el host, <Image> las rechaza: es la defensa
-      de Next para que nadie use tu optimizador con imagenes de
-      cualquier lado.
-    */
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "*.supabase.co",
-        pathname: "/storage/v1/object/public/**",
-      },
-    ],
   },
 };
 

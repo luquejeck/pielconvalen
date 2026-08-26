@@ -514,6 +514,30 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                     </button>
                   )}
 
+                  {/*
+                    Salida para el "No vino" puesto de mas: la clienta
+                    llego tarde, o aviso y se marco igual. Sin esto, el
+                    unico camino de vuelta era moverle el turno.
+                  */}
+                  {turno?.estado === "no_vino" && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        ejecutar(
+                          () =>
+                            supabase
+                              .from("turnos")
+                              .update({ estado: "confirmado" })
+                              .eq("id", turno.id),
+                          "volver a confirmar el turno"
+                        )
+                      }
+                      className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
+                    >
+                      Sí vino, confirmar
+                    </button>
+                  )}
+
                   {turno?.estado === "realizado" && (
                     <button
                       type="button"
@@ -989,6 +1013,20 @@ function FormularioMover({
   const [error, setError] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
 
+  /*
+    Mover una que no vino la deja confirmada en el horario nuevo.
+
+    Antes el mover solo cambiaba fecha y hora y no tocaba el estado, asi
+    que un turno marcado "No vino" seguia marcado igual en la fecha
+    nueva: en rojo, como si estuviera cancelado, cuando en realidad la
+    clienta reprogramo y va a venir.
+
+    Reprogramar ES aceptarla de nuevo. Los demas estados no se tocan: una
+    pendiente movida sigue pendiente, porque que Valen le corra el
+    horario no significa que la clienta ya lo haya aceptado.
+  */
+  const vuelveAConfirmarse = turno.estado === "no_vino";
+
   const mover = async (e: React.FormEvent) => {
     e.preventDefault();
     setGuardando(true);
@@ -996,7 +1034,11 @@ function FormularioMover({
 
     const { error } = await supabase
       .from("turnos")
-      .update({ fecha, hora })
+      .update(
+        vuelveAConfirmarse
+          ? { fecha, hora, estado: "confirmado" }
+          : { fecha, hora }
+      )
       .eq("id", turno.id);
 
     setGuardando(false);
@@ -1039,6 +1081,14 @@ function FormularioMover({
           ))}
         </select>
       </div>
+
+      {/* Se avisa lo que va a pasar con el estado, para que no sea una
+          sorpresa despues de guardar. */}
+      {vuelveAConfirmarse && (
+        <p className="mt-2 text-base opacity-90">
+          Al moverla vuelve a quedar <b>confirmada</b> en el horario nuevo.
+        </p>
+      )}
 
       {error && <p className="mt-2 text-base text-vino">{error}</p>}
 

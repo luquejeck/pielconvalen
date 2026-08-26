@@ -1,5 +1,4 @@
 import Beneficios from "@/components/Beneficios";
-import Casos from "@/components/Casos";
 import BotonWhatsApp from "@/components/BotonWhatsApp";
 import Consultorio from "@/components/Consultorio";
 import Footer from "@/components/Footer";
@@ -10,7 +9,6 @@ import { ReservaProvider } from "@/components/ReservaContext";
 import Reservas from "@/components/Reservas";
 import Tratamientos from "@/components/Tratamientos";
 import { obtenerAgenda, obtenerTratamientosPublicos } from "@/lib/catalogo";
-import { obtenerCasos } from "@/lib/casos";
 import { obtenerConfiguracion } from "@/lib/consultorio";
 
 const DIAS_SCHEMA = [
@@ -26,11 +24,10 @@ const DIAS_SCHEMA = [
 export default async function Home() {
   // Precios, tratamientos y horarios salen de la base: lo que Valen
   // edita en el panel se ve en la web sin tocar el codigo.
-  const [tratamientos, agenda, CONSULTORIO, casos] = await Promise.all([
+  const [tratamientos, agenda, CONSULTORIO] = await Promise.all([
     obtenerTratamientosPublicos(),
     obtenerAgenda(),
     obtenerConfiguracion(),
-    obtenerCasos(),
   ]);
 
   /** Ficha de negocio local para Google. */
@@ -81,9 +78,6 @@ export default async function Home() {
         <Hero consultorio={CONSULTORIO} />
         <Beneficios consultorio={CONSULTORIO} />
         <Consultorio consultorio={CONSULTORIO} />
-        {/* Despues de "Que vas a notar", que lo dice con palabras, y
-            antes de los precios: que sepa que compra antes del numero. */}
-        <Casos casos={casos} />
         <Tratamientos />
         <Reservas />
         {/* Al final de todo: es una seccion de consulta, no parte del
