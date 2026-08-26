@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Agenda } from "@/lib/config";
+import { bajarA } from "@/lib/scroll";
 import {
   obtenerDisponibilidad,
   tieneLugar,
@@ -25,6 +26,8 @@ type Props = {
   onCambio: (fecha: string | null, hora: string | null) => void;
   /** Si esta deshabilitado (ej: falta elegir tratamiento) se ve atenuado. */
   deshabilitado?: boolean;
+  /** Avisa que ya eligio hora, para bajar al paso 3. */
+  onHoraElegida?: () => void;
 };
 
 export default function Calendario({
@@ -33,7 +36,10 @@ export default function Calendario({
   hora,
   onCambio,
   deshabilitado = false,
+  onHoraElegida,
 }: Props) {
+  /* Adonde bajar cuando elige el dia: los horarios de ese dia. */
+  const bloqueHorarios = useRef<HTMLDivElement>(null);
   /** `ahora` se setea recien en el cliente para no romper la hidratacion. */
   const [ahora, setAhora] = useState<Date | null>(null);
   const [mesVisible, setMesVisible] = useState<Date | null>(null);
@@ -157,7 +163,15 @@ export default function Calendario({
               key={clave}
               type="button"
               disabled={!disponible}
-              onClick={() => onCambio(clave, null)}
+              onClick={() => {
+                onCambio(clave, null);
+                /* Los horarios aparecen recien despues de elegir el dia,
+                   asi que el nodo todavia no existe: se espera un cuadro
+                   a que React lo dibuje. */
+                requestAnimationFrame(() =>
+                  bajarA(bloqueHorarios.current, 120, true)
+                );
+              }}
               aria-pressed={seleccionado}
               aria-label={`${dia.getDate()} de ${MESES[dia.getMonth()]}${
                 disponible ? "" : ", sin turnos"
@@ -196,7 +210,10 @@ export default function Calendario({
 
       {/* Horarios */}
       {fecha && (
-        <div className="animar-entrada mt-5 border-t border-borde pt-4">
+        <div
+          ref={bloqueHorarios}
+          className="animar-entrada mt-5 scroll-mt-24 border-t border-borde pt-4"
+        >
           <p className="text-lg font-medium text-tinta">
             Tocá el horario que quieras · {formatearFechaLarga(fecha)}
           </p>
@@ -211,7 +228,10 @@ export default function Calendario({
                   key={turno.hora}
                   type="button"
                   disabled={!libre}
-                  onClick={() => onCambio(fecha, turno.hora)}
+                  onClick={() => {
+                    onCambio(fecha, turno.hora);
+                    onHoraElegida?.();
+                  }}
                   aria-pressed={activo}
                   className={[
                     "min-h-14 rounded-chico text-lg transition-colors",

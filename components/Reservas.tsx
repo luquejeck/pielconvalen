@@ -8,6 +8,7 @@ import GestionTurno from "./GestionTurno";
 import { useReserva } from "./ReservaContext";
 import { IconoCheck, IconoWhatsApp } from "./iconos";
 import { formatearFechaLarga } from "@/lib/fechas";
+import { bajarA } from "@/lib/scroll";
 import { CONSULTA, buscarTratamiento, esConsulta, formatearPrecio } from "@/lib/tratamientos";
 import { linkWhatsApp } from "@/lib/whatsapp";
 
@@ -25,40 +26,21 @@ export default function Reservas() {
   const consulta = tratamientos.find(esConsulta);
 
   const pasoDos = useRef<HTMLDivElement>(null);
+  const pasoTres = useRef<HTMLDivElement>(null);
 
   /**
    * Elegir el tratamiento y bajar al calendario.
    *
    * En celular el paso 2 queda fuera de pantalla: la clienta tocaba el
-   * tratamiento, no pasaba nada visible y se quedaba esperando. Solo
-   * baja si el calendario no se ve; en PC, donde ya esta a la vista, no
-   * se mueve nada.
+   * tratamiento, no pasaba nada visible y se quedaba esperando. La
+   * misma idea se repite despues al elegir el dia y al elegir la hora,
+   * asi que la logica vive en `lib/scroll`.
    */
   const elegirTratamiento = (id: string | null) => {
     setTratamientoId(id);
-    if (!id) return;
-
-    requestAnimationFrame(() => {
-      const nodo = pasoDos.current;
-      if (!nodo) return;
-
-      /*
-        Se mira donde ARRANCA el paso 2, no si entra entero: el
-        calendario es mas alto que muchas pantallas, y pidiendo que
-        entre completo terminaba saltando siempre, tambien en PC.
-      */
-      const arranque = nodo.getBoundingClientRect().top;
-      // Ya esta arriba de todo: no hay nada que mover.
-      if (arranque >= 0 && arranque < 150) return;
-
-      const suave = !window.matchMedia("(prefers-reduced-motion: reduce)")
-        .matches;
-      nodo.scrollIntoView({
-        behavior: suave ? "smooth" : "auto",
-        block: "start",
-      });
-    });
+    if (id) bajarA(pasoDos.current);
   };
+
   const completo = Boolean(tratamiento && fecha && hora);
 
   const manejarCambio = (nuevaFecha: string | null, nuevaHora: string | null) => {
@@ -160,9 +142,18 @@ export default function Reservas() {
           bajada="Tres pasos. Al final se abre WhatsApp con el mensaje ya escrito."
         />
 
-        {/* En celular es una sola columna en orden 1-2-3.
-            En PC el resumen queda fijo al costado, siempre a la vista. */}
-        <div className="mx-auto mt-14 grid max-w-5xl items-start gap-6 lg:grid-cols-[1.15fr_0.85fr] xl:max-w-none">
+        {/*
+          En celular es una sola columna en orden 1-2-3.
+          En PC el resumen queda fijo al costado, siempre a la vista.
+
+          Sin `items-start` a proposito: con esa clase cada celda se
+          encogia al alto de su contenido, y entonces la columna del
+          resumen no tenia por donde viajar. El `sticky` no se pegaba
+          nada —se iba para arriba junto con el resto— asi que al elegir
+          el horario el boton de confirmar quedaba fuera de pantalla,
+          que es justo el momento en que hace falta.
+        */}
+        <div className="mx-auto mt-14 grid max-w-5xl gap-6 lg:grid-cols-[1.15fr_0.85fr] xl:max-w-none">
           <div>
             {/* ---------- Paso 1 ---------- */}
             <Paso numero={1} titulo="Elegí el tratamiento" />
@@ -254,6 +245,9 @@ export default function Reservas() {
                   fecha={fecha}
                   hora={hora}
                   onCambio={manejarCambio}
+                  /* Elegida la hora ya no queda nada que tocar arriba:
+                     lo que sigue es confirmar. */
+                  onHoraElegida={() => bajarA(pasoTres.current, 150, true)}
                 />
               </div>
             )}
@@ -261,7 +255,18 @@ export default function Reservas() {
           </div>
 
           {/* ---------- Paso 3 ---------- */}
-          <div className="lg:sticky lg:top-22">
+          {/*
+            Dos divs y no uno: el de afuera es la celda del grid y se
+            estira a lo alto de la fila; el de adentro es el que se pega.
+
+            Con `sticky` puesto sobre la celda misma no funcionaba: al
+            estirarse quedaba tan alta como su propia caja, y algo que
+            mide lo mismo que su contenedor no tiene por donde
+            desplazarse. Se iba para arriba con el resto de la pagina y
+            el boton de confirmar desaparecia justo al elegir el horario.
+          */}
+          <div>
+            <div ref={pasoTres} className="scroll-mt-24 lg:sticky lg:top-22">
             <Paso numero={3} titulo="Confirmá por WhatsApp" />
 
             {resultado ? (
@@ -357,6 +362,7 @@ export default function Reservas() {
                 </p>
               </div>
             )}
+            </div>
           </div>
         </div>
 

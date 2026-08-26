@@ -23,7 +23,56 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await query;
   if (error) return fallo("traer las clientas", error);
-  return NextResponse.json(data);
+
+  const clientes = data ?? [];
+  if (clientes.length === 0) return NextResponse.json([]);
+
+  /*
+    Cuando vino por ultima vez y si tiene turno, para cada una.
+
+    Va en UNA consulta y no una por clienta: con cien fichas, lo segundo
+    son cien viajes a la base cada vez que se abre la pantalla. Se traen
+    todos los turnos de estas clientas y se agrupan aca.
+  */
+  const ids = clientes.map((c) => c.id);
+  const { data: turnos } = await sesion.sb
+    .from("turnos")
+    .select("cliente_id, fecha, hora, estado")
+    .in("cliente_id", ids)
+    .order("fecha");
+
+  const hoy = new Date().toISOString().slice(0, 10);
+  const resumen = new Map<
+    string,
+    { visitas: number; ultimaVisita: string | null; proximo: string | null }
+  >();
+
+  for (const t of turnos ?? []) {
+    if (!t.cliente_id) continue;
+    const r = resumen.get(t.cliente_id) ?? {
+      visitas: 0,
+      ultimaVisita: null,
+      proximo: null,
+    };
+
+    if (t.estado === "realizado") {
+      r.visitas++;
+      // Vienen ordenados por fecha, asi que el ultimo pisa al anterior.
+      r.ultimaVisita = t.fecha;
+    }
+    if (t.fecha >= hoy && (t.estado === "confirmado" || t.estado === "pendiente")) {
+      if (!r.proximo) r.proximo = t.fecha;
+    }
+
+    resumen.set(t.cliente_id, r);
+  }
+
+  return NextResponse.json(
+    clientes.map((c) => ({
+      ...c,
+      ...(resumen.get(c.id) ?? { visitas: 0, ultimaVisita: null, proximo: null }),
+    }))
+  );
 }
 
 export async function POST(req: NextRequest) {
