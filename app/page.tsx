@@ -85,10 +85,10 @@ export default async function Home() {
             antes de los precios: que sepa que compra antes del numero. */}
         <Casos casos={casos} />
         <Tratamientos />
-        {/* Las dudas van entre ver los precios y reservar: es el momento
-            exacto en que aparecen. */}
-        <Preguntas consultorio={CONSULTORIO} />
         <Reservas />
+        {/* Al final de todo: es una seccion de consulta, no parte del
+            recorrido. Quien la necesita la busca. */}
+        <Preguntas consultorio={CONSULTORIO} />
       </main>
       <Footer consultorio={CONSULTORIO} />
       <BotonWhatsApp />

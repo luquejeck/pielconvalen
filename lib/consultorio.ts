@@ -75,16 +75,6 @@ export const PREGUNTAS_POR_DEFECTO: Pregunta[] = [
     respuesta:
       "En general cada 30 a 45 días, pero depende de tu piel. En la primera sesión te digo qué te conviene a vos.",
   },
-  {
-    pregunta: "¿Sirve si tengo la piel madura o sensible?",
-    respuesta:
-      "Sí. Cada tratamiento se adapta: se eligen los productos y la intensidad según cómo esté tu piel ese día.",
-  },
-  {
-    pregunta: "¿Tengo que ir sin maquillaje?",
-    respuesta:
-      "No hace falta. Vení como estés, que te desmaquillamos acá.",
-  },
 ];
 
 /**
