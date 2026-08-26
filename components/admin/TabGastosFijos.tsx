@@ -14,6 +14,15 @@ type GastoFijo = {
 const VACIO = { descripcion: "", monto: "", dia_del_mes: "1" };
 const fmt = (n: number) => `$${n.toLocaleString("es-AR")}`;
 
+const MESES = ["enero","febrero","marzo","abril","mayo","junio",
+  "julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+/** "2026-08" -> "agosto de 2026" */
+function nombreMes(mes: string) {
+  const [anio, m] = mes.split("-");
+  return `${MESES[parseInt(m, 10) - 1]} de ${anio}`;
+}
+
 /**
  * Los gastos que se repiten todos los meses.
  *
@@ -220,11 +229,23 @@ export default function TabGastosFijos({
 
       {activos.length > 0 && (
         <div className="rounded-2xl border border-borde bg-crema-oscuro p-4">
+          {/*
+            El mes va escrito con todas las letras y tambien adentro del
+            boton. Se elige en la pestaña de Flujo de caja, o sea en otra
+            pantalla: sin decirlo aca, Valen tocaba "cargar" sin saber si
+            los gastos iban a agosto o a junio. Es plata, no puede
+            depender de que se acuerde.
+          */}
           <p className="text-base text-tinta">
-            Cargar los {activos.length} gastos fijos en el mes que estás viendo.
+            Cargar los {activos.length} gastos fijos ({fmt(totalMensual)}) en{" "}
+            <strong>{nombreMes(mes)}</strong>.
+          </p>
+          <p className="mt-1 text-sm text-tinta-suave">
+            El mes se cambia desde Flujo de caja. Si ya los cargaste, tocar de
+            nuevo no los duplica.
           </p>
           <button onClick={volcar} className="boton-principal mt-3">
-            Cargar al mes
+            Cargar en {nombreMes(mes)}
           </button>
           {aviso && <p className="mt-3 text-base text-positivo">✓ {aviso}</p>}
           {error && <p className="mt-3 text-base text-negativo">{error}</p>}
