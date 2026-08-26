@@ -1,12 +1,21 @@
-import { clienteServidor } from "@/lib/supabase-servidor";
+import { fallo, requerirSesion } from "@/lib/api";
 import { NextResponse } from "next/server";
 
+/**
+ * Lista corta para los desplegables del panel.
+ * El catalogo que ve la clienta no pasa por aca: lo lee el servidor
+ * directo de la base en `lib/catalogo.ts`.
+ */
 export async function GET() {
-  const sb = await clienteServidor();
-  const { data, error } = await sb
+  const sesion = await requerirSesion();
+  if (!sesion.ok) return sesion.respuesta;
+
+  const { data, error } = await sesion.sb
     .from("tratamientos")
     .select("id, nombre, precio")
-    .order("nombre");
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    .eq("activo", true)
+    .order("orden");
+
+  if (error) return fallo("traer los tratamientos", error);
   return NextResponse.json(data);
 }

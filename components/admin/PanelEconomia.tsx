@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import BuscadorCliente from "./BuscadorCliente";
 
 // ─── Tipos ────────────────────────────────────────────────────────────
@@ -23,30 +23,6 @@ type ItemInventario = {
   precio_venta: number;
   cantidad: number;
 };
-
-// ─── Datos simulados (se usan cuando no hay datos reales) ─────────────
-const DEMO_MOVIMIENTOS: Movimiento[] = [
-  { id: "d1", fecha: "2026-08-19", tipo: "ingreso", categoria: "Tratamiento", descripcion: "Limpieza profunda + Dermaplaning", monto: 28000, costo: 3500 },
-  { id: "d2", fecha: "2026-08-18", tipo: "venta_producto", categoria: "Producto", descripcion: "Sérum vitamina C La Roche-Posay", monto: 22000, costo: 12000 },
-  { id: "d3", fecha: "2026-08-17", tipo: "ingreso", categoria: "Tratamiento", descripcion: "Microneedling facial", monto: 45000, costo: 5000 },
-  { id: "d4", fecha: "2026-08-16", tipo: "gasto", categoria: "Insumos", descripcion: "Ácido hialurónico + agujas descartables", monto: 18000 },
-  { id: "d5", fecha: "2026-08-15", tipo: "ingreso", categoria: "Tratamiento", descripcion: "Higiene facial profunda", monto: 22000, costo: 2800 },
-  { id: "d6", fecha: "2026-08-14", tipo: "venta_producto", categoria: "Producto", descripcion: "Crema hidratante FPS50", monto: 15000, costo: 8500 },
-  { id: "d7", fecha: "2026-08-13", tipo: "gasto", categoria: "Gastos fijos", descripcion: "Alquiler del gabinete", monto: 35000 },
-  { id: "d8", fecha: "2026-08-12", tipo: "ingreso", categoria: "Tratamiento", descripcion: "Peeling enzimático", monto: 32000, costo: 4000 },
-  { id: "d9", fecha: "2026-07-30", tipo: "ingreso", categoria: "Tratamiento", descripcion: "Limpieza + Hidratación", monto: 25000, costo: 3000 },
-  { id: "d10", fecha: "2026-07-25", tipo: "venta_producto", categoria: "Producto", descripcion: "Mascarilla Biocelulosa", monto: 8500, costo: 4200 },
-  { id: "d11", fecha: "2026-07-20", tipo: "ingreso", categoria: "Tratamiento", descripcion: "Microneedling + PRP", monto: 58000, costo: 7000 },
-  { id: "d12", fecha: "2026-07-15", tipo: "gasto", categoria: "Marketing", descripcion: "Publicidad Instagram", monto: 12000 },
-];
-
-const DEMO_INVENTARIO: ItemInventario[] = [
-  { id: "i1", marca: "La Roche-Posay", producto: "Sérum vitamina C 10%", costo: 12000, precio_venta: 22000, cantidad: 4 },
-  { id: "i2", marca: "Bioderma", producto: "Crema hidratante FPS50", costo: 8500, precio_venta: 15000, cantidad: 7 },
-  { id: "i3", marca: "Vichy", producto: "Mascarilla Biocelulosa", costo: 4200, precio_venta: 8500, cantidad: 12 },
-  { id: "i4", marca: "Neutrogena", producto: "Contorno de ojos", costo: 6800, precio_venta: 13000, cantidad: 3 },
-  { id: "i5", marca: "Avène", producto: "Eau Thermale spray", costo: 3200, precio_venta: 7000, cantidad: 8 },
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────
 const fmt = (n: number) => `$${n.toLocaleString("es-AR")}`;
@@ -130,9 +106,43 @@ function GraficoBarras({ movimientos }: { movimientos: Movimiento[] }) {
 }
 
 // ─── Tab: Dashboard ───────────────────────────────────────────────────
-function TabDashboard({ todos }: { todos: Movimiento[] }) {
+function TabDashboard({
+  todos,
+  onRegistrar,
+}: {
+  todos: Movimiento[];
+  onRegistrar: () => void;
+}) {
   const mes = mesActual();
   const delMes = todos.filter((m) => m.fecha.startsWith(mes));
+
+  /*
+    Cero movimientos se dice, no se disimula. Antes en este caso el panel
+    cargaba doce movimientos de ejemplo y mostraba numeros que no eran de
+    Valen: ingresos, ticket promedio y un grafico de seis meses, todo
+    inventado, con la aclaracion en letra chiquita al final de la
+    pantalla.
+  */
+  if (todos.length === 0) {
+    return (
+      <div className="rounded-2xl border border-borde bg-white px-6 py-12 text-center">
+        <p className="text-lg font-semibold text-tinta">
+          Todavía no registraste movimientos
+        </p>
+        <p className="mx-auto mt-2 max-w-sm text-sm text-tinta-suave">
+          Cuando cargues tu primera venta o tu primer gasto, acá vas a ver los
+          ingresos del mes, el ticket promedio y la evolución.
+        </p>
+        <button
+          type="button"
+          onClick={onRegistrar}
+          className="boton-principal mt-6"
+        >
+          Registrar el primero
+        </button>
+      </div>
+    );
+  }
 
   const ingresosTrat = delMes.filter(esTratamiento).reduce((s, m) => s + m.monto, 0);
   const ingresosProd = delMes.filter(esProducto).reduce((s, m) => s + m.monto, 0);
@@ -155,24 +165,24 @@ function TabDashboard({ todos }: { todos: Movimiento[] }) {
 
       {/* Cards principales */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="col-span-2 rounded-2xl bg-vino p-5 text-white">
-          <p className="text-xs font-medium uppercase tracking-wide text-white/60">Ingresos totales</p>
+        <div className="col-span-2 rounded-2xl bg-positivo p-5 text-white">
+          <p className="text-xs font-medium uppercase tracking-wide text-white/70">Ingresos totales</p>
           <p className="mt-1 text-3xl font-bold">{fmt(totalIngresos)}</p>
           <div className="mt-3 flex gap-4 text-xs text-white/70">
             <span>Tratamientos <strong className="text-white">{fmt(ingresosTrat)}</strong></span>
             <span>Productos <strong className="text-white">{fmt(ingresosProd)}</strong></span>
           </div>
         </div>
-        <div className="rounded-2xl border border-borde bg-white p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Gastos</p>
-          <p className="mt-1 text-2xl font-bold text-tinta-suave">{fmt(totalGastos)}</p>
+        <div className="rounded-2xl border border-negativo/25 bg-negativo-suave p-4">
+          <p className="text-xs font-medium uppercase tracking-wide text-negativo/80">Gastos</p>
+          <p className="mt-1 text-2xl font-bold text-negativo">{fmt(totalGastos)}</p>
         </div>
-        {/* En rojo el mes cierra en perdida: se invierte la tarjeta para que salte a la vista. */}
-        <div className={`rounded-2xl border p-4 ${neto >= 0 ? "border-vino/20 bg-vino-suave" : "border-vino bg-vino"}`}>
-          <p className={`text-xs font-medium uppercase tracking-wide ${neto >= 0 ? "text-tinta-suave" : "text-crema/70"}`}>
-            Ganancia neta
+        {/* Si el mes cierra en perdida se invierte la tarjeta: que salte a la vista. */}
+        <div className={`rounded-2xl border p-4 ${neto >= 0 ? "border-positivo/25 bg-positivo-suave" : "border-negativo bg-negativo"}`}>
+          <p className={`text-xs font-medium uppercase tracking-wide ${neto >= 0 ? "text-positivo/80" : "text-white/75"}`}>
+            {neto >= 0 ? "Ganancia neta" : "Pérdida del mes"}
           </p>
-          <p className={`mt-1 text-2xl font-bold ${neto >= 0 ? "text-vino" : "text-crema"}`}>{fmt(neto)}</p>
+          <p className={`mt-1 text-2xl font-bold ${neto >= 0 ? "text-positivo" : "text-white"}`}>{fmt(neto)}</p>
         </div>
       </div>
 
@@ -230,10 +240,20 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
   const [aviso, setAviso] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  /* Las rutas ahora pueden contestar 401 con un objeto de error. Sin el
+     chequeo, eso entraba como si fuera la lista y el `.map` de abajo
+     reventaba la pantalla entera. */
+  const listaDe = async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  };
+
   useEffect(() => {
-    Promise.all([
-      fetch("/api/tratamientos").then((r) => r.json()),
-      fetch("/api/inventario").then((r) => r.json()),
+    void Promise.all([
+      listaDe("/api/tratamientos"),
+      listaDe("/api/inventario"),
     ]).then(([tratos, prods]) => {
       setTratamientos(tratos);
       setProductos(prods);
@@ -284,7 +304,15 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
         categoria: categoriaAPI,
         descripcion: form.descripcion,
         monto: parseInt(form.monto),
-        costo: null,
+        /*
+          El costo del producto se calculaba, se ponia en el formulario
+          y despues se mandaba `null` fijo. Resultado: el "Margen bruto"
+          del dashboard daba cero con datos reales —los unicos
+          movimientos con costo eran los doce de ejemplo escritos en el
+          codigo— y en el flujo de caja no aparecia nunca la linea
+          "Costo · Margen".
+        */
+        costo: tipo === "producto" ? (selProducto?.costo ?? null) : null,
         cliente_id: tipo !== "gasto" ? clienteId : null,
         inventario_id: selProducto?.id ?? null,
       }),
@@ -311,8 +339,7 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
     setTimeout(() => setAviso(null), 3000);
 
     // El stock del desplegable y el del panel se refrescan juntos.
-    const frescos = await fetch("/api/inventario").then((r) => r.json());
-    setProductos(frescos);
+    setProductos(await listaDe("/api/inventario"));
     onGuardado();
   };
 
@@ -688,10 +715,10 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
     compra_producto: "Compra",
   };
   const COLORES: Record<string, string> = {
-    ingreso: "text-vino bg-vino-suave",
-    venta_producto: "text-vino/80 bg-vino-suave",
-    gasto: "text-tinta-suave bg-crema-oscuro",
-    compra_producto: "text-tinta-suave bg-crema-oscuro",
+    ingreso: "text-positivo bg-positivo-suave",
+    venta_producto: "text-positivo bg-positivo-suave",
+    gasto: "text-negativo bg-negativo-suave",
+    compra_producto: "text-negativo bg-negativo-suave",
   };
 
   return (
@@ -701,7 +728,7 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
         <button onClick={() => setMes(mesAnterior(mes))} className="rounded-full border border-borde px-3 py-1.5 text-sm hover:border-vino hover:text-vino">←</button>
         <span className="font-semibold text-tinta">{formatoMes(mes)}</span>
         <button onClick={() => setMes(mesSiguiente(mes))} className="rounded-full border border-borde px-3 py-1.5 text-sm hover:border-vino hover:text-vino">→</button>
-        <span className={`ml-auto text-sm font-semibold ${saldo >= 0 ? "text-vino" : "text-tinta-suave"}`}>
+        <span className={`ml-auto text-sm font-semibold ${saldo >= 0 ? "text-positivo" : "text-negativo"}`}>
           Saldo: {fmt(saldo)}
         </span>
       </div>
@@ -727,7 +754,7 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
                   )}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
-                  <span className={`text-base font-semibold ${esIngreso(m.tipo) ? "text-vino" : "text-tinta-suave"}`}>
+                  <span className={`text-base font-semibold ${esIngreso(m.tipo) ? "text-positivo" : "text-negativo"}`}>
                     {esIngreso(m.tipo) ? "+" : "-"}{fmt(m.monto)}
                   </span>
                   <button
@@ -775,41 +802,75 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "flujo", label: "Flujo de caja" },
 ];
 
+/**
+ * Desde que fecha traer movimientos.
+ *
+ * Antes se pedian TODOS, siempre, y se filtraban en el navegador. Al
+ * segundo año eso son miles de filas viajando cada vez que se abre la
+ * pestaña. La ventana cubre lo que la pantalla necesita: los seis meses
+ * del grafico, y el mes que se este mirando en el flujo de caja si es
+ * mas viejo que eso.
+ */
+function inicioVentana(mes: string): string {
+  const hoy = new Date();
+  const seisMeses = new Date(hoy.getFullYear(), hoy.getMonth() - 5, 1);
+
+  const [anio, m] = mes.split("-").map(Number);
+  const elegido = new Date(anio, m - 1, 1);
+
+  const desde = elegido < seisMeses ? elegido : seisMeses;
+  return `${desde.getFullYear()}-${String(desde.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
 export default function PanelEconomia() {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [inventario, setInventario] = useState<ItemInventario[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [mes, setMes] = useState(mesActual());
 
-  const cargarMovimientos = async () => {
-    const res = await fetch("/api/movimientos");
-    if (res.ok) {
-      const data: Movimiento[] = await res.json();
-      setMovimientos(data.length > 0 ? data : DEMO_MOVIMIENTOS);
-    }
-  };
+  const desde = inicioVentana(mes);
 
-  const cargarInventario = async () => {
+  const cargarMovimientos = useCallback(async () => {
+    const res = await fetch(`/api/movimientos?desde=${desde}`);
+    if (!res.ok) {
+      setError("No se pudieron traer los movimientos.");
+      return;
+    }
+    /*
+      Lo que devuelve la base es lo que se muestra, aunque sean cero.
+      Antes, con la lista vacia, el panel cargaba doce movimientos
+      ficticios y mostraba "Ingresos totales $127.000" en una tarjeta
+      verde grande, con la aclaracion en letra de 12px al final de todo.
+      Una pantalla de plata no puede mostrar plata inventada.
+    */
+    setMovimientos(await res.json());
+    setError(null);
+  }, [desde]);
+
+  const cargarInventario = useCallback(async () => {
     const res = await fetch("/api/inventario");
-    if (res.ok) {
-      setInventario(await res.json());
-    }
-  };
+    if (res.ok) setInventario(await res.json());
+  }, []);
 
-  const cargarTodo = async () => {
+  useEffect(() => {
+    let vigente = true;
     setCargando(true);
-    await Promise.all([cargarMovimientos(), cargarInventario()]);
-    setCargando(false);
-  };
-
-  useEffect(() => { cargarTodo(); }, []);
+    void Promise.all([cargarMovimientos(), cargarInventario()]).finally(() => {
+      if (vigente) setCargando(false);
+    });
+    return () => {
+      vigente = false;
+    };
+  }, [cargarMovimientos, cargarInventario]);
 
   const eliminarMovimiento = async (id: string) => {
-    if (id.startsWith("d")) return; // demo, no existe en DB
     const res = await fetch(`/api/movimientos?id=${id}`, { method: "DELETE" });
     if (res.ok) {
       setMovimientos((prev) => prev.filter((m) => m.id !== id));
+    } else {
+      setError("No se pudo borrar el movimiento.");
     }
   };
 
@@ -834,7 +895,12 @@ export default function PanelEconomia() {
         </div>
       </div>
 
-      {tab === "dashboard" && <TabDashboard todos={movimientos} />}
+      {tab === "dashboard" && (
+        <TabDashboard
+          todos={movimientos}
+          onRegistrar={() => setTab("ingresos")}
+        />
+      )}
       {/* Una venta de producto descuenta stock: hay que refrescar las dos cosas. */}
       {tab === "ingresos" && (
         <TabIngresos
@@ -846,9 +912,9 @@ export default function PanelEconomia() {
       {tab === "inventario" && <TabInventario items={inventario} onActualizar={cargarInventario} />}
       {tab === "flujo" && <TabFlujo todos={movimientos} mes={mes} setMes={setMes} onEliminar={eliminarMovimiento} />}
 
-      {movimientos === DEMO_MOVIMIENTOS && (
-        <p className="mt-6 text-center text-xs text-tinta-suave">
-          * Datos de ejemplo. Los reales aparecerán cuando registres tu primera venta.
+      {error && (
+        <p className="mt-6 rounded-xl bg-negativo-suave px-4 py-3 text-sm text-negativo">
+          {error}
         </p>
       )}
     </div>

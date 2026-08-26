@@ -91,3 +91,52 @@ export const linkCancelarTurno = () =>
   linkWhatsAppSimple(
     "Hola Valen! Tengo un turno reservado y no voy a poder ir. Te aviso para liberar el lugar."
   );
+
+/* -------------------------------------------------------------------------
+ * MENSAJES DE VALEN A LA CLIENTA
+ * Cierran el circuito: la clienta pide por WhatsApp y se entera por
+ * WhatsApp si quedo o no. Sin esto, un turno rechazado la deja esperando
+ * una respuesta que nunca llega.
+ * ---------------------------------------------------------------------- */
+
+type DatosTurno = {
+  fecha: string;
+  hora: string;
+  cliente?: string | null;
+  tratamiento?: string | null;
+};
+
+/** Link para escribirle a un telefono concreto, ya normalizado. */
+export function linkWhatsAppA(telefono: string, texto: string): string {
+  return `https://wa.me/${normalizarTelefono(telefono)}?text=${encodeURIComponent(texto)}`;
+}
+
+const saludo = (cliente?: string | null) =>
+  cliente?.trim() ? `Hola ${cliente.trim()}!` : "Hola!";
+
+export const mensajeTurnoAceptado = ({
+  fecha,
+  hora,
+  cliente,
+  tratamiento,
+}: DatosTurno) =>
+  [
+    `${saludo(cliente)} Te confirmo el turno 🌿`,
+    ``,
+    tratamiento ? `• ${tratamiento}` : null,
+    `• ${formatearFechaLarga(fecha)}`,
+    `• ${hora} hs`,
+    ``,
+    `Te espero en ${CONSULTORIO.direccion}. Si te surge algo, avisame.`,
+  ]
+    .filter((l) => l !== null)
+    .join("\n");
+
+export const mensajeTurnoRechazado = ({ fecha, hora, cliente }: DatosTurno) =>
+  [
+    `${saludo(cliente)} Te escribo por el turno que pediste para el ${formatearFechaLarga(
+      fecha
+    )} a las ${hora} hs.`,
+    ``,
+    `Justo ese horario no me queda disponible. ¿Buscamos otro día?`,
+  ].join("\n");

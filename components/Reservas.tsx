@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import TituloSeccion from "./TituloSeccion";
 import Calendario from "./Calendario";
 import FondoImagen from "./FondoImagen";
@@ -17,12 +17,48 @@ export default function Reservas() {
   const [fecha, setFecha] = useState<string | null>(null);
   const [hora, setHora] = useState<string | null>(null);
   const [nombre, setNombre] = useState("");
-  const [enviado, setEnviado] = useState(false);
+  const [resultado, setResultado] = useState<Resultado>(null);
   /** Cambiar este numero fuerza al calendario a releer la agenda. */
   const [version, setVersion] = useState(0);
 
   const tratamiento = buscarTratamiento(tratamientos, tratamientoId);
   const consulta = tratamientos.find(esConsulta);
+
+  const pasoDos = useRef<HTMLDivElement>(null);
+
+  /**
+   * Elegir el tratamiento y bajar al calendario.
+   *
+   * En celular el paso 2 queda fuera de pantalla: la clienta tocaba el
+   * tratamiento, no pasaba nada visible y se quedaba esperando. Solo
+   * baja si el calendario no se ve; en PC, donde ya esta a la vista, no
+   * se mueve nada.
+   */
+  const elegirTratamiento = (id: string | null) => {
+    setTratamientoId(id);
+    if (!id) return;
+
+    requestAnimationFrame(() => {
+      const nodo = pasoDos.current;
+      if (!nodo) return;
+
+      /*
+        Se mira donde ARRANCA el paso 2, no si entra entero: el
+        calendario es mas alto que muchas pantallas, y pidiendo que
+        entre completo terminaba saltando siempre, tambien en PC.
+      */
+      const arranque = nodo.getBoundingClientRect().top;
+      // Ya esta arriba de todo: no hay nada que mover.
+      if (arranque >= 0 && arranque < 150) return;
+
+      const suave = !window.matchMedia("(prefers-reduced-motion: reduce)")
+        .matches;
+      nodo.scrollIntoView({
+        behavior: suave ? "smooth" : "auto",
+        block: "start",
+      });
+    });
+  };
   const completo = Boolean(tratamiento && fecha && hora);
 
   const manejarCambio = (nuevaFecha: string | null, nuevaHora: string | null) => {
@@ -40,27 +76,67 @@ export default function Reservas() {
     : "";
 
   /**
-   * Bloquea el horario en la agenda apenas la clienta toca el boton,
-   * sin frenar la apertura de WhatsApp: se dispara y sigue de largo.
-   * `keepalive` hace que el pedido llegue aunque cambie de pestaña.
+   * Bloquea el horario en la agenda apenas la clienta toca el boton.
+   *
+   * WhatsApp se abre igual y en el acto: el boton es un <a target=_blank>
+   * y eso no se toca, porque abrirlo despues de esperar al servidor lo
+   * comeria el bloqueador de ventanas emergentes.
+   *
+   * Lo que SI se espera es la respuesta, y eso es el arreglo de fondo:
+   * antes se mostraba "tu horario quedo reservado, ya nadie mas puede
+   * tomarlo" sin mirar si el servidor habia dicho que si. Si otra clienta
+   * habia tomado ese horario treinta segundos antes, la respuesta venia
+   * 409, nadie la leia, y la clienta se enteraba el dia del turno,
+   * plantada en la puerta.
+   *
+   * `keepalive` hace que el pedido llegue aunque ella se vaya a WhatsApp.
    */
-  const reservarHorario = () => {
-    void fetch("/api/turnos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fecha, hora, tratamientoId, nombre }),
-      keepalive: true,
-    }).catch(() => {
-      // Si falla, el turno igual se coordina por WhatsApp.
-    });
-    setEnviado(true);
+  const reservarHorario = async () => {
+    const detalle = `${tratamiento?.nombre} · ${
+      fecha ? formatearFechaLarga(fecha) : ""
+    } · ${hora} hs`;
+
+    setResultado({ estado: "guardando", detalle });
+
+    try {
+      const res = await fetch("/api/turnos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fecha, hora, tratamientoId, nombre }),
+        keepalive: true,
+      });
+
+      if (res.ok) {
+        setResultado({ estado: "reservado", detalle });
+        return;
+      }
+
+      if (res.status === 409) {
+        // Se lo ganaron por unos segundos. El calendario vuelve a pedir
+        // la agenda para que los horarios que ve sean los de ahora.
+        setResultado({ estado: "tomado", detalle });
+        setHora(null);
+        setVersion((v) => v + 1);
+        return;
+      }
+
+      setResultado({ estado: "sin-guardar", detalle });
+    } catch {
+      setResultado({ estado: "sin-guardar", detalle });
+    }
   };
 
   const empezarDeNuevo = () => {
-    setEnviado(false);
+    setResultado(null);
     setFecha(null);
     setHora(null);
     setVersion((v) => v + 1); // el calendario vuelve a pedir la agenda
+  };
+
+  /** Vuelve al formulario sin perder el tratamiento ya elegido. */
+  const elegirOtroHorario = () => {
+    setResultado(null);
+    setHora(null);
   };
 
   return (
@@ -99,7 +175,7 @@ export default function Reservas() {
                   <button
                     key={t.id}
                     type="button"
-                    onClick={() => setTratamientoId(activo ? null : t.id)}
+                    onClick={() => elegirTratamiento(activo ? null : t.id)}
                     aria-pressed={activo}
                     className={`flex min-h-14 items-center gap-3 rounded-chico border-2 px-4 py-2.5 text-left text-lg transition-colors ${
                       activo
@@ -143,7 +219,7 @@ export default function Reservas() {
             {consulta && (
               <button
                 type="button"
-                onClick={() => setTratamientoId(consulta.id)}
+                onClick={() => elegirTratamiento(consulta.id)}
                 aria-pressed={tratamientoId === consulta.id}
                 className={`mt-3 flex min-h-14 w-full items-center justify-center gap-3 rounded-chico border-2 px-5 py-3 text-lg font-semibold transition-colors ${
                   tratamientoId === consulta.id
@@ -158,7 +234,8 @@ export default function Reservas() {
             )}
 
             {/* ---------- Paso 2 ---------- */}
-            <Paso numero={2} titulo="Elegí el día y la hora" />
+            <div ref={pasoDos} className="mt-8 scroll-mt-24">
+              <Paso numero={2} titulo="Elegí el día y la hora" />
 
             {!tratamiento ? (
               <div className="mt-3 rounded-chico bg-crema-oscuro px-5 py-4">
@@ -177,19 +254,19 @@ export default function Reservas() {
                 />
               </div>
             )}
+            </div>
           </div>
 
           {/* ---------- Paso 3 ---------- */}
           <div className="lg:sticky lg:top-22">
             <Paso numero={3} titulo="Confirmá por WhatsApp" />
 
-            {enviado ? (
+            {resultado ? (
               <TurnoEnviado
+                resultado={resultado}
                 enlace={enlace}
-                detalle={`${tratamiento?.nombre} · ${
-                  fecha ? formatearFechaLarga(fecha) : ""
-                } · ${hora} hs`}
                 onEmpezarDeNuevo={empezarDeNuevo}
+                onElegirOtroHorario={elegirOtroHorario}
               />
             ) : (
               <div className="mt-3 rounded-suave border border-borde bg-vino-suave px-5 py-5 shadow-suave">
@@ -219,7 +296,7 @@ export default function Reservas() {
                   placeholder="Tu nombre (opcional)"
                   autoComplete="given-name"
                   aria-label="Tu nombre"
-                  className="mt-4 min-h-13 w-full rounded-chico border border-borde bg-white px-4 text-lg text-tinta outline-none transition-colors placeholder:text-tinta-suave/60 focus:border-vino"
+                  className="mt-4 min-h-13 w-full rounded-chico border border-borde bg-white px-4 text-lg text-tinta outline-none transition-colors placeholder:text-tinta-suave focus:border-vino"
                 />
 
                 {completo ? (
@@ -276,52 +353,148 @@ export default function Reservas() {
   );
 }
 
-/** Estado posterior a tocar "Confirmar": que pasa ahora y como salir de acá. */
-function TurnoEnviado({
-  enlace,
-  detalle,
-  onEmpezarDeNuevo,
-}: {
-  enlace: string;
+/**
+ * Que paso con el horario, segun lo que contesto el servidor.
+ *
+ * Son cuatro finales distintos y cada uno dice la verdad. El unico que
+ * existia antes era el primero, y se mostraba siempre: tambien cuando el
+ * horario ya estaba tomado y cuando la base ni se habia enterado.
+ */
+type Resultado = {
+  estado: "guardando" | "reservado" | "tomado" | "sin-guardar";
   detalle: string;
+} | null;
+
+function TurnoEnviado({
+  resultado,
+  enlace,
+  onEmpezarDeNuevo,
+  onElegirOtroHorario,
+}: {
+  resultado: NonNullable<Resultado>;
+  enlace: string;
   onEmpezarDeNuevo: () => void;
+  onElegirOtroHorario: () => void;
 }) {
+  const { estado, detalle } = resultado;
+
+  /* El horario se lo ganaron por unos segundos. WhatsApp ya se abrio con
+     el mensaje viejo, asi que hay que decirselo: si no, manda un pedido
+     por un horario que no existe y se queda esperando. */
+  if (estado === "tomado") {
+    return (
+      <div className="animar-entrada mt-3 rounded-suave border-2 border-vino bg-white px-5 py-6 shadow-suave">
+        <h4 className="text-xl font-semibold text-tinta">
+          Ese horario lo acaban de tomar
+        </h4>
+
+        <p className="mt-2 text-lg leading-snug text-tinta">{detalle}</p>
+
+        <p className="mt-3 text-lg leading-snug text-tinta-suave">
+          Otra persona lo reservó unos segundos antes. Elegí otro horario acá
+          abajo: la lista ya está actualizada.
+        </p>
+
+        <p className="mt-3 text-lg leading-snug text-tinta-suave">
+          Si ya se te abrió WhatsApp, no mandes ese mensaje o avisale a Valen
+          que vas a elegir otro día.
+        </p>
+
+        <button
+          type="button"
+          onClick={onElegirOtroHorario}
+          className="boton-principal mt-5 w-full"
+        >
+          Elegir otro horario
+        </button>
+      </div>
+    );
+  }
+
+  /* Guardado a medias: el mensaje de WhatsApp es lo unico que quedo. No
+     se le promete un lugar que la agenda no tiene anotado. */
+  if (estado === "sin-guardar") {
+    return (
+      <div className="animar-entrada mt-3 rounded-suave border-2 border-vino bg-white px-5 py-6 shadow-suave">
+        <h4 className="text-xl font-semibold text-tinta">
+          Mandá el mensaje para asegurar el turno
+        </h4>
+
+        <p className="mt-2 text-lg leading-snug text-tinta">{detalle}</p>
+
+        <p className="mt-3 text-lg leading-snug text-tinta-suave">
+          No pudimos anotar el horario en la agenda. El mensaje de WhatsApp ya
+          está escrito: enviálo y Valen te lo confirma por ahí.
+        </p>
+
+        <div className="mt-5 flex flex-col gap-2">
+          <a
+            href={enlace}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="boton-principal w-full"
+          >
+            <IconoWhatsApp className="h-5 w-5" />
+            Abrir WhatsApp de nuevo
+          </a>
+
+          <button
+            type="button"
+            onClick={onEmpezarDeNuevo}
+            className="min-h-12 rounded-full border border-borde bg-white px-6 text-lg text-tinta-suave transition-colors hover:border-vino hover:text-vino"
+          >
+            Empezar de nuevo
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const guardando = estado === "guardando";
+
   return (
     <div className="animar-entrada mt-3 rounded-suave border border-vino/25 bg-vino-suave px-5 py-6 shadow-suave">
-      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-vino text-white">
+      <span
+        className={`flex h-11 w-11 items-center justify-center rounded-full text-white ${
+          guardando ? "bg-vino/50" : "bg-vino"
+        }`}
+      >
         <IconoCheck className="h-5 w-5" />
       </span>
 
       <h4 className="mt-4 text-xl font-semibold text-tinta">
-        Tu horario quedó reservado
+        {guardando ? "Guardando tu horario…" : "Tu horario quedó reservado"}
       </h4>
 
       <p className="mt-2 text-lg leading-snug text-tinta">{detalle}</p>
 
       <p className="mt-3 text-lg leading-snug text-tinta-suave">
-        Ya nadie más puede tomarlo. Queda confirmado cuando Valen te responda el
-        mensaje de WhatsApp.
+        {guardando
+          ? "Un segundo, lo estamos anotando en la agenda."
+          : "Ya nadie más puede tomarlo. Queda confirmado cuando Valen te responda el mensaje de WhatsApp."}
       </p>
 
-      <div className="mt-5 flex flex-col gap-2">
-        <a
-          href={enlace}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="boton-suave w-full"
-        >
-          <IconoWhatsApp className="h-5 w-5" />
-          Abrir WhatsApp de nuevo
-        </a>
+      {!guardando && (
+        <div className="mt-5 flex flex-col gap-2">
+          <a
+            href={enlace}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="boton-suave w-full"
+          >
+            <IconoWhatsApp className="h-5 w-5" />
+            Abrir WhatsApp de nuevo
+          </a>
 
-        <button
-          type="button"
-          onClick={onEmpezarDeNuevo}
-          className="min-h-12 rounded-full border border-borde bg-white px-6 text-lg text-tinta-suave transition-colors hover:border-vino hover:text-vino"
-        >
-          Reservar otro turno
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={onEmpezarDeNuevo}
+            className="min-h-12 rounded-full border border-borde bg-white px-6 text-lg text-tinta-suave transition-colors hover:border-vino hover:text-vino"
+          >
+            Reservar otro turno
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -343,7 +516,7 @@ function Fila({ rotulo, valor }: { rotulo: string; valor?: string | null }) {
       <dt className="shrink-0 text-tinta-suave">{rotulo}</dt>
       <dd
         className={
-          valor ? "text-right font-medium text-tinta" : "text-tinta-suave/60"
+          valor ? "text-right font-medium text-tinta" : "text-tinta-suave"
         }
       >
         {valor ?? "—"}

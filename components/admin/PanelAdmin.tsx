@@ -10,8 +10,14 @@ import {
 } from "@/lib/fechas";
 import { clienteNavegador } from "@/lib/supabase";
 import { formatearPrecio, type Tratamiento } from "@/lib/tratamientos";
-import { normalizarTelefono } from "@/lib/whatsapp";
+import {
+  linkWhatsAppA,
+  mensajeTurnoAceptado,
+  mensajeTurnoRechazado,
+  normalizarTelefono,
+} from "@/lib/whatsapp";
 import BuscadorCliente from "./BuscadorCliente";
+import { IconoCheck } from "../iconos";
 
 type EstadoTurno = "pendiente" | "confirmado" | "bloqueado";
 
@@ -59,6 +65,9 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [moviendo, setMoviendo] = useState<string | null>(null);
   const [vinculando, setVinculando] = useState<string | null>(null);
+  const [rechazando, setRechazando] = useState<string | null>(null);
+  /** Lo ultimo que salio mal. Antes las escrituras fallaban en silencio. */
+  const [error, setError] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -79,51 +88,92 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
 
   /* ----------------------------- acciones ----------------------------- */
 
-  const bloquear = async (hora: string) => {
-    await supabase.from("turnos").insert({ fecha, hora, estado: "bloqueado" });
+  /**
+   * Envoltorio de toda escritura: si la base rechaza, se muestra. Antes
+   * el panel recargaba igual y la accion parecia no haber pasado nada,
+   * que es la peor forma de fallar.
+   */
+  const ejecutar = async (
+    accion: () => PromiseLike<{ error: { message: string } | null }>,
+    queHacia: string
+  ) => {
+    setError(null);
+    const { error: fallo } = await accion();
+    if (fallo) {
+      setError(`No se pudo ${queHacia}. ${fallo.message}`);
+      return false;
+    }
     await cargar();
+    return true;
   };
 
-  const borrar = async (id: string) => {
-    await supabase.from("turnos").delete().eq("id", id);
-    await cargar();
-  };
+  const bloquear = (hora: string) =>
+    ejecutar(
+      () =>
+        supabase.from("turnos").insert({ fecha, hora, estado: "bloqueado" }),
+      "bloquear el horario"
+    );
 
-  const confirmar = async (id: string) => {
-    await supabase.from("turnos").update({ estado: "confirmado" }).eq("id", id);
-    await cargar();
-  };
+  const borrar = (id: string) =>
+    ejecutar(
+      () => supabase.from("turnos").delete().eq("id", id),
+      "borrar el turno"
+    );
+
+  const aceptar = (id: string) =>
+    ejecutar(
+      () => supabase.from("turnos").update({ estado: "confirmado" }).eq("id", id),
+      "aceptar el turno"
+    );
 
   const vincularCliente = async (
     turnoId: string,
     c: { id: string; nombre: string; telefono?: string } | null
   ) => {
-    await supabase
-      .from("turnos")
-      .update({
-        cliente_id: c?.id ?? null,
-        cliente: c?.nombre ?? null,
-        telefono: c?.telefono ?? null,
-      })
-      .eq("id", turnoId);
-    setVinculando(null);
-    await cargar();
+    const ok = await ejecutar(
+      () =>
+        supabase
+          .from("turnos")
+          .update({
+            cliente_id: c?.id ?? null,
+            cliente: c?.nombre ?? null,
+            telefono: c?.telefono ?? null,
+          })
+          .eq("id", turnoId),
+      "vincular la clienta"
+    );
+    if (ok) setVinculando(null);
   };
 
-  const alternarDia = async () => {
-    if (diaCerrado) {
-      await supabase.from("dias_cerrados").delete().eq("fecha", fecha);
-    } else {
-      await supabase.from("dias_cerrados").insert({ fecha });
-    }
-    await cargar();
-  };
+  const alternarDia = () =>
+    ejecutar(
+      () =>
+        diaCerrado
+          ? supabase.from("dias_cerrados").delete().eq("fecha", fecha)
+          : supabase.from("dias_cerrados").insert({ fecha }),
+      diaCerrado ? "abrir el día" : "cerrar el día"
+    );
 
   const moverDia = (dias: number) =>
     setFecha(claveFecha(sumarDias(desdeClave(fecha), dias)));
 
   const turnoDe = (hora: string) => turnos.find((t) => t.hora === hora);
+
+  /**
+   * La grilla del dia: los horarios de la agenda MAS los de los turnos
+   * que ya existen.
+   *
+   * Antes se listaban solo los de la agenda, asi que un turno reservado
+   * a las 09:00 desaparecia del panel si despues Valen cambiaba su
+   * horario a 10:00-20:00. La clienta se presentaba y el turno no
+   * figuraba en ningun lado.
+   */
+  const horasDelDia = [
+    ...new Set([...agenda.horarios, ...turnos.map((t) => t.hora)]),
+  ].sort();
+
   const horasLibres = agenda.horarios.filter((h) => !turnoDe(h));
+  const fueraDeAgenda = (hora: string) => !agenda.horarios.includes(hora);
 
   return (
     <section>
@@ -155,6 +205,12 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
         </button>
       </div>
 
+      {error && (
+        <p className="mt-4 rounded-chico bg-vino-suave px-5 py-4 text-base text-vino">
+          {error}
+        </p>
+      )}
+
       <p className="mt-4 text-lg text-tinta-suave">
         {formatearFechaLarga(fecha)}
         {fecha === claveFecha(new Date()) && " · hoy"}
@@ -171,8 +227,22 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
         {cargando ? (
           <li className="text-lg text-tinta-suave">Cargando…</li>
         ) : (
-          agenda.horarios.map((hora) => {
+          horasDelDia.map((hora) => {
             const turno = turnoDe(hora);
+
+            /*
+              La tarjeta del turno pendiente tiene fondo vino pleno, asi
+              que los botones se invierten: el principal va en claro sobre
+              oscuro. Con el mismo vino de siempre, "Aceptar" desaparecia
+              dentro de la tarjeta.
+            */
+            const enOscuro = turno?.estado === "pendiente";
+            const btnPrincipal = enOscuro
+              ? "bg-crema text-vino"
+              : "bg-vino text-crema";
+            const btnSecundario = enOscuro
+              ? "border border-crema/45 text-crema hover:bg-crema/15"
+              : "border border-borde bg-white/60 hover:border-vino hover:text-vino";
 
             return (
               <li
@@ -182,7 +252,14 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
                 }`}
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                  <span className="text-xl font-semibold">{hora}</span>
+                  <span className="text-xl font-semibold">
+                    {hora}
+                    {fueraDeAgenda(hora) && (
+                      <span className="ml-2 text-base font-normal opacity-80">
+                        fuera de tu horario
+                      </span>
+                    )}
+                  </span>
                   <span className="text-base">
                     {turno ? ETIQUETAS[turno.estado].texto : "Libre"}
                   </span>
@@ -208,12 +285,31 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
                   </a>
                 )}
 
-                <div className="mt-4 flex flex-wrap gap-2">
+                {turno?.estado === "confirmado" && turno.telefono && (
+                  <a
+                    href={linkWhatsAppA(
+                      turno.telefono,
+                      mensajeTurnoAceptado({
+                        fecha: turno.fecha,
+                        hora: turno.hora,
+                        cliente: turno.cliente,
+                        tratamiento: turno.tratamiento,
+                      })
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 block text-base font-medium underline"
+                  >
+                    Avisarle que quedó confirmado →
+                  </a>
+                )}
+
+                <div className="mt-5 flex flex-wrap items-center gap-2">
                   {!turno && (
                     <button
                       type="button"
                       onClick={() => bloquear(hora)}
-                      className="rounded-full border border-borde px-5 py-2.5 text-base hover:border-vino hover:text-vino"
+                      className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
                     >
                       Bloquear
                     </button>
@@ -222,10 +318,11 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
                   {turno?.estado === "pendiente" && (
                     <button
                       type="button"
-                      onClick={() => confirmar(turno.id)}
-                      className="rounded-full bg-vino px-5 py-2.5 text-base text-crema"
+                      onClick={() => aceptar(turno.id)}
+                      className={`flex min-h-12 items-center gap-2 rounded-full px-7 text-lg font-semibold shadow-sm ${btnPrincipal}`}
                     >
-                      Confirmar
+                      <IconoCheck className="h-4 w-4" />
+                      Aceptar
                     </button>
                   )}
 
@@ -235,9 +332,13 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
                       onClick={() =>
                         setMoviendo(moviendo === turno.id ? null : turno.id)
                       }
-                      className="rounded-full border border-borde bg-white/60 px-5 py-2.5 text-base hover:border-vino hover:text-vino"
+                      className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
                     >
-                      {moviendo === turno.id ? "Cerrar" : "Mover"}
+                      {moviendo === turno.id
+                        ? "Cerrar"
+                        : turno.estado === "pendiente"
+                          ? "Cambiar"
+                          : "Mover"}
                     </button>
                   )}
 
@@ -247,22 +348,92 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
                       onClick={() =>
                         setVinculando(vinculando === turno.id ? null : turno.id)
                       }
-                      className="rounded-full border border-borde bg-white/60 px-5 py-2.5 text-base hover:border-vino hover:text-vino"
+                      className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
                     >
                       {turno.cliente_id ? "Cambiar clienta" : "Vincular clienta"}
                     </button>
                   )}
 
-                  {turno && (
+                  {turno && turno.estado === "bloqueado" && (
                     <button
                       type="button"
                       onClick={() => borrar(turno.id)}
-                      className="rounded-full border border-borde bg-white/60 px-5 py-2.5 text-base hover:border-vino hover:text-vino"
+                      className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
                     >
-                      {turno.estado === "bloqueado" ? "Liberar" : "Cancelar"}
+                      Liberar
+                    </button>
+                  )}
+
+                  {turno && turno.estado !== "bloqueado" && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setRechazando(rechazando === turno.id ? null : turno.id)
+                      }
+                      className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
+                    >
+                      {turno.estado === "pendiente" ? "Rechazar" : "Cancelar"}
                     </button>
                   )}
                 </div>
+
+                {/*
+                  Rechazar libera el horario y no se puede deshacer, asi que
+                  pregunta antes. Y ofrece avisarle a la clienta: sin eso,
+                  ella se queda esperando una respuesta que no llega.
+                */}
+                {turno && rechazando === turno.id && (
+                  <div className="mt-4 border-t border-current/15 pt-4">
+                    <p className="text-base">
+                      {turno.estado === "pendiente"
+                        ? "Se rechaza el pedido y el horario queda libre."
+                        : "Se cancela el turno y el horario queda libre."}
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {turno.telefono && (
+                        <a
+                          href={linkWhatsAppA(
+                            turno.telefono,
+                            mensajeTurnoRechazado({
+                              fecha: turno.fecha,
+                              hora: turno.hora,
+                              cliente: turno.cliente,
+                            })
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => {
+                            void borrar(turno.id);
+                            setRechazando(null);
+                          }}
+                          className={`rounded-full px-5 py-2.5 text-base font-medium ${btnPrincipal}`}
+                        >
+                          Avisar y liberar
+                        </a>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await borrar(turno.id);
+                          setRechazando(null);
+                        }}
+                        className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
+                      >
+                        {turno.telefono ? "Liberar sin avisar" : "Sí, liberar"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setRechazando(null)}
+                        className="rounded-full px-5 py-2.5 text-base underline"
+                      >
+                        Volver
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {turno && vinculando === turno.id && (
                   <div className="mt-4 border-t border-current/15 pt-4">
@@ -348,20 +519,30 @@ function FormularioTurno({
   onGuardado: () => void;
 }) {
   const supabase = clienteNavegador();
-  const [hora, setHora] = useState(horasLibres[0]);
+  // Sin horarios libres no hay nada que elegir: `horasLibres[0]` era
+  // undefined y el alta se mandaba con la hora vacia.
+  const [hora, setHora] = useState(horasLibres[0] ?? "");
   const [cliente, setCliente] = useState("");
   const [telefono, setTelefono] = useState("");
   const [clienteId, setClienteId] = useState<string | null>(null);
   const [tratamientoId, setTratamientoId] = useState(tratamientos[0]?.id ?? "");
   const [guardando, setGuardando] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
+
   const guardar = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!hora) {
+      setError("Ese día no tiene horarios libres.");
+      return;
+    }
+
     setGuardando(true);
+    setError(null);
 
     const tratamiento = tratamientos.find((t) => t.id === tratamientoId);
 
-    await supabase.from("turnos").insert({
+    const { error: fallo } = await supabase.from("turnos").insert({
       fecha,
       hora,
       estado: "confirmado",
@@ -373,6 +554,16 @@ function FormularioTurno({
     });
 
     setGuardando(false);
+
+    if (fallo) {
+      setError(
+        fallo.code === "23505"
+          ? "Ese horario ya está tomado."
+          : `No se pudo guardar. ${fallo.message}`
+      );
+      return;
+    }
+
     onGuardado();
   };
 
@@ -445,9 +636,15 @@ function FormularioTurno({
         </label>
       </div>
 
+      {error && (
+        <p className="mt-4 rounded-chico bg-vino-suave px-4 py-3 text-base text-vino">
+          {error}
+        </p>
+      )}
+
       <button
         type="submit"
-        disabled={guardando}
+        disabled={guardando || !hora}
         className="boton-principal mt-6 w-full disabled:opacity-60"
       >
         {guardando ? "Guardando…" : "Guardar turno"}

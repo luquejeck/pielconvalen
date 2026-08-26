@@ -21,16 +21,30 @@
   --color-crema-oscuro: #f1e8e1; /* secciones alternadas */
   --color-borde: #e5d8d0;
 
+  /*
+    COLOR CON SIGNIFICADO — solo en el panel, nunca en la web publica.
+    En una pantalla de plata el signo tiene que leerse antes que el
+    numero. Son verdes y rojos apagados, elegidos para convivir con el
+    crema: los saturados de planilla ensucian el conjunto.
+  */
+  --color-positivo: #2f6b4f;
+  --color-positivo-suave: #e4efe8;
+  --color-negativo: #a32a25;
+  --color-negativo-suave: #f8e6e4;
+
   /* 3. TINTA — texto, y fondo de las secciones oscuras */
   --color-tinta: #1e1015;
   --color-tinta-suave: #6b5259;
 
-  /* Tipografia del sistema Apple: en iPhone y Mac usa San Francisco,
-     en Windows y Android cae en Inter, que es lo mas parecido. */
+  /* La tipografia que ya trae cada aparato: San Francisco en iPhone y
+     Mac, Segoe en Windows, Roboto en Android. Ninguna se descarga, y son
+     las que mejor se leen en pantallas viejas. Antes la lista nombraba a
+     Inter en tercer lugar, o sea que se bajaba entera para no usarse
+     nunca en el dispositivo mas probable de esta clienta. */
   --font-sans:
     -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
-    var(--font-inter), "Segoe UI", system-ui, sans-serif;
-  --font-admin: var(--font-montserrat), var(--font-inter), system-ui, sans-serif;
+    "Segoe UI", Roboto, system-ui, sans-serif;
+  --font-admin: var(--font-montserrat), system-ui, sans-serif;
 
   /*
     Titulos en Montserrat: geometrica y de trazo parejo, que es lo que le
@@ -38,7 +52,7 @@
     que es la que mejor se lee en parrafos largos y en pantallas viejas.
     De paso la web y el panel dejan de usar dos familias distintas.
   */
-  --font-display: var(--font-montserrat), var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-montserrat), system-ui, sans-serif;
 
   /*
     DOS radios, no mas. Antes convivian tres (24 en las tarjetas nuevas,

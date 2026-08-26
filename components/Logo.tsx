@@ -36,7 +36,16 @@ export function LogoMarca({
         alt="Piel con Valen"
         width={400}
         height={400}
-        priority
+        /*
+          `sizes` es lo unico que le dice a Next que esto se ve chico.
+          Sin el calculaba a partir del width=400 y terminaba pidiendo
+          variantes de 640 y 828 px para dibujar un logo de 26 px de
+          alto. Va el ancho real al que se dibuja la imagen —`escala`,
+          no `alto`, porque de los 400x400 del archivo solo se muestra
+          el recuadro del monograma—. Y sin `priority`: un logo de 26 px
+          no merece precargarse antes que el titulo de la pagina.
+        */
+        sizes={`${Math.ceil(escala)}px`}
         className="mix-blend-multiply"
         style={{
           height: escala,

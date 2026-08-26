@@ -1,7 +1,13 @@
 import { CONSULTORIO } from "@/lib/config";
 import { LogoMarca } from "./Logo";
 import { linkWhatsAppSimple } from "@/lib/whatsapp";
-import { IconoFlecha, IconoInstagram, IconoPin, IconoWhatsApp } from "./iconos";
+import {
+  IconoFlecha,
+  IconoInstagram,
+  IconoPin,
+  IconoTelefono,
+  IconoWhatsApp,
+} from "./iconos";
 
 const CONTACTO = [
   {
@@ -9,18 +15,36 @@ const CONTACTO = [
     titulo: "Escribime",
     detalle: CONSULTORIO.whatsappVisible,
     href: linkWhatsAppSimple(),
+    externo: true,
+  },
+  /*
+    Llamar, que hasta ahora no era una opcion.
+
+    El numero figuraba tres veces y las tres colgaba de un link a
+    WhatsApp. Buena parte de las clientas mayores no escribe para pedir
+    un turno: llama. Tocaban el numero, se les abria WhatsApp otra vez, y
+    la pagina las empujaba a un canal que no habian elegido.
+  */
+  {
+    Icono: IconoTelefono,
+    titulo: "Llamame",
+    detalle: CONSULTORIO.whatsappVisible,
+    href: `tel:${CONSULTORIO.telefono}`,
+    externo: false,
   },
   {
     Icono: IconoInstagram,
     titulo: "Mirá mi trabajo",
     detalle: `@${CONSULTORIO.instagram}`,
     href: CONSULTORIO.instagramUrl,
+    externo: true,
   },
   {
     Icono: IconoPin,
     titulo: "Cómo llegar",
     detalle: "Riglos 531, Caballito",
     href: CONSULTORIO.mapsUrl,
+    externo: true,
   },
 ];
 
@@ -59,12 +83,13 @@ export default function Footer() {
 
           {/* Contacto: cada item es una accion, no un dato suelto */}
           <ul className="grid gap-2.5">
-            {CONTACTO.map(({ Icono, titulo, detalle, href }) => (
+            {CONTACTO.map(({ Icono, titulo, detalle, href, externo }) => (
               <li key={titulo}>
                 <a
                   href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  /* `tel:` no abre una pestaña: la abre y la deja vacía. */
+                  target={externo ? "_blank" : undefined}
+                  rel={externo ? "noopener noreferrer" : undefined}
                   className="flex items-center gap-4 rounded-chico border border-crema/15 bg-crema/5 px-4 py-3.5 transition-colors hover:border-crema/35 hover:bg-crema/10"
                 >
                   <Icono className="h-5 w-5 shrink-0 text-crema/60" />

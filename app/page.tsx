@@ -33,7 +33,7 @@ export default async function Home() {
     "@context": "https://schema.org",
     "@type": "BeautySalon",
     name: CONSULTORIO.nombre,
-    description: `Cosmetología por ${CONSULTORIO.profesional}, ${CONSULTORIO.titulo}. ${CONSULTORIO.eslogan}`,
+    description: `${CONSULTORIO.queSeHace} por ${CONSULTORIO.profesional}, ${CONSULTORIO.profesion}, ${CONSULTORIO.titulo}. ${CONSULTORIO.eslogan}`,
     address: {
       "@type": "PostalAddress",
       streetAddress: "Riglos 531",

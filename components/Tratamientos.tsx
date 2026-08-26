@@ -40,7 +40,9 @@ export default function Tratamientos() {
           las cosas sobre la camilla.
         */}
         <div className="tarjeta mx-auto mt-14 max-w-4xl px-6 py-8 sm:px-8 xl:max-w-none">
-          <h3 className="text-center text-lg font-semibold text-tinta">
+          {/* Mismo rotulo que el bloque de abajo: son un par y antes
+              tenian dos titulos distintos, uno centrado y otro no. */}
+          <h3 className="rotulo-seccion">
             Todos incluyen estos {pasos.length} pasos
           </h3>
           {/*
@@ -75,26 +77,46 @@ export default function Tratamientos() {
           </ol>
         </div>
 
-        {/* Los nombres tecnicos se explican UNA sola vez, igual que los pasos.
-            Repetirlos en cada tarjeta llenaba la pantalla de letra chica. */}
-        <div className="tarjeta mx-auto mt-4 max-w-4xl px-6 py-8 sm:px-8 xl:max-w-none">
-          <h3 className="text-center text-lg font-semibold text-tinta">
-            Lo que se suma en algunos
-          </h3>
-          <dl className="mt-6 grid gap-6 lg:grid-cols-3 lg:gap-0">
-            {extrasDelCatalogo.map((extra) => (
-              <div
-                key={extra}
-                className="lg:border-l lg:border-borde lg:px-7 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
-              >
-                <dt className="text-lg font-semibold text-vino">{extra}</dt>
-                <dd className="mt-1.5 text-lg leading-snug text-tinta-suave">
-                  {GLOSARIO[extra]}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
+        {/*
+          Los nombres tecnicos se explican UNA sola vez, igual que los pasos.
+          Repetirlos en cada tarjeta llenaba la pantalla de letra chica.
+
+          Va sobre vino suave y no en otra tarjeta blanca: apilada debajo
+          de la de los pasos, las dos se leian como una sola cosa partida
+          al medio. Ademas el vino suave ya es el color de la ayuda en
+          esta seccion —lo usa el bloque de "¿no sabes cual elegir?"— y
+          esto es exactamente eso: la explicacion para quien no conoce
+          los nombres.
+
+          Cada nombre va en la MISMA ficha que despues aparece en las
+          tarjetas de tratamiento. Asi esto se lee como lo que es: la
+          referencia de esas fichas, no una lista suelta de terminos.
+          Sobre el vino suave la ficha se invierte a blanco, porque la
+          de las tarjetas usa justo este fondo.
+        */}
+        {extrasDelCatalogo.length > 0 && (
+          <div className="mx-auto mt-4 max-w-4xl rounded-suave bg-vino-suave px-6 py-7 sm:px-8 xl:max-w-none">
+            <h3 className="rotulo-seccion">Lo que se suma en algunos</h3>
+
+            {/* Cada ficha arriba de su explicacion, nunca al lado: los
+                nombres miden distinto y el texto arrancaba en tres
+                sangrias diferentes. */}
+            <dl className="mt-6 grid gap-6 lg:grid-cols-3 lg:gap-x-10">
+              {extrasDelCatalogo.map((extra) => (
+                <div key={extra}>
+                  <dt>
+                    <span className="inline-flex rounded-full bg-white px-4 py-1.5 text-base font-semibold text-vino">
+                      {extra}
+                    </span>
+                  </dt>
+                  <dd className="mt-2.5 text-lg leading-snug text-tinta">
+                    {GLOSARIO[extra]}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
 
         <ul className="mx-auto mt-6 grid max-w-5xl gap-3 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
           {tratamientos.filter((t) => !esConsulta(t)).map((t) => {

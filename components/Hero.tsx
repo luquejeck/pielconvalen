@@ -27,14 +27,36 @@ export default function Hero() {
           de antes, formateada como rotulo: da el aire editorial sin sumar
           una palabra mas.
         */}
-        <p className="rotulo-seccion mt-5">
-          Cosmetóloga · {CONSULTORIO.titulo}
+        {/*
+          En celular la credencial no entra en un renglon, asi que va en
+          dos y el separador desaparece: partida al medio, el "·" quedaba
+          colgando solo al final de la primera linea.
+        */}
+        <p className="rotulo-seccion mt-5 flex flex-col items-center gap-x-2.5 sm:flex-row sm:justify-center">
+          <span>{CONSULTORIO.profesion}</span>
+          <span aria-hidden className="hidden sm:inline">
+            ·
+          </span>
+          <span>{CONSULTORIO.titulo}</span>
         </p>
 
         <p className="mx-auto mt-8 max-w-2xl text-2xl font-light leading-snug text-tinta-suave sm:text-3xl">
           {CONSULTORIO.eslogan}
         </p>
 
+        {/*
+          Que se hace aca, dicho sin tecnicismos.
+
+          La primera pantalla decia nombre, credencial y eslogan: todo
+          cierto y ninguna de las tres cuenta que esto es una limpieza de
+          cutis. "Cosmetologa" no es transparente para todo el mundo —hay
+          quien la asocia a maquillaje o a venta de cremas— y quien llega
+          por un link de WhatsApp no trae ningun contexto. Tenia que bajar
+          dos pantallas hasta Tratamientos para enterarse.
+        */}
+        <p className="mt-4 text-lg text-tinta-suave">
+          {CONSULTORIO.queSeHace} en {CONSULTORIO.direccion.split(",")[1].trim()}
+        </p>
 
         <a href="#reservar" className="boton-principal mt-10">
           Reservar turno

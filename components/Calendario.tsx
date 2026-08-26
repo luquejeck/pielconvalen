@@ -162,13 +162,24 @@ export default function Calendario({
               aria-label={`${dia.getDate()} de ${MESES[dia.getMonth()]}${
                 disponible ? "" : ", sin turnos"
               }`}
+              /*
+                El dia sin turnos iba en tinta-suave al 45%: 2:1 de
+                contraste, que a los sesenta y con el brillo a la mitad
+                es un renglon en blanco. No se distinguia de una celda
+                vacia del mes, asi que se tocaba a ciegas.
+
+                Ahora el numero se lee, y la diferencia la hace la forma
+                antes que el color: el dia con lugar tiene recuadro y
+                fondo blanco, el que no tiene queda hundido contra la
+                tarjeta.
+              */
               className={[
                 "flex aspect-square items-center justify-center rounded-chico text-lg transition-colors",
                 seleccionado
                   ? "bg-vino font-semibold text-crema"
                   : disponible
                     ? "border-2 border-vino/55 bg-white font-medium text-tinta hover:bg-vino-suave"
-                    : "text-tinta-suave/45",
+                    : "bg-crema-oscuro/60 text-tinta-suave",
               ].join(" ")}
             >
               {dia.getDate()}
@@ -208,7 +219,11 @@ export default function Calendario({
                       ? "bg-vino font-semibold text-crema"
                       : libre
                         ? "border-2 border-vino/55 bg-white font-medium text-tinta hover:bg-vino-suave"
-                        : "bg-crema-oscuro text-tinta-suave/60",
+                        /* Mismo motivo que en la grilla de dias: al 60%
+                           la palabra "ocupado" no se leia, y con ella se
+                           perdia el unico dato que explica por que ese
+                           horario esta apagado. */
+                        : "bg-crema-oscuro text-tinta-suave",
                   ].join(" ")}
                 >
                   {turno.hora}

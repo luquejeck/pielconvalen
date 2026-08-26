@@ -1,5 +1,3 @@
-import { existsSync } from "node:fs";
-import path from "node:path";
 import Image from "next/image";
 import { CONSULTORIO } from "@/lib/config";
 import { IconoPin } from "./iconos";
@@ -16,18 +14,15 @@ import { IconoPin } from "./iconos";
  * texto se leen juntas —la cara y el titulo— que es de lo que se trata
  * la seccion.
  *
- * Sigue la misma regla que los fondos de /public/imagenes: si el archivo
- * no esta, la seccion entera no se muestra. Asi no queda un hueco ni una
- * imagen rota mientras Valen consigue las fotos, y aparece sola el dia
- * que las suba, sin tocar codigo.
+ * Que fotos hay se declara en CONSULTORIO.fotos, no se le pregunta al
+ * disco. Preguntarle al disco (`existsSync` sobre /public) funciona en
+ * la maquina de casa y falla en Vercel, donde esa carpeta la sirve el
+ * CDN y no viaja adentro de la funcion: la respuesta era siempre "no
+ * esta" y la seccion entera desaparecia del sitio publicado.
  */
 
-const existeFoto = (archivo: string) =>
-  existsSync(path.join(process.cwd(), "public", "imagenes", archivo));
-
 export default function Consultorio() {
-  const hayValen = existeFoto("valen.jpg");
-  const hayConsultorio = existeFoto("consultorio.jpg");
+  const { valen: hayValen, consultorio: hayConsultorio } = CONSULTORIO.fotos;
   if (!hayValen && !hayConsultorio) return null;
 
   return (
