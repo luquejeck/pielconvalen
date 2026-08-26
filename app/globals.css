@@ -31,8 +31,17 @@
      se movio. */
   --color-papel: #fdfbfc; /* blanco roto: el #fff puro endurecia las tarjetas */
   --color-crema: #faf5f6;
-  --color-crema-oscuro: #f3e8ec; /* secciones alternadas */
-  --color-borde: #e6d6dc;
+  /* La alternada baja de 93% a 88% de luminosidad, y el borde de 87 a
+     82. No es un capricho: con los valores de antes toda la pagina vivia
+     entre 87 y 99%, y el salto entre una seccion y la de al lado era de
+     1,11:1 — el umbral donde se empieza a ver. Cada par de secciones se
+     leia como una sola mancha larga partida por una linea fina.
+
+     Ahora el salto es 1,21:1 y las tarjetas blancas se despegan a 1,27.
+     Los textos no se movieron: tinta-suave sobre esta alternada sigue en
+     5,4:1, bien por encima del 4,5 que hace falta. */
+  --color-crema-oscuro: #ecdde3; /* secciones alternadas */
+  --color-borde: #dcc6ce;
 
   /*
     COLOR CON SIGNIFICADO — solo en el panel, nunca en la web publica.
