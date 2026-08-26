@@ -313,24 +313,43 @@
   background-color: var(--color-crema-oscuro);
 }
 
-.segmentado a {
+/* Sirve para los <a> de la navegacion y para los <button> que cambian de
+   vista sin ir a otra pagina. Antes nombraba solo `a`, asi que el
+   selector Dia/Semana del panel de turnos quedaba sin ningun estilo: los
+   dos se veian igual y no se notaba cual estaba elegido. */
+.segmentado a,
+.segmentado button {
   border-radius: 9999px;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-tinta-suave);
   white-space: nowrap;
   transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
-.segmentado a:hover {
+.segmentado a:hover,
+.segmentado button:hover {
   color: var(--color-vino);
 }
 
-.segmentado a[data-activo="true"] {
+/* La pastilla activa: blanca y elevada sobre el riel hundido. Va en
+   semibold y con la sombra un poco mas presente que antes, porque solo
+   el cambio de color no alcanzaba para que se leyera de un vistazo. */
+.segmentado a[data-activo="true"],
+.segmentado button[data-activo="true"] {
   background-color: #fff;
   color: var(--color-vino);
-  box-shadow: 0 1px 3px rgb(30 16 21 / 0.12);
+  font-weight: 600;
+  box-shadow:
+    0 1px 2px rgb(30 16 21 / 0.08),
+    0 2px 8px -2px rgb(30 16 21 / 0.16);
+}
+
+/* Que al tocar se sienta que respondio, tambien en pantalla tactil. */
+.segmentado button:active {
+  transform: scale(0.97);
 }

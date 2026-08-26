@@ -302,13 +302,16 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
       {/* Dia o semana */}
       <div className="mb-4 flex justify-center">
         <div className="segmentado">
+          {/* Sin clases propias: el aspecto lo pone `.segmentado`, igual
+              que en la barra de arriba. Ponerlas aca hacia que las dos
+              pastillas midieran distinto que las de la navegacion. */}
           {(["dia", "semana"] as const).map((v) => (
             <button
               key={v}
               type="button"
               onClick={() => setVista(v)}
               data-activo={vista === v}
-              className="rounded-full px-5 py-2 text-sm font-medium"
+              aria-pressed={vista === v}
             >
               {v === "dia" ? "Día" : "Semana"}
             </button>
