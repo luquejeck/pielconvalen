@@ -17,9 +17,19 @@ import {
   normalizarTelefono,
 } from "@/lib/whatsapp";
 import BuscadorCliente from "./BuscadorCliente";
+import BandejaPendientes from "./BandejaPendientes";
+import FormularioCobro from "./FormularioCobro";
 import { IconoCheck } from "../iconos";
 
-type EstadoTurno = "pendiente" | "confirmado" | "bloqueado";
+type EstadoTurno =
+  | "pendiente"
+  | "confirmado"
+  | "bloqueado"
+  /* Atendida y cobrada: el ingreso y la sesion ya se generaron solos. */
+  | "realizado"
+  /* Confirmo y no aparecio. Sin este estado no habia forma de medir
+     ausentismo ni de distinguir a la que aviso de la que no vino. */
+  | "no_vino";
 
 type TurnoDB = {
   id: string;
@@ -31,6 +41,9 @@ type TurnoDB = {
   tratamiento: string | null;
   precio: number | null;
   cliente_id: string | null;
+  /* Que movimiento genero este turno al cobrarse. Sirve para no cobrar
+     dos veces y para poder deshacerlo. */
+  movimiento_id: string | null;
 };
 
 /**
@@ -51,6 +64,16 @@ const ETIQUETAS: Record<EstadoTurno, { texto: string; clase: string }> = {
     texto: "Bloqueado",
     clase: "bg-crema-oscuro text-tinta-suave border-borde",
   },
+  /* Ya paso y ya se cobro: no pide nada, va en verde apagado, el mismo
+     que usa Economia para lo que suma. */
+  realizado: {
+    texto: "Atendida y cobrada",
+    clase: "bg-positivo-suave text-positivo border-positivo/30",
+  },
+  no_vino: {
+    texto: "No vino",
+    clase: "bg-negativo-suave text-negativo border-negativo/30",
+  },
 };
 
 type Props = { tratamientos: Tratamiento[]; agenda: Agenda };
@@ -66,8 +89,26 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
   const [moviendo, setMoviendo] = useState<string | null>(null);
   const [vinculando, setVinculando] = useState<string | null>(null);
   const [rechazando, setRechazando] = useState<string | null>(null);
+  const [cobrando, setCobrando] = useState<string | null>(null);
   /** Lo ultimo que salio mal. Antes las escrituras fallaban en silencio. */
   const [error, setError] = useState<string | null>(null);
+
+  /**
+   * Dia o semana. La vista de dia es la de trabajar; la de semana es la
+   * de mirar como viene. Antes solo existia la primera, asi que para
+   * saber como venia la semana habia que tocar la flecha siete veces.
+   */
+  const [vista, setVista] = useState<"dia" | "semana">("dia");
+  const [semana, setSemana] = useState<TurnoDB[]>([]);
+
+  /** Lunes de la semana que contiene a `fecha`. */
+  const lunes = (() => {
+    const d = desdeClave(fecha);
+    return sumarDias(d, -((d.getDay() + 6) % 7));
+  })();
+  const diasDeLaSemana = Array.from({ length: 7 }, (_, i) =>
+    claveFecha(sumarDias(lunes, i))
+  );
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -82,9 +123,26 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
     setCargando(false);
   }, [fecha, supabase]);
 
+  const cargarSemana = useCallback(async () => {
+    const { data } = await supabase
+      .from("turnos")
+      .select("*")
+      .gte("fecha", diasDeLaSemana[0])
+      .lte("fecha", diasDeLaSemana[6])
+      .order("fecha")
+      .order("hora");
+
+    setSemana((data as TurnoDB[]) ?? []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase, diasDeLaSemana[0], diasDeLaSemana[6]]);
+
   useEffect(() => {
     void cargar();
   }, [cargar]);
+
+  useEffect(() => {
+    if (vista === "semana") void cargarSemana();
+  }, [vista, cargarSemana]);
 
   /* ----------------------------- acciones ----------------------------- */
 
@@ -145,6 +203,53 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
     if (ok) setVinculando(null);
   };
 
+  /**
+   * Atendida y cobrada, de una sola vez.
+   *
+   * El trabajo lo hace una funcion de la base, para que el turno, el
+   * ingreso y la sesion entren juntos o no entre ninguno. Devuelve el
+   * mensaje de error para que lo muestre el propio formulario, que es
+   * donde Valen esta mirando.
+   */
+  const registrarCobro = async (
+    turnoId: string,
+    datos: { monto: number; medioPago: string; notas: string }
+  ): Promise<string | null> => {
+    const res = await fetch("/api/turnos/realizar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ turnoId, ...datos }),
+    });
+
+    if (!res.ok) {
+      const { error: mensaje } = await res.json().catch(() => ({ error: null }));
+      return mensaje ?? "No se pudo registrar el cobro.";
+    }
+
+    setCobrando(null);
+    await cargar();
+    return null;
+  };
+
+  /** Borra el ingreso y la sesion que genero el turno y lo vuelve atras. */
+  const anularCobro = async (turnoId: string) => {
+    setError(null);
+    const res = await fetch(`/api/turnos/realizar?turnoId=${turnoId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      setError("No se pudo deshacer el cobro.");
+      return;
+    }
+    await cargar();
+  };
+
+  const marcarNoVino = (id: string) =>
+    ejecutar(
+      () => supabase.from("turnos").update({ estado: "no_vino" }).eq("id", id),
+      "marcar que no vino"
+    );
+
   const alternarDia = () =>
     ejecutar(
       () =>
@@ -177,6 +282,47 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
 
   return (
     <section>
+      {/* Los pedidos sin responder, de cualquier fecha. Va primero
+          porque es lo unico que tiene a una clienta esperando. */}
+      <BandejaPendientes
+        onCambio={() => {
+          void cargar();
+          if (vista === "semana") void cargarSemana();
+        }}
+      />
+
+      {/* Dia o semana */}
+      <div className="mb-4 flex justify-center">
+        <div className="segmentado">
+          {(["dia", "semana"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setVista(v)}
+              data-activo={vista === v}
+              className="rounded-full px-5 py-2 text-sm font-medium"
+            >
+              {v === "dia" ? "Día" : "Semana"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {vista === "semana" && (
+        <VistaSemana
+          dias={diasDeLaSemana}
+          turnos={semana}
+          agenda={agenda}
+          onElegirDia={(d) => {
+            setFecha(d);
+            setVista("dia");
+          }}
+          onMoverSemana={(delta) => moverDia(delta * 7)}
+        />
+      )}
+
+      {vista === "dia" && (
+      <>
       {/* Navegacion por dia */}
       <div className="flex items-center gap-3">
         <button
@@ -326,7 +472,48 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
                     </button>
                   )}
 
-                  {turno && turno.estado !== "bloqueado" && (
+                  {/*
+                    El boton que cierra el circuito. Antes, despues de
+                    atender habia que ir a Economia a cargar el ingreso y
+                    a la ficha de la clienta a cargar la sesion,
+                    escribiendo de nuevo datos que ya estaban en este
+                    turno. Va primero y en el estilo principal porque es
+                    la accion mas frecuente del dia.
+                  */}
+                  {turno?.estado === "confirmado" && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCobrando(cobrando === turno.id ? null : turno.id)
+                      }
+                      className={`flex min-h-12 items-center gap-2 rounded-full px-7 text-lg font-semibold shadow-sm ${btnPrincipal}`}
+                    >
+                      <IconoCheck className="h-4 w-4" />
+                      {cobrando === turno.id ? "Cerrar" : "Atendida y cobrada"}
+                    </button>
+                  )}
+
+                  {turno?.estado === "confirmado" && (
+                    <button
+                      type="button"
+                      onClick={() => marcarNoVino(turno.id)}
+                      className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
+                    >
+                      No vino
+                    </button>
+                  )}
+
+                  {turno?.estado === "realizado" && (
+                    <button
+                      type="button"
+                      onClick={() => anularCobro(turno.id)}
+                      className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
+                    >
+                      Deshacer el cobro
+                    </button>
+                  )}
+
+                  {turno && turno.estado !== "bloqueado" && turno.estado !== "realizado" && (
                     <button
                       type="button"
                       onClick={() =>
@@ -454,6 +641,15 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
                   </div>
                 )}
 
+                {turno && cobrando === turno.id && (
+                  <FormularioCobro
+                    precioSugerido={turno.precio}
+                    hayClienta={Boolean(turno.cliente_id)}
+                    onListo={(datos) => registrarCobro(turno.id, datos)}
+                    onCancelar={() => setCobrando(null)}
+                  />
+                )}
+
                 {turno && moviendo === turno.id && (
                   <FormularioMover
                     turno={turno}
@@ -501,7 +697,114 @@ export default function PanelAdmin({ tratamientos, agenda }: Props) {
           }}
         />
       )}
+      </>
+      )}
     </section>
+  );
+}
+
+/* ---------------------------------------------------------------------- */
+
+/**
+ * Como viene la semana, de un vistazo.
+ *
+ * El panel mostraba un dia por vez, asi que para saber como venia la
+ * semana habia que tocar la flecha siete veces y acordarse de lo que
+ * decia cada pantalla. Esto no reemplaza la vista de dia —ahi es donde
+ * se trabaja— sino que contesta otra pregunta: donde hay lugar y donde
+ * esta el lio.
+ */
+function VistaSemana({
+  dias,
+  turnos,
+  agenda,
+  onElegirDia,
+  onMoverSemana,
+}: {
+  dias: string[];
+  turnos: TurnoDB[];
+  agenda: Agenda;
+  onElegirDia: (fecha: string) => void;
+  onMoverSemana: (delta: number) => void;
+}) {
+  const hoy = claveFecha(new Date());
+
+  return (
+    <div>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => onMoverSemana(-1)}
+          aria-label="Semana anterior"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-borde text-2xl text-vino hover:bg-vino-suave"
+        >
+          &#8249;
+        </button>
+        <p className="grow text-center text-lg text-tinta">
+          Semana del {formatearFechaLarga(dias[0])}
+        </p>
+        <button
+          type="button"
+          onClick={() => onMoverSemana(1)}
+          aria-label="Semana siguiente"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-borde text-2xl text-vino hover:bg-vino-suave"
+        >
+          &#8250;
+        </button>
+      </div>
+
+      <ul className="mt-5 space-y-2.5">
+        {dias.map((dia) => {
+          const delDia = turnos.filter((t) => t.fecha === dia);
+          const ocupados = delDia.filter((t) => t.estado !== "bloqueado").length;
+          const pendientes = delDia.filter((t) => t.estado === "pendiente").length;
+          const libres = agenda.horarios.filter(
+            (h) => !delDia.some((t) => t.hora === h)
+          ).length;
+          const esHoy = dia === hoy;
+          const atiende = agenda.diasHabiles.includes(desdeClave(dia).getDay());
+
+          return (
+            <li key={dia}>
+              <button
+                type="button"
+                onClick={() => onElegirDia(dia)}
+                className={`flex w-full flex-wrap items-center gap-x-4 gap-y-1 rounded-chico border px-4 py-3.5 text-left transition-colors hover:border-vino ${
+                  esHoy ? "border-vino bg-vino-suave" : "border-borde bg-white"
+                }`}
+              >
+                <span className="min-w-40 text-lg font-medium text-tinta">
+                  {formatearFechaLarga(dia)}
+                  {esHoy && " · hoy"}
+                </span>
+
+                {!atiende ? (
+                  <span className="text-base text-tinta-suave">No atendés</span>
+                ) : (
+                  <span className="flex flex-wrap items-center gap-2 text-base">
+                    {pendientes > 0 && (
+                      <span className="rounded-full bg-vino px-3 py-0.5 font-medium text-crema">
+                        {pendientes} a confirmar
+                      </span>
+                    )}
+                    <span className="text-tinta-suave">
+                      {ocupados === 0
+                        ? "Sin turnos"
+                        : ocupados === 1
+                          ? "1 turno"
+                          : `${ocupados} turnos`}
+                      {libres > 0 && ` · ${libres} libre${libres > 1 ? "s" : ""}`}
+                    </span>
+                  </span>
+                )}
+
+                <span className="ml-auto text-tinta-suave">&rsaquo;</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 

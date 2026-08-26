@@ -9,6 +9,9 @@ export default function Login() {
   const [clave, setClave] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [entrando, setEntrando] = useState(false);
+  /* Sin esto, perder la contraseña significaba quedarse afuera de la
+     propia agenda hasta que alguien entrara a Supabase a resetearla. */
+  const [avisoReset, setAvisoReset] = useState<string | null>(null);
 
   if (!hayBaseDeDatos) return <SinConfigurar />;
 
@@ -37,6 +40,29 @@ export default function Login() {
 
     // Navegacion real para que el navegador mande la cookie recien recibida.
     window.location.assign("/admin");
+  };
+
+  /** Manda el mail de recuperacion al correo que este escrito arriba. */
+  const recuperar = async () => {
+    setError(null);
+    setAvisoReset(null);
+
+    if (!email.trim()) {
+      setError("Escribí tu mail arriba y volvé a tocar acá.");
+      return;
+    }
+
+    const { clienteNavegador } = await import("@/lib/supabase");
+    const { error: fallo } = await clienteNavegador().auth.resetPasswordForEmail(
+      email.trim().toLowerCase(),
+      { redirectTo: `${window.location.origin}/admin/login` }
+    );
+
+    setAvisoReset(
+      fallo
+        ? "No se pudo enviar el mail. Probá de nuevo en un rato."
+        : "Listo: te mandamos un mail con el enlace para cambiar la contraseña. Fijate también en el correo no deseado."
+    );
   };
 
   return (
@@ -87,12 +113,26 @@ export default function Login() {
           </p>
         )}
 
+        {avisoReset && (
+          <p className="mt-4 rounded-xl bg-crema-oscuro px-4 py-3 text-base leading-snug text-tinta">
+            {avisoReset}
+          </p>
+        )}
+
         <button
           type="submit"
           disabled={entrando}
           className="boton-principal mt-6 w-full disabled:opacity-60"
         >
           {entrando ? "Entrando…" : "Entrar"}
+        </button>
+
+        <button
+          type="button"
+          onClick={recuperar}
+          className="mt-4 w-full text-base text-tinta-suave underline hover:text-vino"
+        >
+          Me olvidé la contraseña
         </button>
       </form>
     </main>

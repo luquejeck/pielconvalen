@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { normalizarTelefono } from "@/lib/whatsapp";
+import ResumenClienta from "./ResumenClienta";
 
 type Cliente = {
   id: string;
@@ -231,6 +232,9 @@ function FichaCliente({ cliente, onVolver, onActualizar }: {
             )}
             {cliente.email && <p className="text-tinta-suave">✉️ {cliente.email}</p>}
           </div>
+
+          {/* Sus turnos y su plata, que hasta ahora la ficha no mostraba. */}
+          <ResumenClienta clienteId={cliente.id} />
 
           {cliente.antecedentes && (
             <div className="mt-4 rounded-xl border border-vino/20 bg-vino-suave p-4">

@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import BuscadorCliente from "./BuscadorCliente";
+import { MEDIOS_DE_PAGO } from "./FormularioCobro";
+import TabGastosFijos from "./TabGastosFijos";
 
 // ─── Tipos ────────────────────────────────────────────────────────────
 type Movimiento = {
@@ -13,6 +15,7 @@ type Movimiento = {
   monto: number;
   costo?: number;
   cliente_id?: string | null;
+  medio_pago?: string | null;
 };
 
 type ItemInventario = {
@@ -236,6 +239,10 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
     monto: "",
     costo: "",
   });
+  /* La web promete efectivo, transferencia y Mercado Pago, y el panel no
+     registraba ninguno: sin ese dato no se puede cuadrar la caja contra
+     lo que efectivamente entro al banco. */
+  const [medioPago, setMedioPago] = useState(MEDIOS_DE_PAGO[0]);
   const [guardando, setGuardando] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -313,6 +320,7 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
           "Costo · Margen".
         */
         costo: tipo === "producto" ? (selProducto?.costo ?? null) : null,
+        medio_pago: tipo !== "gasto" ? medioPago : null,
         cliente_id: tipo !== "gasto" ? clienteId : null,
         inventario_id: selProducto?.id ?? null,
       }),
@@ -468,6 +476,16 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
             placeholder={tipo === "gasto" ? "5000" : "28000"}
             className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino" />
         </label>
+
+        {tipo !== "gasto" && (
+          <label className="block">
+            <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Cómo pagó</span>
+            <select value={medioPago} onChange={(e) => setMedioPago(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino">
+              {MEDIOS_DE_PAGO.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </label>
+        )}
 
         {aviso && (
           <p className="rounded-xl bg-vino-suave px-4 py-2.5 text-sm text-vino">
@@ -746,7 +764,10 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${COLORES[m.tipo] ?? "bg-crema-oscuro text-tinta-suave"}`}>
                       {ETIQUETAS[m.tipo] ?? m.tipo}
                     </span>
-                    <span className="text-xs text-tinta-suave">{m.fecha} · {m.categoria}</span>
+                    <span className="text-xs text-tinta-suave">
+                      {m.fecha} · {m.categoria}
+                      {m.medio_pago ? ` · ${m.medio_pago}` : ""}
+                    </span>
                   </div>
                   <p className="mt-0.5 truncate text-sm text-tinta">{m.descripcion}</p>
                   {m.costo && (
@@ -793,12 +814,13 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
 }
 
 // ─── Panel principal ──────────────────────────────────────────────────
-type Tab = "dashboard" | "ingresos" | "inventario" | "flujo";
+type Tab = "dashboard" | "ingresos" | "inventario" | "fijos" | "flujo";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
   { id: "ingresos", label: "Registrar venta/gasto" },
   { id: "inventario", label: "Inventario" },
+  { id: "fijos", label: "Gastos fijos" },
   { id: "flujo", label: "Flujo de caja" },
 ];
 
@@ -910,6 +932,9 @@ export default function PanelEconomia() {
         />
       )}
       {tab === "inventario" && <TabInventario items={inventario} onActualizar={cargarInventario} />}
+      {tab === "fijos" && (
+        <TabGastosFijos mes={mes} onVolcado={() => void cargarMovimientos()} />
+      )}
       {tab === "flujo" && <TabFlujo todos={movimientos} mes={mes} setMes={setMes} onEliminar={eliminarMovimiento} />}
 
       {error && (

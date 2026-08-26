@@ -1,4 +1,5 @@
 import Image from "next/image";
+import fotoValen from "@/public/imagenes/valen.jpg";
 import { CONSULTORIO } from "@/lib/config";
 import { IconoPin } from "./iconos";
 
@@ -32,15 +33,31 @@ export default function Consultorio() {
     >
       <div className="contenedor">
         <div className="mx-auto grid max-w-5xl items-center gap-10 lg:grid-cols-2 lg:gap-14 xl:max-w-6xl">
+          {/*
+            El retrato es cuadrado y el marco tambien.
+
+            Antes el marco era 4:3 con object-top, que sobre una foto
+            cuadrada corta el cuarto de abajo. Justo ahi esta el logo
+            bordado en la chaqueta —"VG · Piel con Valen"—, que es el
+            detalle que muestra marca y profesion de un vistazo. El
+            recorte se lo comia por la mitad.
+
+            Y la foto se IMPORTA, no se nombra por su ruta. Escrita como
+            "/imagenes/valen.jpg", la direccion que genera el optimizador
+            es siempre la misma, asi que al reemplazar el archivo con el
+            mismo nombre se seguia sirviendo la version vieja desde la
+            cache: cambias la foto, publicas, y sigue apareciendo la
+            anterior. Importandola, la direccion lleva el hash del
+            contenido, y ademas Next lee solo el alto y el ancho reales,
+            asi que no hay numeros escritos a mano que se desactualicen.
+          */}
           {hayValen && (
             <Image
-              src="/imagenes/valen.jpg"
-              alt={`${CONSULTORIO.profesional}, cosmetóloga, en su consultorio`}
-              width={1024}
-              height={768}
-              sizes="(min-width: 1024px) 50vw, 100vw"
-              priority={false}
-              className="aspect-4/3 w-full rounded-suave object-cover object-top shadow-suave"
+              src={fotoValen}
+              alt={`${CONSULTORIO.profesional}, ${CONSULTORIO.profesion.toLowerCase()}`}
+              sizes="(min-width: 1024px) 46vw, 100vw"
+              placeholder="blur"
+              className="aspect-square w-full rounded-suave object-cover shadow-suave"
             />
           )}
 
