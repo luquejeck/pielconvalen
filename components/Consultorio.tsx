@@ -1,7 +1,7 @@
 import Image from "next/image";
 import fotoValen from "@/public/imagenes/valen.jpg";
 import type { ConfiguracionWeb } from "@/lib/consultorio";
-import { IconoCheck, IconoPin } from "./iconos";
+import { IconoCheck } from "./iconos";
 
 /**
  * Cara de Valen y datos de quien atiende.
@@ -70,12 +70,6 @@ export default function Consultorio({
               Quién te va a atender
             </h2>
 
-            {/*
-              El nombre y el titulo, una sola vez cada uno. Antes decia
-              "Tecnica UBA" y abajo la carrera completa, que es lo mismo
-              dicho dos veces. Lo que se resalta es la UBA: es el dato que
-              decide a quien no la conoce.
-            */}
             <p className="mt-6 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
               <span className="text-2xl font-semibold text-tinta">
                 {CONSULTORIO.profesional}
@@ -89,120 +83,82 @@ export default function Consultorio({
 
             <p className="mt-2 text-lg leading-snug text-tinta-suave">
               {CONSULTORIO.carrera}
+              {CONSULTORIO.matricula && ` · Matrícula ${CONSULTORIO.matricula}`}
+              {CONSULTORIO.experiencia && ` · ${CONSULTORIO.experiencia}`}
             </p>
 
             {/*
-              Las credenciales verificables, juntas y en una linea.
-
-              Es lo que hace toda pagina de un profesional de salud y esta
-              no hacia: la matricula y los años de ejercicio no son
-              adorno, son lo que se puede chequear. Cada dato aparece solo
-              si esta cargado: un numero de matricula inventado seria peor
-              que no poner ninguno.
-            */}
-            {(CONSULTORIO.matricula || CONSULTORIO.experiencia) && (
-              <p className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-base text-tinta-suave lg:justify-start">
-                {CONSULTORIO.matricula && (
-                  <span>Matrícula {CONSULTORIO.matricula}</span>
-                )}
-                {CONSULTORIO.matricula && CONSULTORIO.experiencia && (
-                  <span aria-hidden className="text-borde">
-                    ·
-                  </span>
-                )}
-                {CONSULTORIO.experiencia && <span>{CONSULTORIO.experiencia}</span>}
-              </p>
-            )}
-
-            {/*
-              Que hable ella.
-
-              Todo el resto del sitio habla DE Valen —"te atiende ella
-              misma", "formacion universitaria, no un curso corto"— y eso
-              se lee como publicidad, porque lo es. Un parrafo en primera
-              persona cambia a quien le estas creyendo: no a la pagina, a
-              la persona que te va a tocar la cara.
+              Que hable ella. Todo el resto del sitio habla DE Valen y eso
+              se lee como publicidad, porque lo es. Dos oraciones en
+              primera persona cambian a quien le estas creyendo: no a la
+              pagina, a la persona que te va a tocar la cara.
             */}
             {CONSULTORIO.bio && (
-              <blockquote className="mt-6 border-l-2 border-vino/30 pl-5 text-left text-lg leading-relaxed text-tinta">
+              <p className="mt-5 text-lg leading-relaxed text-tinta">
                 {CONSULTORIO.bio}
-              </blockquote>
+              </p>
             )}
 
-            <a
-              href="#reservar"
-              className="boton-suave mt-7 w-full sm:w-auto sm:px-8"
-            >
-              Reservar turno
-            </a>
+            {/*
+              Las tres garantias, en fila y como sellos.
+
+              Antes eran una lista con vinetas adentro de una caja con
+              titulo propio, debajo de otra caja con titulo propio. Tres
+              bloques apilados se leen como un formulario; esto se lee de
+              un vistazo, que es lo que tiene que pasar.
+            */}
+            {CONSULTORIO.protocolo.length > 0 && (
+              /*
+                Apiladas en celular y en fila desde tablet. Con
+                flex-wrap a secas caia una arriba y dos apretadas abajo,
+                con los tildes de cada una pegados al texto de la
+                anterior. Tres garantias mal cortadas dejan de leerse
+                como garantias.
+              */
+              <ul className="mx-auto mt-6 flex w-fit flex-col items-start gap-2 sm:mx-0 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-6 lg:justify-start">
+                {CONSULTORIO.protocolo.slice(0, 3).map((punto) => (
+                  <li
+                    key={punto}
+                    className="flex items-center gap-2 text-base font-medium text-tinta"
+                  >
+                    <IconoCheck className="h-4 w-4 shrink-0 text-vino" />
+                    {punto}
+                  </li>
+                ))}
+              </ul>
+            )}
 
             {/*
-              Donde queda, con el mismo peso que el resto. La direccion
-              sola no ubica a nadie: el punto de referencia y el transporte
-              son lo que hace que una persona se anime a salir de la casa.
-              Cada dato aparece solo si esta cargado en config.
+              La direccion en un renglon, no en una caja aparte: ya esta
+              en la portada y en el pie, y aca lo que importa es quien
+              atiende, no como llegar.
             */}
-            <div className="mt-8 rounded-suave bg-crema-oscuro px-5 py-5 text-left sm:px-6">
-              <h3 className="text-lg font-semibold text-tinta">Dónde queda</h3>
-
-              <p className="mt-2 text-lg leading-snug text-tinta">
-                {CONSULTORIO.direccion}
-              </p>
-
-              {CONSULTORIO.referencia && (
-                <p className="mt-1.5 text-lg leading-snug text-tinta-suave">
-                  {CONSULTORIO.referencia}
-                </p>
-              )}
-
-              {CONSULTORIO.transporte && (
-                <p className="mt-1.5 text-lg leading-snug text-tinta-suave">
-                  {CONSULTORIO.transporte}
-                </p>
-              )}
-
+            <p className="mt-6 text-lg leading-snug text-tinta-suave">
+              Te atiendo en {CONSULTORIO.direccion}.{" "}
               <a
                 href={CONSULTORIO.mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="boton-suave mt-4 w-full bg-white sm:w-auto sm:px-7"
+                className="whitespace-nowrap font-medium text-vino underline underline-offset-2"
               >
-                <IconoPin className="h-5 w-5" />
                 Ver en el mapa
               </a>
-            </div>
+            </p>
 
-            {/*
-              Como se trabaja: material, esterilizacion, ficha previa.
-
-              Es lo que toda pagina de un profesional de salud dice y esta
-              no decia. En un tratamiento con agujas y hojas, saber que el
-              material es descartable puede ser la diferencia entre
-              reservar y no reservar. Y para una clienta mayor, que ya vio
-              de todo, mas todavia.
-
-              Va al final de la seccion y no arriba: primero quien es,
-              despues como trabaja. Si la lista queda vacia, no aparece.
-            */}
-            {CONSULTORIO.protocolo.length > 0 && (
-              <div className="mt-4 rounded-suave border border-borde px-5 py-5 text-left sm:px-6">
-                <h3 className="text-lg font-semibold text-tinta">
-                  Cómo se trabaja acá
-                </h3>
-
-                <ul className="mt-3 space-y-2.5">
-                  {CONSULTORIO.protocolo.map((punto) => (
-                    <li
-                      key={punto}
-                      className="flex items-start gap-3 text-lg leading-snug text-tinta-suave"
-                    >
-                      <IconoCheck className="mt-1.5 h-4 w-4 shrink-0 text-vino" />
-                      {punto}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            {(CONSULTORIO.referencia || CONSULTORIO.transporte) && (
+              <p className="mt-1.5 text-lg leading-snug text-tinta-suave">
+                {[CONSULTORIO.referencia, CONSULTORIO.transporte]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
             )}
+
+            <a
+              href="#reservar"
+              className="boton-principal mt-8 w-full sm:w-auto sm:px-9"
+            >
+              Reservar turno
+            </a>
           </div>
         </div>
 

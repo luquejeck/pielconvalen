@@ -108,14 +108,15 @@ export const CONSULTORIO: DatosConsultorio = {
    * "formacion universitaria"— y eso se lee como publicidad. Que hable
    * ella cambia a quien le estas creyendo.
    *
-   * Corto a proposito: tres o cuatro renglones. Un texto largo aca no lo
-   * lee nadie y empuja los precios mas abajo.
+   * DOS oraciones. Antes eran cuatro y la seccion se convertia en un
+   * texto para leer, cuando lo que tiene que hacer es dar confianza de un
+   * vistazo. Lo que sobra no suma credibilidad: la diluye.
    *
    * VALEN: reescribilo con tus palabras desde el panel, en Mi web. Esto
    * es un punto de partida, no tu voz.
    */
   bio:
-    "Estudié en la UBA porque quería entender la piel, no solo tratarla. Trabajo despacio: miro cómo está tu piel ese día y de ahí sale el tratamiento, no al revés. Si algo te incomoda en la camilla, frenamos.",
+    "Estudié en la UBA porque quería entender la piel, no solo tratarla. Miro cómo está la tuya ese día y de ahí sale el tratamiento, no al revés.",
 
   /**
    * Matricula profesional. En las paginas de salud siempre esta a la

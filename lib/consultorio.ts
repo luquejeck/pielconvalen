@@ -96,23 +96,25 @@ export const CONTRAINDICACIONES_POR_DEFECTO: string[] = [
 ];
 
 /**
- * Como se trabaja: material, esterilizacion, ficha previa.
+ * Tres garantias, de dos o tres palabras cada una.
  *
- * Es lo que toda pagina de un profesional de salud dice y esta no decia.
- * No es un detalle administrativo: en un tratamiento que usa agujas y
- * hojas, saber que el material es descartable es la diferencia entre
- * reservar y no reservar — y para una clienta mayor, que ya vio de todo,
- * mas todavia.
+ * Se muestran en fila, como los sellos de una credencial, no como una
+ * lista con vinetas: la lista se lee como letra chica y estas tres son
+ * justo lo que decide a una clienta que nunca se hizo un tratamiento con
+ * agujas.
  *
- * VALEN: esto describe TU forma de trabajar. Revisalo punto por punto y
- * corregi lo que no sea exacto. Un dato de higiene que no se cumple es
- * peor que no decir nada.
+ * Cortas a proposito. Antes decian "Agujas, hojas y guantes
+ * descartables, abiertos delante tuyo" y por explicar de mas dejaban de
+ * leerse de un vistazo. El detalle, si hace falta, va en las preguntas
+ * frecuentes.
+ *
+ * VALEN: esto describe TU forma de trabajar. Un dato de higiene que no se
+ * cumple es peor que no decir nada.
  */
 export const PROTOCOLO_POR_DEFECTO: string[] = [
-  "Agujas, hojas y guantes descartables, abiertos delante tuyo",
-  "Instrumental esterilizado entre una clienta y la siguiente",
-  "Antes de la primera sesión completamos tu ficha con antecedentes y alergias",
-  "Cabina para vos sola, sin superposición de turnos",
+  "Material descartable",
+  "Instrumental esterilizado",
+  "Cabina privada",
 ];
 
 export const CONFIGURACION_POR_DEFECTO: ConfiguracionWeb = {
