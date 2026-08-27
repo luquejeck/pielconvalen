@@ -27,6 +27,7 @@ export type ConfiguracionWeb = DatosConsultorio & {
   glosario: Record<string, string>;
   preguntas: Pregunta[];
   contraindicaciones: string[];
+  protocolo: string[];
 };
 
 /** Los tres de "Que vas a notar", que estaban clavados en Beneficios.tsx */
@@ -94,12 +95,33 @@ export const CONTRAINDICACIONES_POR_DEFECTO: string[] = [
   "Estás en tratamiento oncológico o tomás anticoagulantes",
 ];
 
+/**
+ * Como se trabaja: material, esterilizacion, ficha previa.
+ *
+ * Es lo que toda pagina de un profesional de salud dice y esta no decia.
+ * No es un detalle administrativo: en un tratamiento que usa agujas y
+ * hojas, saber que el material es descartable es la diferencia entre
+ * reservar y no reservar — y para una clienta mayor, que ya vio de todo,
+ * mas todavia.
+ *
+ * VALEN: esto describe TU forma de trabajar. Revisalo punto por punto y
+ * corregi lo que no sea exacto. Un dato de higiene que no se cumple es
+ * peor que no decir nada.
+ */
+export const PROTOCOLO_POR_DEFECTO: string[] = [
+  "Agujas, hojas y guantes descartables, abiertos delante tuyo",
+  "Instrumental esterilizado entre una clienta y la siguiente",
+  "Antes de la primera sesión completamos tu ficha con antecedentes y alergias",
+  "Cabina para vos sola, sin superposición de turnos",
+];
+
 export const CONFIGURACION_POR_DEFECTO: ConfiguracionWeb = {
   ...CONSULTORIO,
   beneficios: BENEFICIOS_POR_DEFECTO,
   glosario: GLOSARIO,
   preguntas: PREGUNTAS_POR_DEFECTO,
   contraindicaciones: CONTRAINDICACIONES_POR_DEFECTO,
+  protocolo: PROTOCOLO_POR_DEFECTO,
 };
 
 /**
@@ -115,6 +137,7 @@ const CAMPOS_JSON = new Set([
   "fotos",
   "preguntas",
   "contraindicaciones",
+  "protocolo",
 ]);
 
 type FilaConfig = { clave: string; valor: string };

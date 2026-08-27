@@ -70,6 +70,18 @@ export default function EditorWeb({ inicial }: { inicial: ConfiguracionWeb }) {
       contraindicaciones: d.contraindicaciones.filter((_, j) => j !== i),
     }));
 
+  const setProtocolo = (i: number, valor: string) =>
+    setDatos((d) => ({
+      ...d,
+      protocolo: d.protocolo.map((x, j) => (j === i ? valor : x)),
+    }));
+
+  const agregarProtocolo = () =>
+    setDatos((d) => ({ ...d, protocolo: [...d.protocolo, ""] }));
+
+  const quitarProtocolo = (i: number) =>
+    setDatos((d) => ({ ...d, protocolo: d.protocolo.filter((_, j) => j !== i) }));
+
   const setGlosario = (termino: string, texto: string) =>
     setDatos((d) => ({ ...d, glosario: { ...d.glosario, [termino]: texto } }));
 
@@ -146,6 +158,61 @@ export default function EditorWeb({ inicial }: { inicial: ConfiguracionWeb }) {
           valor={datos.queSeHace}
           onChange={set("queSeHace")}
         />
+        <Campo
+          rotulo="Tu presentación, en primera persona"
+          ayuda="En «Quién te va a atender». Escribilo como se lo contarías a una clienta nueva: tres o cuatro renglones, con tus palabras"
+          valor={datos.bio}
+          largo
+          onChange={set("bio")}
+        />
+        <Campo
+          rotulo="Matrícula profesional"
+          ayuda="Va debajo de tu nombre. Si la dejás vacía, no se muestra"
+          valor={datos.matricula}
+          onChange={set("matricula")}
+        />
+        <Campo
+          rotulo="Años de experiencia"
+          ayuda="Ej: «8 años atendiendo en Caballito». Vacío = no se muestra"
+          valor={datos.experiencia}
+          onChange={set("experiencia")}
+        />
+      </Grupo>
+
+      <Grupo titulo="Cómo se trabaja acá">
+        <p className="text-base text-tinta-suave">
+          Material, esterilización, ficha previa. Es lo que más tranquiliza a
+          quien nunca se hizo un tratamiento con agujas. Revisá que cada punto
+          sea exacto: decir algo que no se cumple es peor que no decir nada.
+        </p>
+
+        {datos.protocolo.map((punto, i) => (
+          <div key={i} className="flex gap-2">
+            <input
+              type="text"
+              value={punto}
+              onChange={(e) => setProtocolo(i, e.target.value)}
+              placeholder="Agujas y guantes descartables, abiertos delante tuyo"
+              className="min-h-12 w-full px-4 text-base"
+            />
+            <button
+              type="button"
+              onClick={() => quitarProtocolo(i)}
+              aria-label="Quitar este punto"
+              className="shrink-0 rounded-full px-4 text-base text-tinta-suave hover:text-vino"
+            >
+              Quitar
+            </button>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={agregarProtocolo}
+          className="min-h-12 rounded-full border border-vino px-6 text-base text-vino hover:bg-vino hover:text-white"
+        >
+          Agregar punto
+        </button>
       </Grupo>
 
       <Grupo titulo="Dónde estás">

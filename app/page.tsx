@@ -2,6 +2,7 @@ import Beneficios from "@/components/Beneficios";
 import BotonWhatsApp from "@/components/BotonWhatsApp";
 import Consultorio from "@/components/Consultorio";
 import Footer from "@/components/Footer";
+import Galeria from "@/components/Galeria";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Preguntas from "@/components/Preguntas";
@@ -10,6 +11,7 @@ import Reservas from "@/components/Reservas";
 import Tratamientos from "@/components/Tratamientos";
 import { obtenerAgenda, obtenerTratamientosPublicos } from "@/lib/catalogo";
 import { obtenerConfiguracion } from "@/lib/consultorio";
+import { obtenerGaleria } from "@/lib/galeria";
 
 const DIAS_SCHEMA = [
   "Sunday",
@@ -24,10 +26,11 @@ const DIAS_SCHEMA = [
 export default async function Home() {
   // Precios, tratamientos y horarios salen de la base: lo que Valen
   // edita en el panel se ve en la web sin tocar el codigo.
-  const [tratamientos, agenda, CONSULTORIO] = await Promise.all([
+  const [tratamientos, agenda, CONSULTORIO, galeria] = await Promise.all([
     obtenerTratamientosPublicos(),
     obtenerAgenda(),
     obtenerConfiguracion(),
+    obtenerGaleria(),
   ]);
 
   /** Ficha de negocio local para Google. */
@@ -78,6 +81,9 @@ export default async function Home() {
         <Hero consultorio={CONSULTORIO} />
         <Beneficios consultorio={CONSULTORIO} />
         <Consultorio consultorio={CONSULTORIO} />
+        {/* Refuerza la confianza justo antes de que aparezca el precio,
+            sin empujar la reserva mas abajo de lo necesario. */}
+        <Galeria fotos={galeria} />
         <Tratamientos />
         <Reservas />
         {/* Al final de todo: es una seccion de consulta, no parte del

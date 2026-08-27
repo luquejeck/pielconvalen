@@ -28,6 +28,9 @@ const CLAVES = new Set([
   "instagram",
   "instagramUrl",
   "queSeHace",
+  "bio",
+  "matricula",
+  "experiencia",
   "mediosDePago",
   "comoVenir",
   "beneficios",
@@ -35,6 +38,7 @@ const CLAVES = new Set([
   "fotos",
   "preguntas",
   "contraindicaciones",
+  "protocolo",
 ]);
 
 export async function GET() {

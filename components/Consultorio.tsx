@@ -1,7 +1,7 @@
 import Image from "next/image";
 import fotoValen from "@/public/imagenes/valen.jpg";
 import type { ConfiguracionWeb } from "@/lib/consultorio";
-import { IconoPin } from "./iconos";
+import { IconoCheck, IconoPin } from "./iconos";
 
 /**
  * Cara de Valen y datos de quien atiende.
@@ -91,10 +91,43 @@ export default function Consultorio({
               {CONSULTORIO.carrera}
             </p>
 
-            <p className="mt-5 text-lg leading-relaxed text-tinta-suave">
-              Formación universitaria, no un curso corto. Te atiende ella
-              misma, en {CONSULTORIO.direccion}.
-            </p>
+            {/*
+              Las credenciales verificables, juntas y en una linea.
+
+              Es lo que hace toda pagina de un profesional de salud y esta
+              no hacia: la matricula y los años de ejercicio no son
+              adorno, son lo que se puede chequear. Cada dato aparece solo
+              si esta cargado: un numero de matricula inventado seria peor
+              que no poner ninguno.
+            */}
+            {(CONSULTORIO.matricula || CONSULTORIO.experiencia) && (
+              <p className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-base text-tinta-suave lg:justify-start">
+                {CONSULTORIO.matricula && (
+                  <span>Matrícula {CONSULTORIO.matricula}</span>
+                )}
+                {CONSULTORIO.matricula && CONSULTORIO.experiencia && (
+                  <span aria-hidden className="text-borde">
+                    ·
+                  </span>
+                )}
+                {CONSULTORIO.experiencia && <span>{CONSULTORIO.experiencia}</span>}
+              </p>
+            )}
+
+            {/*
+              Que hable ella.
+
+              Todo el resto del sitio habla DE Valen —"te atiende ella
+              misma", "formacion universitaria, no un curso corto"— y eso
+              se lee como publicidad, porque lo es. Un parrafo en primera
+              persona cambia a quien le estas creyendo: no a la pagina, a
+              la persona que te va a tocar la cara.
+            */}
+            {CONSULTORIO.bio && (
+              <blockquote className="mt-6 border-l-2 border-vino/30 pl-5 text-left text-lg leading-relaxed text-tinta">
+                {CONSULTORIO.bio}
+              </blockquote>
+            )}
 
             <a
               href="#reservar"
@@ -138,6 +171,38 @@ export default function Consultorio({
                 Ver en el mapa
               </a>
             </div>
+
+            {/*
+              Como se trabaja: material, esterilizacion, ficha previa.
+
+              Es lo que toda pagina de un profesional de salud dice y esta
+              no decia. En un tratamiento con agujas y hojas, saber que el
+              material es descartable puede ser la diferencia entre
+              reservar y no reservar. Y para una clienta mayor, que ya vio
+              de todo, mas todavia.
+
+              Va al final de la seccion y no arriba: primero quien es,
+              despues como trabaja. Si la lista queda vacia, no aparece.
+            */}
+            {CONSULTORIO.protocolo.length > 0 && (
+              <div className="mt-4 rounded-suave border border-borde px-5 py-5 text-left sm:px-6">
+                <h3 className="text-lg font-semibold text-tinta">
+                  Cómo se trabaja acá
+                </h3>
+
+                <ul className="mt-3 space-y-2.5">
+                  {CONSULTORIO.protocolo.map((punto) => (
+                    <li
+                      key={punto}
+                      className="flex items-start gap-3 text-lg leading-snug text-tinta-suave"
+                    >
+                      <IconoCheck className="mt-1.5 h-4 w-4 shrink-0 text-vino" />
+                      {punto}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 
