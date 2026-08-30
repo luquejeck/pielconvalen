@@ -24,9 +24,9 @@ type Props = {
   fecha: string | null;
   hora: string | null;
   onCambio: (fecha: string | null, hora: string | null) => void;
-  /** Si esta deshabilitado (ej: falta elegir tratamiento) se ve atenuado. */
+  /** Atenuado y sin poder tocarse. */
   deshabilitado?: boolean;
-  /** Avisa que ya eligio hora, para bajar al paso 3. */
+  /** Avisa que ya eligio hora, para bajar al paso siguiente. */
   onHoraElegida?: () => void;
 };
 

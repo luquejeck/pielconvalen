@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { obtenerAgenda, obtenerTratamientosPublicos } from "@/lib/catalogo";
-import { buscarTratamiento } from "@/lib/tratamientos";
+import { obtenerAgenda } from "@/lib/catalogo";
+import { horariosDelDia } from "@/lib/config";
+import { desdeClave } from "@/lib/fechas";
+import { CONSULTA } from "@/lib/tratamientos";
 import { hayBaseDeDatos } from "@/lib/supabase";
 import { clienteServidor } from "@/lib/supabase-servidor";
 
@@ -8,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST /api/turnos
- * Body: { fecha, hora, tratamientoId, nombre? }
+ * Body: { fecha, hora, nombre }
  *
  * Reserva el horario en estado "pendiente" apenas la clienta toca
  * "Confirmar por WhatsApp": asi el turno deja de estar disponible para
@@ -29,25 +31,38 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Cuerpo invalido" }, { status: 400 });
   }
 
-  const { fecha, hora, tratamientoId, nombre } = (cuerpo ?? {}) as Record<
+  const { fecha, hora, nombre } = (cuerpo ?? {}) as Record<
     string,
     string | undefined
   >;
 
-  const [agenda, tratamientos] = await Promise.all([
-    obtenerAgenda(),
-    obtenerTratamientosPublicos(),
-  ]);
-  const tratamiento = buscarTratamiento(tratamientos, tratamientoId ?? null);
+  const agenda = await obtenerAgenda();
 
-  if (
-    !fecha ||
-    !/^\d{4}-\d{2}-\d{2}$/.test(fecha) ||
-    !hora ||
-    !agenda.horarios.includes(hora) ||
-    !tratamiento
-  ) {
+  /*
+    Todo turno que entra por la web es una consulta, y eso lo decide el
+    servidor: el tratamiento no viaja mas en el pedido.
+
+    Cual corresponde se sabe recien con la piel a la vista, asi que lo
+    asigna Valen desde el panel cuando cobra. Antes venia elegido desde
+    el navegador y quedaba anotado en la agenda un tratamiento que casi
+    nunca era el que terminaba haciendose.
+  */
+  const tratamiento = CONSULTA;
+
+  if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha) || !hora) {
     return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
+  }
+
+  /*
+    La hora tiene que ser una de las de ESE dia, no una cualquiera de la
+    semana: ahora cada dia tiene su propia franja y un 09:00 valido los
+    martes no lo es los sabados.
+  */
+  if (!horariosDelDia(agenda, desdeClave(fecha).getDay()).includes(hora)) {
+    return NextResponse.json(
+      { error: "Ese horario no está disponible ese día." },
+      { status: 400 }
+    );
   }
 
   /*
@@ -71,7 +86,9 @@ export async function POST(request: Request) {
     estado: "pendiente",
     cliente: nombreLimpio,
     tratamiento: tratamiento.nombre,
-    precio: tratamiento.precio,
+    /* La consulta no tiene precio de lista: el importe sale cuando Valen
+       cobra y elige el tratamiento que hizo. */
+    precio: tratamiento.precio || null,
   });
 
   if (error) {

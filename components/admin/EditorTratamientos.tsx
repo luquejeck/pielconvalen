@@ -191,7 +191,7 @@ function Formulario({
           etiqueta="Qué suma"
           valor={extras}
           onChange={setExtras}
-          ayuda="Separado por comas. Vacío = solo los pasos base"
+          ayuda="Separado por comas. Vacío = solo la limpieza profunda"
         />
       </div>
 

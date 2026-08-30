@@ -19,11 +19,10 @@ import { IconoWhatsApp } from "./iconos";
  *
  * Con el texto siempre visible, en celular medía 213px sobre una
  * pantalla de 375: el 57% del ancho, fijo, encima de todo y sin forma de
- * cerrarlo. Tapaba contenido todo el tiempo, y en el paso 1 de la
- * reserva tapaba justo el boton "No se cual elegir · que Valen me
- * recomiende" —la salida pensada para la clienta que se abruma con los
- * nombres tecnicos—. Ella lo tocaba para elegir esa opcion y lo que se
- * le abria era WhatsApp.
+ * cerrarlo. Tapaba contenido todo el tiempo, y adentro del modulo de
+ * reservas se le montaba encima a los botones que sí llevan a reservar:
+ * la clienta tocaba lo que queria elegir y lo que se le abria era
+ * WhatsApp.
  *
  * La solucion conserva las dos cosas que importaban:
  *

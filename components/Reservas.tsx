@@ -9,12 +9,11 @@ import { useReserva } from "./ReservaContext";
 import { IconoCheck, IconoWhatsApp } from "./iconos";
 import { formatearFechaLarga } from "@/lib/fechas";
 import { bajarA } from "@/lib/scroll";
-import { CONSULTA, buscarTratamiento, esConsulta, formatearPrecio } from "@/lib/tratamientos";
+import { CONSULTA, esConsulta } from "@/lib/tratamientos";
 import { linkWhatsApp } from "@/lib/whatsapp";
 
 export default function Reservas() {
-  const { tratamientos, agenda, consultorio, tratamientoId, setTratamientoId } =
-    useReserva();
+  const { tratamientos, agenda, consultorio } = useReserva();
   const [fecha, setFecha] = useState<string | null>(null);
   const [hora, setHora] = useState<string | null>(null);
   const [nombre, setNombre] = useState("");
@@ -22,28 +21,23 @@ export default function Reservas() {
   /** Cambiar este numero fuerza al calendario a releer la agenda. */
   const [version, setVersion] = useState(0);
 
-  const tratamiento = buscarTratamiento(tratamientos, tratamientoId);
-  const consulta = tratamientos.find(esConsulta);
+  /**
+   * Todos los turnos entran como consulta.
+   *
+   * Antes el primer paso era elegir el tratamiento. Es una decision que
+   * la clienta no esta en condiciones de tomar —cual corresponde se sabe
+   * con la piel a la vista— y ademas dejaba anotado en la agenda un
+   * tratamiento que despues casi nunca era el que terminaba haciendose.
+   * Ahora reserva el turno y el tratamiento lo asigna Valen cuando la
+   * atiende, desde el panel.
+   */
+  const tratamiento = tratamientos.find(esConsulta) ?? CONSULTA;
 
   const pasoDos = useRef<HTMLDivElement>(null);
-  const pasoTres = useRef<HTMLDivElement>(null);
-
-  /**
-   * Elegir el tratamiento y bajar al calendario.
-   *
-   * En celular el paso 2 queda fuera de pantalla: la clienta tocaba el
-   * tratamiento, no pasaba nada visible y se quedaba esperando. La
-   * misma idea se repite despues al elegir el dia y al elegir la hora,
-   * asi que la logica vive en `lib/scroll`.
-   */
-  const elegirTratamiento = (id: string | null) => {
-    setTratamientoId(id);
-    if (id) bajarA(pasoDos.current);
-  };
 
   /* El nombre entra en la cuenta: sin el, el turno llega a la agenda
      sin decir de quien es. */
-  const completo = Boolean(tratamiento && fecha && hora && nombre.trim());
+  const completo = Boolean(fecha && hora && nombre.trim());
 
   const manejarCambio = (nuevaFecha: string | null, nuevaHora: string | null) => {
     setFecha(nuevaFecha);
@@ -53,7 +47,7 @@ export default function Reservas() {
   const enlace = completo
     ? linkWhatsApp(
         {
-          tratamiento: tratamiento!,
+          tratamiento,
           fecha: fecha!,
           hora: hora!,
           nombre,
@@ -79,9 +73,7 @@ export default function Reservas() {
    * `keepalive` hace que el pedido llegue aunque ella se vaya a WhatsApp.
    */
   const reservarHorario = async () => {
-    const detalle = `${tratamiento?.nombre} · ${
-      fecha ? formatearFechaLarga(fecha) : ""
-    } · ${hora} hs`;
+    const detalle = `${fecha ? formatearFechaLarga(fecha) : ""} · ${hora} hs`;
 
     setResultado({ estado: "guardando", detalle });
 
@@ -89,7 +81,7 @@ export default function Reservas() {
       const res = await fetch("/api/turnos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fecha, hora, tratamientoId, nombre }),
+        body: JSON.stringify({ fecha, hora, nombre }),
         keepalive: true,
       });
 
@@ -120,7 +112,7 @@ export default function Reservas() {
     setVersion((v) => v + 1); // el calendario vuelve a pedir la agenda
   };
 
-  /** Vuelve al formulario sin perder el tratamiento ya elegido. */
+  /** Vuelve al formulario sin perder el nombre ya escrito. */
   const elegirOtroHorario = () => {
     setResultado(null);
     setHora(null);
@@ -141,11 +133,11 @@ export default function Reservas() {
       <div className="contenedor">
         <TituloSeccion
           titulo="Reservá tu turno"
-          bajada="Tres pasos. Al final se abre WhatsApp con el mensaje ya escrito."
+          bajada="Dos pasos. Al final se abre WhatsApp con el mensaje ya escrito."
         />
 
         {/*
-          En celular es una sola columna en orden 1-2-3.
+          En celular es una sola columna, primero el calendario y despues el resumen.
           En PC el resumen queda fijo al costado, siempre a la vista.
 
           Sin `items-start` a proposito: con esa clase cada celda se
@@ -158,105 +150,33 @@ export default function Reservas() {
         <div className="mx-auto mt-10 grid max-w-5xl gap-6 lg:grid-cols-[1.15fr_0.85fr] xl:max-w-none">
           <div>
             {/* ---------- Paso 1 ---------- */}
-            <Paso numero={1} titulo="Elegí el tratamiento" />
-
-            <p className="mt-2 text-lg text-tinta-suave">
-              Tocá una opción para elegirla.
-            </p>
-
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {tratamientos.filter((t) => !esConsulta(t)).map((t) => {
-                const activo = t.id === tratamientoId;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => elegirTratamiento(activo ? null : t.id)}
-                    aria-pressed={activo}
-                    className={`flex min-h-14 items-center gap-3 rounded-chico border-2 px-4 py-2.5 text-left text-lg transition-colors ${
-                      activo
-                        ? "border-vino bg-vino text-white"
-                        : "border-borde bg-white hover:border-vino hover:bg-vino-suave"
-                    }`}
-                  >
-                    {/*
-                      El circulito dice "esto se elige". Sin el, un recuadro
-                      con texto no se lee como algo que haya que tocar.
-                    */}
-                    <span
-                      aria-hidden
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
-                        activo ? "border-white bg-white" : "border-vino/45"
-                      }`}
-                    >
-                      {activo && (
-                        <IconoCheck className="h-3.5 w-3.5 text-vino" />
-                      )}
-                    </span>
-
-                    <span className="font-medium">{t.nombreCorto}</span>
-                    <span
-                      className={`ml-auto ${
-                        activo ? "text-white/85" : "text-tinta-suave"
-                      }`}
-                    >
-                      {formatearPrecio(t.precio)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            <Paso numero={1} titulo="Elegí el día y la hora" />
 
             {/*
-              La consulta no es una opcion mas de la lista: es la salida
-              para quien se abruma con los nombres tecnicos. Va a lo ancho
-              y con peso propio, no como un chip mas entre seis.
+              Lo primero que se aclara es que no hay que elegir nada mas.
+              El paso de elegir tratamiento no esta, y sin una linea que
+              lo diga la clienta lo busca: el precio lo vio arriba.
             */}
-            {consulta && (
-              <button
-                type="button"
-                onClick={() => elegirTratamiento(consulta.id)}
-                aria-pressed={tratamientoId === consulta.id}
-                className={`mt-3 flex min-h-14 w-full items-center justify-center gap-3 rounded-chico border-2 px-5 py-3 text-lg font-semibold transition-colors ${
-                  tratamientoId === consulta.id
-                    ? "border-vino bg-vino text-white"
-                    : "border-vino bg-vino-suave text-vino hover:bg-vino hover:text-white"
-                }`}
-              >
-                {tratamientoId === consulta.id
-                  ? "Elegido: que Valen me recomiende ✓"
-                  : "No sé cuál elegir · que Valen me recomiende"}
-              </button>
-            )}
+            <p className="mt-2 text-lg leading-snug text-tinta-suave">
+              El turno se saca como consulta. Valen te mira la piel al llegar
+              y ahí definen el tratamiento y el precio.
+            </p>
 
-            {/* ---------- Paso 2 ---------- */}
-            <div ref={pasoDos} className="mt-8 scroll-mt-24">
-              <Paso numero={2} titulo="Elegí el día y la hora" />
-
-            {!tratamiento ? (
-              <div className="mt-3 rounded-chico bg-crema-oscuro px-5 py-4">
-                <p className="text-lg text-tinta">
-                  Primero elegí un tratamiento arriba.
-                </p>
-              </div>
-            ) : (
-              <div className="tarjeta mt-3 p-4 sm:p-5">
-                <Calendario
-                  key={version}
-                  agenda={agenda}
-                  fecha={fecha}
-                  hora={hora}
-                  onCambio={manejarCambio}
-                  /* Elegida la hora ya no queda nada que tocar arriba:
-                     lo que sigue es confirmar. */
-                  onHoraElegida={() => bajarA(pasoTres.current, 150, true)}
-                />
-              </div>
-            )}
+            <div className="tarjeta mt-3 p-4 sm:p-5">
+              <Calendario
+                key={version}
+                agenda={agenda}
+                fecha={fecha}
+                hora={hora}
+                onCambio={manejarCambio}
+                /* Elegida la hora ya no queda nada que tocar arriba:
+                   lo que sigue es confirmar. */
+                onHoraElegida={() => bajarA(pasoDos.current, 150, true)}
+              />
             </div>
           </div>
 
-          {/* ---------- Paso 3 ---------- */}
+          {/* ---------- Paso 2 ---------- */}
           {/*
             Dos divs y no uno: el de afuera es la celda del grid y se
             estira a lo alto de la fila; el de adentro es el que se pega.
@@ -268,8 +188,8 @@ export default function Reservas() {
             el boton de confirmar desaparecia justo al elegir el horario.
           */}
           <div>
-            <div ref={pasoTres} className="scroll-mt-24 lg:sticky lg:top-22">
-            <Paso numero={3} titulo="Confirmá por WhatsApp" />
+            <div ref={pasoDos} className="scroll-mt-24 lg:sticky lg:top-22">
+            <Paso numero={2} titulo="Confirmá por WhatsApp" />
 
             {resultado ? (
               <TurnoEnviado
@@ -281,7 +201,7 @@ export default function Reservas() {
                 calendario={
                   fecha && hora
                     ? `/api/turnos/calendario?fecha=${fecha}&hora=${hora}&tratamiento=${encodeURIComponent(
-                        tratamiento?.nombre ?? "Turno"
+                        tratamiento.nombre
                       )}`
                     : null
                 }
@@ -291,22 +211,15 @@ export default function Reservas() {
             ) : (
               <div className="mt-3 rounded-suave border border-borde bg-vino-suave px-5 py-5 shadow-suave">
                 <dl className="space-y-2 text-lg">
-                  <Fila rotulo="Tratamiento" valor={tratamiento?.nombre} />
+                  <Fila rotulo="Turno" valor={tratamiento.nombre} />
                   <Fila
                     rotulo="Día"
                     valor={fecha ? formatearFechaLarga(fecha) : null}
                   />
                   <Fila rotulo="Hora" valor={hora ? `${hora} hs` : null} />
-                  <Fila
-                    rotulo="Precio"
-                    valor={
-                      tratamiento
-                        ? esConsulta(tratamiento)
-                          ? "Se define en el momento"
-                          : formatearPrecio(tratamiento.precio)
-                        : null
-                    }
-                  />
+                  {/* Sin precio de lista: el tratamiento se define en el
+                      momento, asi que poner un numero seria inventarlo. */}
+                  <Fila rotulo="Precio" valor="Se define en el momento" />
                 </dl>
 
                 {/*
@@ -367,11 +280,9 @@ export default function Reservas() {
                      Quien lee eso vuelve a mirar arriba y no encuentra
                      nada mal. */
                   <p className="mt-3 rounded-full bg-vino/12 px-6 py-3.5 text-center text-lg text-tinta-suave">
-                    {tratamiento && fecha && hora
+                    {fecha && hora
                       ? "Escribí tu nombre para confirmar"
-                      : !tratamiento
-                        ? "Elegí un tratamiento arriba"
-                        : "Elegí el día y la hora"}
+                      : "Elegí el día y la hora"}
                   </p>
                 )}
 

@@ -60,7 +60,7 @@ delete from clientes;   -- arrastra sesiones, fotos y consentimientos
 --  LO QUE SIGUE INTACTO PASE LO QUE PASE
 --
 --    tratamientos    los nombres, precios y extras del catalogo
---    agenda          dias, horarios, anticipacion, pasos base
+--    agenda          dias, horarios de cada dia, anticipacion, como trabaja
 --    configuracion   todo lo de "Mi web": textos, contacto, preguntas
 --
 --  Ninguna de esas tablas se toca en este archivo.

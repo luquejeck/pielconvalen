@@ -5,12 +5,17 @@ import { useReserva } from "./ReservaContext";
 import TituloSeccion from "./TituloSeccion";
 
 export default function Tratamientos() {
-  const { tratamientos, agenda, consultorio, tratamientoId, elegirYReservar } =
-    useReserva();
+  const { tratamientos, agenda, consultorio, irAReservar } = useReserva();
   /* El glosario tambien se edita desde el panel: son las explicaciones
      en castellano de los nombres tecnicos. */
   const GLOSARIO = consultorio.glosario;
-  const pasos = agenda.pasosBase;
+
+  /* Un renglon del panel = un parrafo. Los vacios se descartan para que
+     un Enter de mas no abra un hueco en la web. */
+  const comoTrabajo = agenda.comoTrabajo
+    .split("\n")
+    .map((parrafo) => parrafo.trim())
+    .filter(Boolean);
 
   const extrasDelCatalogo = [
     ...new Set(tratamientos.flatMap((t) => t.extras)),
@@ -24,8 +29,6 @@ export default function Tratamientos() {
   */
   const maxExtras = Math.max(...tratamientos.map((t) => t.extras.length));
 
-  const consulta = tratamientos.find(esConsulta);
-
   return (
     <section
       id="tratamientos"
@@ -38,56 +41,43 @@ export default function Tratamientos() {
         />
 
         {/*
-          Los pasos base se explican UNA sola vez. Van numerados porque son
-          una secuencia, no una lista suelta: se lee el orden en que pasan
-          las cosas sobre la camilla.
-        */}
-        <div className="tarjeta mx-auto mt-10 max-w-4xl px-6 py-8 sm:px-8 xl:max-w-none">
-          {/* Mismo rotulo que el bloque de abajo: son un par y antes
-              tenian dos titulos distintos, uno centrado y otro no. */}
-          <h3 className="rotulo-seccion">
-            Todos incluyen estos {pasos.length} pasos
-          </h3>
-          {/*
-            En pantalla ancha los siete van en una sola fila, unidos por
-            una linea: se ve de un saque que es un recorrido de principio
-            a fin. Apilados al medio dejaban media tarjeta vacia a los
-            costados. En celular vuelven a ser una lista, que es como se
-            lee comodo en una columna angosta.
-          */}
-          <ol className="mt-8 grid gap-x-4 gap-y-5 sm:grid-cols-2 lg:grid-cols-7">
-            {pasos.map((paso, i) => (
-              <li
-                key={paso}
-                className="relative flex items-center gap-3 lg:flex-col lg:items-center lg:gap-3 lg:text-center"
-              >
-                {/* Tramo de linea que une este paso con el anterior */}
-                {i > 0 && (
-                  <span
-                    aria-hidden
-                    className="absolute right-1/2 top-4 hidden h-px w-full bg-borde lg:block"
-                  />
-                )}
+          Como trabaja ella, con sus palabras.
 
-                <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino-suave text-lg font-semibold text-vino">
-                  {i + 1}
-                </span>
-                <span className="text-lg leading-snug">
-                  {paso}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
+          Aca antes habia siete pasos numerados, iguales para todo el
+          mundo. Prometian lo contrario de lo que pasa en la camilla: no
+          hay una receta que se repita sesion tras sesion, hay una piel
+          que se mira antes de empezar y un tratamiento que se arma con
+          eso y con lo que la clienta pide. Una lista numerada dice
+          "protocolo"; un texto en primera persona dice "te miro a vos".
+
+          Se lee como un parrafo y no como una ficha tecnica: es la unica
+          parte de la seccion donde habla ella y no el catalogo.
+        */}
+        {comoTrabajo.length > 0 && (
+          <div className="tarjeta mx-auto mt-10 max-w-4xl px-6 py-8 sm:px-8 xl:max-w-none">
+            {/* Mismo rotulo que el bloque de abajo: son un par y antes
+                tenian dos titulos distintos, uno centrado y otro no. */}
+            <h3 className="rotulo-seccion">Cómo trabajo</h3>
+
+            {/* El ancho del texto se corta aunque la tarjeta siga: en
+                pantalla grande un renglon de punta a punta se pierde al
+                volver al margen izquierdo. */}
+            <div className="mt-5 max-w-3xl space-y-4 text-lg leading-relaxed text-tinta">
+              {comoTrabajo.map((parrafo, i) => (
+                <p key={i}>{parrafo}</p>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/*
-          Los nombres tecnicos se explican UNA sola vez, igual que los pasos.
-          Repetirlos en cada tarjeta llenaba la pantalla de letra chica.
+          Los nombres tecnicos se explican UNA sola vez. Repetirlos en
+          cada tarjeta llenaba la pantalla de letra chica.
 
           Va sobre vino suave y no en otra tarjeta blanca: apilada debajo
-          de la de los pasos, las dos se leian como una sola cosa partida
-          al medio. Ademas el vino suave ya es el color de la ayuda en
-          esta seccion —lo usa el bloque de "¿no sabes cual elegir?"— y
+          de la de arriba, las dos se leian como una sola cosa partida al
+          medio. Ademas el vino suave ya es el color de la ayuda en esta
+          seccion —lo usa el bloque de abajo, el que lleva a reservar— y
           esto es exactamente eso: la explicacion para quien no conoce
           los nombres.
 
@@ -121,9 +111,19 @@ export default function Tratamientos() {
           </div>
         )}
 
+        {/*
+          La lista de precios, para mirar y no para elegir.
+
+          Antes cada tarjeta tenia su boton "Reservar este" y el
+          tratamiento viajaba elegido hasta el turno. Elegirlo de
+          antemano es pedirle a la clienta una decision que no esta en
+          condiciones de tomar: cual corresponde se sabe recien con la
+          piel a la vista. Los precios siguen todos publicados —esconder
+          lo que sale es lo que hace desconfiar—, pero el turno es uno
+          solo y sale como consulta.
+        */}
         <ul className="mx-auto mt-6 grid max-w-5xl gap-3 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
           {tratamientos.filter((t) => !esConsulta(t)).map((t) => {
-            const activo = tratamientoId === t.id;
             const esMasCompleto = maxExtras > 0 && t.extras.length === maxExtras;
 
             return (
@@ -134,9 +134,9 @@ export default function Tratamientos() {
                   con cinco tarjetas dejaba un hueco, y de paso el que mas
                   suma es el que mas espacio ocupa.
                 */
-                className={`tarjeta relative flex flex-col px-6 py-6 transition-shadow ${
+                className={`tarjeta relative flex flex-col px-6 py-6 ${
                   esMasCompleto ? "sm:col-span-2 xl:col-span-2" : ""
-                } ${activo ? "ring-2 ring-vino" : ""}`}
+                }`}
               >
                 {esMasCompleto && (
                   <span className="absolute right-5 top-5 rounded-full bg-vino px-3 py-1 text-sm font-semibold text-white">
@@ -168,7 +168,7 @@ export default function Tratamientos() {
                 <div className="mt-4 grow">
                   {t.extras.length === 0 ? (
                     <p className="text-lg leading-snug text-tinta-suave">
-                      Los {pasos.length} pasos base, completos.
+                      La limpieza profunda completa.
                     </p>
                   ) : (
                     <>
@@ -188,49 +188,42 @@ export default function Tratamientos() {
                     </>
                   )}
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => elegirYReservar(t.id)}
-                  className={`mt-5 w-full ${
-                    activo ? "boton-principal" : "boton-suave"
-                  }`}
-                >
-                  {activo ? "Elegido ✓" : "Reservar este"}
-                </button>
               </li>
             );
           })}
         </ul>
 
         {/*
-          La consulta va aparte y con otro fondo: no es un tratamiento
-          mas de la lista, es la salida para quien no sabe cual elegir.
-          Metida entre las otras seis, pasaba desapercibida justo para
-          quien mas la necesita.
-        */}
-        {consulta && (
-          <div className="mx-auto mt-3 max-w-5xl rounded-suave bg-vino-suave px-6 py-6 sm:px-8 xl:max-w-none">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h3 className="text-xl font-semibold text-tinta">
-                  ¿No sabés cuál elegir?
-                </h3>
-                <p className="mt-1.5 max-w-xl text-lg leading-snug text-tinta-suave">
-                  {consulta.descripcion}
-                </p>
-              </div>
+          La unica puerta de entrada, y por eso va aparte y con otro
+          fondo: la lista de arriba informa, esto es lo que se toca.
 
-              <button
-                type="button"
-                onClick={() => elegirYReservar(consulta.id)}
-                className="boton-principal shrink-0 whitespace-nowrap"
-              >
-                Pedir la consulta
-              </button>
+          Antes era "la salida para quien no sabe cual elegir", una
+          opcion entre siete. Ahora es como se saca el turno siempre, asi
+          que lo primero que hace el bloque es decirlo: nadie tiene que
+          quedarse buscando el boton de un tratamiento que ya no esta.
+        */}
+        <div className="mx-auto mt-3 max-w-5xl rounded-suave bg-vino-suave px-6 py-6 sm:px-8 xl:max-w-none">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-xl font-semibold text-tinta">
+                El turno se saca como consulta
+              </h3>
+              <p className="mt-1.5 max-w-xl text-lg leading-snug text-tinta-suave">
+                No hace falta que elijas: Valen te mira la piel al llegar y
+                ahí definen juntas cuál de estos te corresponde y cuánto sale.
+                Sin compromiso.
+              </p>
             </div>
+
+            <button
+              type="button"
+              onClick={irAReservar}
+              className="boton-principal shrink-0 whitespace-nowrap"
+            >
+              Pedir un turno
+            </button>
           </div>
-        )}
+        </div>
 
         {/* Debajo de los precios, que es donde aparece la duda */}
         <p className="mt-6 text-center text-lg text-tinta-suave">

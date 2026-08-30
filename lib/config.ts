@@ -168,15 +168,60 @@ export const CONSULTORIO: DatosConsultorio = {
 export type Agenda = {
   /** 0 = domingo ... 6 = sabado */
   diasHabiles: number[];
-  /** Horas de inicio de cada turno */
-  horarios: string[];
+  /**
+   * Horas de inicio de cada turno, DIA POR DIA: { 1: ["09:00", ...] }.
+   *
+   * Antes habia una sola lista de horarios para toda la semana. Valen no
+   * atiende en la misma franja todos los dias —un dia entra mas tarde,
+   * el sabado corta al mediodia— y con una lista unica la unica salida
+   * era cargar la union de todos los horarios y despues ir cerrando a
+   * mano los que no correspondian.
+   *
+   * La clave es el dia de la semana de `getDay()`: 0 = domingo.
+   */
+  horariosPorDia: Record<number, string[]>;
   /** No se puede reservar con menos de X horas de anticipacion */
   anticipacionMinimaHs: number;
   /** Cuantos dias hacia adelante se puede reservar */
   ventanaDias: number;
-  /** Pasos que incluyen todos los tratamientos */
-  pasosBase: string[];
+  /**
+   * Como trabaja ella, en primera persona.
+   *
+   * Antes esto era una lista de siete pasos fijos, y decia algo que no
+   * era cierto: que toda sesion es igual a la anterior. Lo que hace es
+   * mirar la piel antes de empezar y armar el tratamiento de ese dia con
+   * lo que ve y con lo que la clienta pide. Un texto lo cuenta; una
+   * lista numerada lo contradice.
+   */
+  comoTrabajo: string;
 };
+
+/** Los horarios de arranque, iguales para todos los dias. */
+export const HORARIOS_POR_DEFECTO = [
+  "08:00",
+  "10:00",
+  "12:00",
+  "14:00",
+  "16:00",
+  "18:00",
+];
+
+/** Las horas de un dia de la semana. Si no atiende ese dia, ninguna. */
+export function horariosDelDia(agenda: Agenda, diaSemana: number): string[] {
+  if (!agenda.diasHabiles.includes(diaSemana)) return [];
+  return agenda.horariosPorDia[diaSemana] ?? [];
+}
+
+/**
+ * Todas las horas que aparecen en la semana, sin repetir.
+ * Se usa donde hace falta una lista suelta de horas y no la de un dia
+ * concreto.
+ */
+export function todosLosHorarios(agenda: Agenda): string[] {
+  return [
+    ...new Set(agenda.diasHabiles.flatMap((dia) => horariosDelDia(agenda, dia))),
+  ].sort();
+}
 
 /**
  * Valores de arranque. La fuente real es la tabla `agenda` de la base,
@@ -185,18 +230,25 @@ export type Agenda = {
  */
 export const AGENDA_POR_DEFECTO: Agenda = {
   diasHabiles: [1, 2, 3, 4, 5, 6], // lunes a sabado
-  horarios: ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00"],
+  horariosPorDia: {
+    1: HORARIOS_POR_DEFECTO,
+    2: HORARIOS_POR_DEFECTO,
+    3: HORARIOS_POR_DEFECTO,
+    4: HORARIOS_POR_DEFECTO,
+    5: HORARIOS_POR_DEFECTO,
+    6: HORARIOS_POR_DEFECTO,
+  },
   anticipacionMinimaHs: 24,
   ventanaDias: 60,
-  pasosBase: [
-    "Preparación de la piel",
-    "Exfoliación mecánica",
-    "Máscara de ácidos o enzimática",
-    "Extracciones",
-    "Descongestión y alta frecuencia",
-    "Hidratación",
-    "Protector solar",
-  ],
+
+  /**
+   * VALEN: reescribilo con tus palabras desde el panel, en Horarios.
+   * Esto es un punto de partida, no tu voz.
+   */
+  comoTrabajo:
+    "No hay dos pieles iguales, así que no hago siempre lo mismo. Antes de empezar te miro la piel de cerca, te pregunto qué usás, qué te molesta y qué esperás de la sesión.\n" +
+    "Con eso armo el tratamiento de ese día: cuánto profundizo la limpieza, qué activos uso, hasta dónde llego con las extracciones. Si algo te incomoda, frenamos y lo cambiamos ahí mismo.\n" +
+    "Por eso dos sesiones del mismo tratamiento no son idénticas: lo que cambia es tu piel, y el trabajo se acomoda a eso.",
 };
 
 /**

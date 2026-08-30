@@ -4,7 +4,7 @@ export type Tratamiento = {
   nombreCorto: string;
   precio: number;
   duracion: string;
-  /** Lo que suma por encima de los pasos base. Vacio = solo los pasos base. */
+  /** Lo que suma por encima de la limpieza profunda. Vacio = solo eso. */
   extras: string[];
   destacado?: boolean;
   /** Texto propio para las opciones que no son un tratamiento del catalogo. */
@@ -24,13 +24,16 @@ export const GLOSARIO: Record<string, string> = {
 };
 
 /**
- * Opcion para quien no sabe que necesita: saca el turno igual y Valen
- * le recomienda el tratamiento en el momento, mirandole la piel.
+ * Como entra TODO turno pedido desde la web.
+ *
+ * Antes era una opcion mas, para quien no sabia cual elegir. Hoy es la
+ * unica: la clienta reserva el horario y Valen define el tratamiento
+ * cuando le mira la piel, y lo deja anotado al cobrar desde el panel.
  */
 export const CONSULTA: Tratamiento = {
   id: "consulta",
   nombre: "Consulta y Evaluación Facial",
-  nombreCorto: "No sé cuál elegir",
+  nombreCorto: "Consulta",
   precio: 0,
   duracion: "1.5 a 2 horas",
   extras: [],

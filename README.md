@@ -30,7 +30,7 @@ piel-con-valen/
 │   └── admin/PanelAdmin.tsx          # agenda diaria de Valen
 ├── lib/
 │   ├── config.ts                     # datos del consultorio + agenda
-│   ├── tratamientos.ts               # precios, pasos base y extras
+│   ├── tratamientos.ts               # precios, tratamientos y extras
 │   ├── disponibilidad.ts             # armado del mapa de turnos
 │   ├── fechas.ts                     # helpers de fecha sin dependencias
 │   ├── whatsapp.ts                   # mensaje y link de wa.me
@@ -76,13 +76,18 @@ Supabase → **SQL Editor** → *New query* → pegar todo el contenido de
 [`supabase/schema.sql`](supabase/schema.sql) → **Run**. Después repetir con
 [`supabase/schema-2-catalogo.sql`](supabase/schema-2-catalogo.sql).
 
+Los archivos `schema-3-…` en adelante son los cambios que vinieron después.
+Se corren igual, **en orden y una sola vez cada uno**. El último es
+[`supabase/schema-12-agenda-por-dia.sql`](supabase/schema-12-agenda-por-dia.sql):
+los horarios de cada día y el texto de cómo trabaja.
+
 Eso crea:
 
 | Objeto | Para qué |
 |---|---|
 | `turnos` | cada turno: fecha, hora, estado, clienta, tratamiento, precio |
 | `tratamientos` | el catálogo: nombres, precios y qué suma cada uno |
-| `agenda` | días, horarios, anticipación mínima y pasos base |
+| `agenda` | días, los horarios de cada día, anticipación mínima y cómo trabaja |
 | `dias_cerrados` | vacaciones y feriados |
 | `turnos_publicos` | vista que expone **sólo fecha y hora** — la web nunca ve nombres |
 | políticas RLS | nadie lee datos de clientas sin estar logueado |

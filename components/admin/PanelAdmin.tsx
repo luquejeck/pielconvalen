@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { Agenda } from "@/lib/config";
+import { horariosDelDia, todosLosHorarios, type Agenda } from "@/lib/config";
 import {
   claveFecha,
   desdeClave,
@@ -219,7 +219,14 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
    */
   const registrarCobro = async (
     turnoId: string,
-    datos: { monto: number; medioPago: string; notas: string }
+    datos: {
+      monto: number;
+      medioPago: string;
+      notas: string;
+      /* Que se le hizo de verdad. El turno entro como consulta y esto es
+         lo que queda escrito en Economia y en su ficha. */
+      tratamientoId: string;
+    }
   ): Promise<string | null> => {
     const res = await fetch("/api/turnos/realizar", {
       method: "POST",
@@ -279,12 +286,14 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
    * horario a 10:00-20:00. La clienta se presentaba y el turno no
    * figuraba en ningun lado.
    */
+  const horasDeLaAgenda = horariosDelDia(agenda, desdeClave(fecha).getDay());
+
   const horasDelDia = [
-    ...new Set([...agenda.horarios, ...turnos.map((t) => t.hora)]),
+    ...new Set([...horasDeLaAgenda, ...turnos.map((t) => t.hora)]),
   ].sort();
 
-  const horasLibres = agenda.horarios.filter((h) => !turnoDe(h));
-  const fueraDeAgenda = (hora: string) => !agenda.horarios.includes(hora);
+  const horasLibres = horasDeLaAgenda.filter((h) => !turnoDe(h));
+  const fueraDeAgenda = (hora: string) => !horasDeLaAgenda.includes(hora);
 
   return (
     <section>
@@ -679,6 +688,8 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                 {turno && cobrando === turno.id && (
                   <FormularioCobro
                     precioSugerido={turno.precio}
+                    tratamientos={tratamientos}
+                    tratamientoActual={turno.tratamiento}
                     hayClienta={Boolean(turno.cliente_id)}
                     onListo={(datos) => registrarCobro(turno.id, datos)}
                     onCancelar={() => setCobrando(null)}
@@ -793,11 +804,12 @@ function VistaSemana({
           const delDia = turnos.filter((t) => t.fecha === dia);
           const ocupados = delDia.filter((t) => t.estado !== "bloqueado").length;
           const pendientes = delDia.filter((t) => t.estado === "pendiente").length;
-          const libres = agenda.horarios.filter(
+          const horasDeEseDia = horariosDelDia(agenda, desdeClave(dia).getDay());
+          const libres = horasDeEseDia.filter(
             (h) => !delDia.some((t) => t.hora === h)
           ).length;
           const esHoy = dia === hoy;
-          const atiende = agenda.diasHabiles.includes(desdeClave(dia).getDay());
+          const atiende = horasDeEseDia.length > 0;
 
           return (
             <li key={dia}>
@@ -1027,6 +1039,22 @@ function FormularioMover({
   */
   const vuelveAConfirmarse = turno.estado === "no_vino";
 
+  /*
+    Las horas que ofrece el selector son las del dia al que se mueve, que
+    cambian con la fecha elegida. Si ese dia no se atiende, se ofrecen
+    todas las de la semana: desde el panel Valen puede poner un turno
+    fuera de agenda, y quedarse sin ninguna opcion seria peor.
+  */
+  const horasDelDestino = horariosDelDia(agenda, desdeClave(fecha).getDay());
+  const horasDestino = [
+    ...new Set([
+      ...(horasDelDestino.length ? horasDelDestino : todosLosHorarios(agenda)),
+      /* La hora que el turno ya tiene, siempre: sin esto el selector
+         mostraba la primera de la lista y guardaba otra distinta. */
+      hora,
+    ]),
+  ].sort();
+
   const mover = async (e: React.FormEvent) => {
     e.preventDefault();
     setGuardando(true);
@@ -1074,7 +1102,7 @@ function FormularioMover({
           onChange={(e) => setHora(e.target.value)}
           className="min-h-12 rounded-2xl border border-borde bg-white px-4 text-base text-tinta outline-none focus:border-vino"
         >
-          {agenda.horarios.map((h) => (
+          {horasDestino.map((h) => (
             <option key={h} value={h}>
               {h}
             </option>

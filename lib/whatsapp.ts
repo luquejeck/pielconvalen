@@ -45,10 +45,21 @@ export function mensajeReserva({
   // Intl usa espacio duro ( ) entre el simbolo y el numero: en WhatsApp queda feo.
   const precio = formatearPrecio(tratamiento.precio).replace(/ /g, " ");
 
+  /*
+    La consulta no lleva precio en el mensaje. Antes salia "($ 0)", que
+    ademas de raro dice algo que no es: el precio se define en el
+    momento, con el tratamiento ya elegido. Y ahora TODOS los turnos que
+    entran por la web son consultas, asi que ese "$ 0" iba en cada
+    mensaje que le llegaba a Valen.
+  */
+  const queTurno = esConsulta(tratamiento)
+    ? `• Turno: ${tratamiento.nombre} (el precio lo definen ahí)`
+    : `• Tratamiento: ${tratamiento.nombre} (${precio})`;
+
   const lineas = [
     `Hola Valen! Quiero reservar un turno 🌿`,
     ``,
-    `• Tratamiento: ${tratamiento.nombre} (${precio})`,
+    queTurno,
     `• Fecha: ${formatearFechaLarga(fecha)}`,
     `• Horario: ${hora} hs`,
   ];

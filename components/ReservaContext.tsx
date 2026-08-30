@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
 import type { Agenda } from "@/lib/config";
 import type { ConfiguracionWeb } from "@/lib/consultorio";
 import type { Tratamiento } from "@/lib/tratamientos";
@@ -18,10 +18,16 @@ type ContextoReserva = {
    * camino que ya usaban el catalogo y la agenda.
    */
   consultorio: ConfiguracionWeb;
-  tratamientoId: string | null;
-  setTratamientoId: (id: string | null) => void;
-  /** Elige el tratamiento y hace scroll al modulo de reservas. */
-  elegirYReservar: (id: string) => void;
+  /**
+   * Baja al modulo de reservas.
+   *
+   * Antes esto ademas elegia un tratamiento: la clienta tocaba una
+   * tarjeta y ese tratamiento quedaba cargado en el turno. Ya no se
+   * elige de antemano —todos los turnos entran como consulta y el
+   * tratamiento lo define Valen despues de mirarle la piel—, asi que lo
+   * unico que queda es el scroll.
+   */
+  irAReservar: () => void;
 };
 
 const Contexto = createContext<ContextoReserva | null>(null);
@@ -37,10 +43,7 @@ export function ReservaProvider({
   consultorio: ConfiguracionWeb;
   children: React.ReactNode;
 }) {
-  const [tratamientoId, setTratamientoId] = useState<string | null>(null);
-
-  const elegirYReservar = useCallback((id: string) => {
-    setTratamientoId(id);
+  const irAReservar = useCallback(() => {
     document
       .getElementById("reservar")
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -51,11 +54,9 @@ export function ReservaProvider({
       tratamientos,
       agenda,
       consultorio,
-      tratamientoId,
-      setTratamientoId,
-      elegirYReservar,
+      irAReservar,
     }),
-    [tratamientos, agenda, consultorio, tratamientoId, elegirYReservar]
+    [tratamientos, agenda, consultorio, irAReservar]
   );
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;

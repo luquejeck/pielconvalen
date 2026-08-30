@@ -1,4 +1,5 @@
 import { fallo, requerirSesion } from "@/lib/api";
+import { obtenerTratamientos } from "@/lib/catalogo";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
   const sesion = await requerirSesion();
   if (!sesion.ok) return sesion.respuesta;
 
-  const { turnoId, monto, medioPago, notas } = await req.json();
+  const { turnoId, monto, medioPago, notas, tratamientoId } = await req.json();
 
   if (!turnoId) {
     return NextResponse.json({ error: "Falta el turno." }, { status: 400 });
@@ -31,6 +32,41 @@ export async function POST(req: NextRequest) {
       { error: "El monto cobrado no es válido." },
       { status: 400 }
     );
+  }
+
+  /*
+    Que tratamiento se hizo.
+
+    Los turnos de la web entran todos como consulta, asi que el nombre
+    real lo pone Valen recien aca. Se escribe ANTES de cobrar porque el
+    ingreso y la sesion se arman con lo que dice la fila del turno: si se
+    guardara despues, en Economia quedaria "Consulta y Evaluación
+    Facial".
+
+    El nombre y el precio salen del catalogo del servidor y no del
+    navegador, igual que en el alta publica.
+
+    El `is("movimiento_id", null)` es el seguro: un turno ya cobrado no
+    se toca, ni siquiera el nombre del tratamiento, porque el movimiento
+    que ya se emitio diria otra cosa. Si estaba cobrado, esta linea no
+    cambia nada y la funcion de abajo devuelve el 409 de siempre.
+  */
+  if (tratamientoId) {
+    const tratamiento = (await obtenerTratamientos()).find(
+      (t) => t.id === tratamientoId
+    );
+
+    if (tratamiento) {
+      const { error: falloTratamiento } = await sesion.sb
+        .from("turnos")
+        .update({ tratamiento: tratamiento.nombre, precio: tratamiento.precio })
+        .eq("id", turnoId)
+        .is("movimiento_id", null);
+
+      if (falloTratamiento) {
+        return fallo("guardar el tratamiento", falloTratamiento);
+      }
+    }
   }
 
   const { data, error } = await sesion.sb.rpc("registrar_turno_realizado", {

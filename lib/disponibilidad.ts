@@ -1,4 +1,4 @@
-import type { Agenda } from "./config";
+import { horariosDelDia, type Agenda } from "./config";
 import { claveFecha, fechaHora, sumarDias } from "./fechas";
 
 export type EstadoTurno = "libre" | "ocupado";
@@ -28,12 +28,14 @@ export function construirMapa(
 
   for (let i = 0; i < dias; i++) {
     const fecha = sumarDias(desde, i);
-    if (!agenda.diasHabiles.includes(fecha.getDay())) continue;
+    /* Cada dia trae SUS horarios. Un dia que no atiende viene vacio. */
+    const horas = horariosDelDia(agenda, fecha.getDay());
+    if (horas.length === 0) continue;
 
     const clave = claveFecha(fecha);
     if (diaCerrado(clave)) continue;
 
-    mapa[clave] = agenda.horarios.map((hora) => ({
+    mapa[clave] = horas.map((hora) => ({
       hora,
       estado: estaOcupado(clave, hora) ? "ocupado" : "libre",
     }));
