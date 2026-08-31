@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import AvisoDuplicado from "./AvisoDuplicado";
 import BuscadorCliente from "./BuscadorCliente";
 import { MEDIOS_DE_PAGO } from "./FormularioCobro";
 import TabGastosFijos from "./TabGastosFijos";
@@ -428,6 +429,8 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
   const [medioPago, setMedioPago] = useState(MEDIOS_DE_PAGO[0]);
   const [guardando, setGuardando] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
+  /* Cuantas cosas ya cargadas hay cerca de esa fecha para esa clienta. */
+  const [duplicados, setDuplicados] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   /* Las rutas ahora pueden contestar 401 con un objeto de error. Sin el
@@ -670,6 +673,19 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
           </label>
         )}
 
+        {/*
+          Lo que esa clienta ya tenga cargado por esos días. Es la mitad
+          del problema del doble ingreso: acá se carga una venta suelta y
+          después el mismo cobro entra otra vez por el turno.
+        */}
+        {tipo !== "gasto" && (
+          <AvisoDuplicado
+            clienteId={clienteId}
+            fecha={form.fecha}
+            onCambio={setDuplicados}
+          />
+        )}
+
         {aviso && (
           <p className="rounded-xl bg-vino-suave px-4 py-2.5 text-sm text-vino">
             ✓ {aviso}
@@ -678,7 +694,13 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
         {error && <p className="rounded-xl bg-vino-suave px-4 py-2.5 text-sm text-vino">{error}</p>}
 
         <button type="submit" disabled={guardando} className="boton-principal w-full disabled:opacity-60">
-          {guardando ? "Guardando…" : tipo === "gasto" ? "Registrar gasto" : "Registrar venta"}
+          {guardando
+            ? "Guardando…"
+            : tipo === "gasto"
+              ? "Registrar gasto"
+              : duplicados > 0
+                ? "Registrar igual"
+                : "Registrar venta"}
         </button>
       </form>
     </div>

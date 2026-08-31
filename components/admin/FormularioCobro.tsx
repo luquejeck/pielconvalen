@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { esConsulta, formatearPrecio, type Tratamiento } from "@/lib/tratamientos";
+import AvisoDuplicado from "./AvisoDuplicado";
 
 export const MEDIOS_DE_PAGO = ["Efectivo", "Transferencia", "Mercado Pago"];
 
@@ -26,6 +27,8 @@ export default function FormularioCobro({
   precioSugerido,
   tratamientos,
   tratamientoActual,
+  clienteId,
+  fecha,
   hayClienta,
   onListo,
   onCancelar,
@@ -35,6 +38,9 @@ export default function FormularioCobro({
   tratamientos: Tratamiento[];
   /** Lo que dice hoy el turno, para dejarlo preseleccionado si coincide. */
   tratamientoActual: string | null;
+  /** Los dos datos que necesita el aviso de duplicado. */
+  clienteId: string | null;
+  fecha: string;
   /** Si el turno no tiene clienta vinculada, no se puede crear la sesion. */
   hayClienta: boolean;
   onListo: (datos: {
@@ -57,6 +63,8 @@ export default function FormularioCobro({
   const [notas, setNotas] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* Cuantas cosas ya cargadas hay cerca de esta fecha para esta clienta. */
+  const [duplicados, setDuplicados] = useState(0);
 
   /* Elegir el tratamiento trae su precio de lista al monto: es el numero
      que se cobra casi siempre, y si no, se corrige al lado. */
@@ -163,6 +171,13 @@ export default function FormularioCobro({
         </p>
       )}
 
+      {/* Lo que esta clienta ya tiene cargado por estos dias */}
+      <AvisoDuplicado
+        clienteId={clienteId}
+        fecha={fecha}
+        onCambio={setDuplicados}
+      />
+
       {error && (
         <p className="mt-3 rounded-chico bg-negativo-suave px-4 py-2.5 text-base text-negativo">
           {error}
@@ -170,12 +185,18 @@ export default function FormularioCobro({
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
+        {/* El boton cambia de texto cuando hay algo parecido cargado: es
+            el clic que confirma que lo leyo. */}
         <button
           type="submit"
           disabled={guardando}
           className="min-h-12 rounded-full bg-vino px-7 text-base font-semibold text-crema disabled:opacity-60"
         >
-          {guardando ? "Guardando…" : "Confirmar cobro"}
+          {guardando
+            ? "Guardando…"
+            : duplicados > 0
+              ? "Cobrar igual"
+              : "Confirmar cobro"}
         </button>
         <button
           type="button"

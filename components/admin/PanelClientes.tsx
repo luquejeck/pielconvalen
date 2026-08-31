@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { normalizarTelefono } from "@/lib/whatsapp";
+import AvisoDuplicado from "./AvisoDuplicado";
 import { IconoWhatsApp } from "../iconos";
 import ResumenClienta from "./ResumenClienta";
 
@@ -193,6 +194,8 @@ function FichaCliente({ cliente, onVolver, onActualizar }: {
     notas: "",
   });
   const [guardandoSesion, setGuardandoSesion] = useState(false);
+  /* Cuantas cosas ya cargadas hay cerca de esa fecha para esta clienta. */
+  const [duplicados, setDuplicados] = useState(0);
 
   const cargarSesiones = async () => {
     setCargando(true);
@@ -325,8 +328,24 @@ function FichaCliente({ cliente, onVolver, onActualizar }: {
                 placeholder="Reacción, productos usados, seguimiento…"
                 className="mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino" />
             </label>
+            {/*
+              Lo que ya esté cargado de esta clienta por esos días. Es de
+              acá que salió la duplicación real: se anotó la sesión a mano
+              y después el cobro del turno generó la suya, así que la
+              ficha decía que había venido dos veces el mismo día.
+            */}
+            <AvisoDuplicado
+              clienteId={cliente.id}
+              fecha={formSesion.fecha}
+              onCambio={setDuplicados}
+            />
+
             <button type="submit" disabled={guardandoSesion} className="boton-principal disabled:opacity-60">
-              {guardandoSesion ? "Guardando…" : "Guardar sesión"}
+              {guardandoSesion
+                ? "Guardando…"
+                : duplicados > 0
+                  ? "Guardar igual"
+                  : "Guardar sesión"}
             </button>
           </form>
         )}

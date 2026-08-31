@@ -20,6 +20,7 @@ import BuscadorCliente from "./BuscadorCliente";
 import BandejaPendientes from "./BandejaPendientes";
 import Recordatorios from "./Recordatorios";
 import FormularioCobro, { MEDIOS_DE_PAGO } from "./FormularioCobro";
+import AvisoDuplicado from "./AvisoDuplicado";
 import { IconoCheck } from "../iconos";
 
 type EstadoTurno =
@@ -701,6 +702,8 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                     precioSugerido={turno.precio}
                     tratamientos={tratamientos}
                     tratamientoActual={turno.tratamiento}
+                    clienteId={turno.cliente_id}
+                    fecha={turno.fecha}
                     hayClienta={Boolean(turno.cliente_id)}
                     onListo={(datos) => registrarCobro(turno.id, datos)}
                     onCancelar={() => setCobrando(null)}
@@ -908,6 +911,8 @@ function FormularioTurno({
   /* El turno se guardo pero el cobro no. Se corta el formulario ahi para
      no cargarlo dos veces. */
   const [cargadoSinCobrar, setCargadoSinCobrar] = useState(false);
+  /* Cuantas cosas ya cargadas hay cerca de esta fecha para esta clienta. */
+  const [duplicados, setDuplicados] = useState(0);
 
   /*
     Un dia que ya paso no se "reserva": se anota lo que se hizo. Por eso
@@ -1138,6 +1143,14 @@ function FormularioTurno({
         )}
       </div>
 
+      {/* Lo que esta clienta ya tenga cargado por estos dias. Sin clienta
+          vinculada no hay con que comparar y no aparece nada. */}
+      <AvisoDuplicado
+        clienteId={clienteId}
+        fecha={fecha}
+        onCambio={setDuplicados}
+      />
+
       {error && (
         <p className="mt-4 rounded-chico bg-vino-suave px-4 py-3 text-base text-vino">
           {error}
@@ -1160,7 +1173,13 @@ function FormularioTurno({
           disabled={guardando || !hora}
           className="boton-principal mt-6 w-full disabled:opacity-60"
         >
-          {guardando ? "Guardando…" : cobrada ? "Guardar y cobrar" : "Guardar turno"}
+          {guardando
+            ? "Guardando…"
+            : duplicados > 0
+              ? "Guardar igual"
+              : cobrada
+                ? "Guardar y cobrar"
+                : "Guardar turno"}
         </button>
       )}
     </form>
