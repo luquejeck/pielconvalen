@@ -19,7 +19,7 @@ import {
 import BuscadorCliente from "./BuscadorCliente";
 import BandejaPendientes from "./BandejaPendientes";
 import Recordatorios from "./Recordatorios";
-import FormularioCobro from "./FormularioCobro";
+import FormularioCobro, { MEDIOS_DE_PAGO } from "./FormularioCobro";
 import { IconoCheck } from "../iconos";
 
 type EstadoTurno =
@@ -392,6 +392,17 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
       <ul className="mt-6 space-y-3">
         {cargando ? (
           <li className="text-lg text-tinta-suave">Cargando…</li>
+        ) : horasDelDia.length === 0 ? (
+          /*
+            Un dia que no esta en la agenda y sin turnos quedaba en blanco:
+            ni un renglon, y el boton de cargar a mano apagado. Valen
+            atendio un domingo, entro a anotarlo y no habia nada que
+            tocar. Ahora el dia dice por que esta vacio y adonde ir.
+          */
+          <li className="rounded-2xl border border-borde bg-white px-5 py-6 text-lg text-tinta-suave">
+            Este día no está en tu agenda. Si igual atendiste, cargalo con
+            «Cargar turno a mano».
+          </li>
         ) : (
           horasDelDia.map((hora) => {
             const turno = turnoDe(hora);
@@ -714,11 +725,17 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
 
       {/* Acciones del dia */}
       <div className="mt-8 flex flex-wrap gap-3">
+        {/*
+          Sin `disabled`. Estaba apagado cuando el dia no tenia horas
+          libres —o sea: los dias que no atiende, y tambien los dias
+          llenos— que son justo los dos casos en que hay algo para anotar
+          a mano: la que entro un domingo y la que se sumo a ultimo
+          momento entre dos turnos.
+        */}
         <button
           type="button"
           onClick={() => setMostrarFormulario((v) => !v)}
-          disabled={horasLibres.length === 0}
-          className="rounded-full bg-vino px-6 py-3 text-base text-crema disabled:opacity-40"
+          className="rounded-full bg-vino px-6 py-3 text-base text-crema"
         >
           {mostrarFormulario ? "Cerrar formulario" : "Cargar turno a mano"}
         </button>
@@ -732,8 +749,15 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
         </button>
       </div>
 
-      {mostrarFormulario && horasLibres.length > 0 && (
+      {mostrarFormulario && (
         <FormularioTurno
+          /*
+            `key` con la fecha para que el formulario se rearme al cambiar
+            de dia. Sin esto se quedaba con lo del dia anterior: la hora
+            vieja, y —peor— la casilla de "ya me pagó" marcada de un dia
+            pasado sobre un turno que todavia no ocurrio.
+          */
+          key={fecha}
           fecha={fecha}
           horasLibres={horasLibres}
           tratamientos={tratamientos}
@@ -869,9 +893,11 @@ function FormularioTurno({
   onGuardado: () => void;
 }) {
   const supabase = clienteNavegador();
-  // Sin horarios libres no hay nada que elegir: `horasLibres[0]` era
-  // undefined y el alta se mandaba con la hora vacia.
-  const [hora, setHora] = useState(horasLibres[0] ?? "");
+
+  /* La hora se escribe, no se elige de una lista. Antes salia de
+     `horasLibres`, asi que un dia fuera de agenda —o uno lleno— no tenia
+     ninguna opcion y el alta se mandaba con la hora vacia. */
+  const [hora, setHora] = useState(horasLibres[0] ?? "10:00");
   const [cliente, setCliente] = useState("");
   const [telefono, setTelefono] = useState("");
   const [clienteId, setClienteId] = useState<string | null>(null);
@@ -879,11 +905,30 @@ function FormularioTurno({
   const [guardando, setGuardando] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
+  /* El turno se guardo pero el cobro no. Se corta el formulario ahi para
+     no cargarlo dos veces. */
+  const [cargadoSinCobrar, setCargadoSinCobrar] = useState(false);
+
+  /*
+    Un dia que ya paso no se "reserva": se anota lo que se hizo. Por eso
+    la casilla de cobrado viene marcada sola cuando la fecha quedo atras,
+    que es el caso que trae a Valen a esta pantalla.
+  */
+  const yaPaso = fecha < claveFecha(new Date());
+  const [cobrada, setCobrada] = useState(yaPaso);
+  const [monto, setMonto] = useState(String(tratamientos[0]?.precio ?? ""));
+  const [medioPago, setMedioPago] = useState(MEDIOS_DE_PAGO[0]);
+
+  const elegirTratamiento = (id: string) => {
+    setTratamientoId(id);
+    const t = tratamientos.find((x) => x.id === id);
+    if (t) setMonto(String(t.precio));
+  };
 
   const guardar = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!hora) {
-      setError("Ese día no tiene horarios libres.");
+      setError("Poné la hora en que la atendiste.");
       return;
     }
 
@@ -892,28 +937,63 @@ function FormularioTurno({
 
     const tratamiento = tratamientos.find((t) => t.id === tratamientoId);
 
-    const { error: fallo } = await supabase.from("turnos").insert({
-      fecha,
-      hora,
-      estado: "confirmado",
-      cliente: cliente.trim() || null,
-      telefono: telefono.trim() || null,
-      cliente_id: clienteId,
-      tratamiento: tratamiento?.nombre ?? null,
-      precio: tratamiento?.precio ?? null,
-    });
-
-    setGuardando(false);
+    const { data, error: fallo } = await supabase
+      .from("turnos")
+      .insert({
+        fecha,
+        hora,
+        estado: "confirmado",
+        cliente: cliente.trim() || null,
+        telefono: telefono.trim() || null,
+        cliente_id: clienteId,
+        tratamiento: tratamiento?.nombre ?? null,
+        precio: tratamiento?.precio ?? null,
+      })
+      .select("id")
+      .single();
 
     if (fallo) {
+      setGuardando(false);
       setError(
         fallo.code === "23505"
-          ? "Ese horario ya está tomado."
+          ? "Ya hay un turno a esa hora. Probá con otra."
           : `No se pudo guardar. ${fallo.message}`
       );
       return;
     }
 
+    /*
+      Cobrar es el mismo camino que el boton "Atendida y cobrada": marca
+      el turno como realizado, carga el ingreso en Economia y le suma la
+      sesion a la ficha de la clienta, las tres cosas juntas o ninguna.
+    */
+    if (cobrada && data) {
+      const res = await fetch("/api/turnos/realizar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          turnoId: data.id,
+          monto: Number(monto) || 0,
+          medioPago,
+          notas: "",
+          tratamientoId,
+        }),
+      });
+
+      setGuardando(false);
+
+      if (!res.ok) {
+        /* El turno YA existe: decirlo, y no dejar que se cargue de nuevo. */
+        const { error: mensaje } = await res.json().catch(() => ({ error: null }));
+        setError(
+          `${mensaje ?? "No se pudo registrar el cobro."} El turno quedó cargado: cobralo con «Atendida y cobrada».`
+        );
+        setCargadoSinCobrar(true);
+        return;
+      }
+    }
+
+    setGuardando(false);
     onGuardado();
   };
 
@@ -925,24 +1005,42 @@ function FormularioTurno({
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className="text-base text-tinta-suave">Horario</span>
-          <select
+          <input
+            type="time"
             value={hora}
             onChange={(e) => setHora(e.target.value)}
+            required
             className="mt-2 min-h-12 w-full rounded-2xl border border-borde px-4 text-lg outline-none focus:border-vino"
-          >
-            {horasLibres.map((h) => (
-              <option key={h} value={h}>
-                {h}
-              </option>
-            ))}
-          </select>
+          />
+
+          {/* Las horas de la agenda que estan libres, para no tipearlas.
+              En un dia fuera de agenda no hay ninguna y el campo queda
+              solo, que es exactamente lo que hace falta ahi. */}
+          {horasLibres.length > 0 && (
+            <span className="mt-2 flex flex-wrap gap-1.5">
+              {horasLibres.map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  onClick={() => setHora(h)}
+                  className={`rounded-full border px-3 py-1 text-sm ${
+                    hora === h
+                      ? "border-vino bg-vino text-crema"
+                      : "border-borde text-tinta-suave hover:border-vino hover:text-vino"
+                  }`}
+                >
+                  {h}
+                </button>
+              ))}
+            </span>
+          )}
         </label>
 
         <label className="block">
           <span className="text-base text-tinta-suave">Tratamiento</span>
           <select
             value={tratamientoId}
-            onChange={(e) => setTratamientoId(e.target.value)}
+            onChange={(e) => elegirTratamiento(e.target.value)}
             className="mt-2 min-h-12 w-full rounded-2xl border border-borde px-4 text-lg outline-none focus:border-vino"
           >
             {tratamientos.map((t) => (
@@ -986,19 +1084,85 @@ function FormularioTurno({
         </label>
       </div>
 
+      {/*
+        Anotar una atencion que ya paso y dejarla sin cobrar es dejar el
+        trabajo a medias: el ingreso no entra a Economia y la sesion no
+        llega a la ficha. Por eso en un dia pasado esto viene marcado.
+      */}
+      <div className="mt-5 rounded-2xl border border-borde bg-crema-oscuro p-4">
+        <label className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            checked={cobrada}
+            onChange={(e) => setCobrada(e.target.checked)}
+            className="mt-1.5 h-5 w-5 shrink-0 accent-[var(--color-vino)]"
+          />
+          <span>
+            <span className="text-lg text-tinta">Ya la atendí y me pagó</span>
+            <span className="mt-0.5 block text-base text-tinta-suave">
+              Queda como realizada, carga el ingreso en Economía y le suma la
+              sesión a su ficha.
+            </span>
+          </span>
+        </label>
+
+        {cobrada && (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-base text-tinta-suave">Cuánto cobraste</span>
+              <input
+                type="number"
+                min="0"
+                required
+                value={monto}
+                onChange={(e) => setMonto(e.target.value)}
+                className="mt-2 min-h-12 w-full rounded-2xl border border-borde px-4 text-lg outline-none focus:border-vino"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-base text-tinta-suave">Cómo pagó</span>
+              <select
+                value={medioPago}
+                onChange={(e) => setMedioPago(e.target.value)}
+                className="mt-2 min-h-12 w-full rounded-2xl border border-borde px-4 text-lg outline-none focus:border-vino"
+              >
+                {MEDIOS_DE_PAGO.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
+      </div>
+
       {error && (
         <p className="mt-4 rounded-chico bg-vino-suave px-4 py-3 text-base text-vino">
           {error}
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={guardando || !hora}
-        className="boton-principal mt-6 w-full disabled:opacity-60"
-      >
-        {guardando ? "Guardando…" : "Guardar turno"}
-      </button>
+      {/* Guardado el turno, el boton deja de guardar: lo unico que queda
+          por hacer es salir, y volver a apretar duplicaria la carga. */}
+      {cargadoSinCobrar ? (
+        <button
+          type="button"
+          onClick={onGuardado}
+          className="boton-principal mt-6 w-full"
+        >
+          Entendido, ver el día
+        </button>
+      ) : (
+        <button
+          type="submit"
+          disabled={guardando || !hora}
+          className="boton-principal mt-6 w-full disabled:opacity-60"
+        >
+          {guardando ? "Guardando…" : cobrada ? "Guardar y cobrar" : "Guardar turno"}
+        </button>
+      )}
     </form>
   );
 }
