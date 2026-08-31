@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const mes = searchParams.get("mes"); // "YYYY-MM"
   const desde = searchParams.get("desde"); // "YYYY-MM-DD"
+  const hasta = searchParams.get("hasta"); // "YYYY-MM-DD", sin incluir
 
   let query = sesion.sb
     .from("movimientos")
@@ -34,8 +35,19 @@ export async function GET(req: NextRequest) {
     query = query.gte("fecha", `${mes}-01`).lt("fecha", primeroDelMesSiguiente(mes));
   } else if (desde && /^\d{4}-\d{2}-\d{2}$/.test(desde)) {
     // El panel pide una ventana, no el historial entero: el dashboard
-    // necesita seis meses y el flujo de caja el mes que se este mirando.
+    // necesita seis meses —o los doce del año— y el flujo de caja el mes
+    // que se este mirando.
     query = query.gte("fecha", desde);
+
+    /*
+      Con `hasta` la ventana se cierra de los dos lados. Sin esto, mirar
+      el año 2025 desde 2027 traia tambien todo 2026 y todo 2027: cuanto
+      mas atras mira, mas filas viajan, que es justo al reves de lo que
+      conviene.
+    */
+    if (hasta && /^\d{4}-\d{2}-\d{2}$/.test(hasta)) {
+      query = query.lt("fecha", hasta);
+    }
   }
 
   const { data, error } = await query;

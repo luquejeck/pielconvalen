@@ -28,7 +28,11 @@ type ItemInventario = {
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────
-const fmt = (n: number) => `$${n.toLocaleString("es-AR")}`;
+/* El signo va ANTES del peso. Con `$${n}` un mes en rojo salia "$-56.000",
+   que se lee como un precio raro antes que como una perdida; ahora que el
+   año se muestra mes a mes, los negativos dejaron de ser una rareza. */
+const fmt = (n: number) =>
+  `${n < 0 ? "-" : ""}$${Math.abs(n).toLocaleString("es-AR")}`;
 const esIngreso = (t: string) => t === "ingreso" || t === "venta_producto";
 const esTratamiento = (m: Movimiento) => m.tipo === "ingreso";
 const esProducto = (m: Movimiento) => m.tipo === "venta_producto";
@@ -44,26 +48,46 @@ function formatoMes(mes: string) {
   return `${nombres[parseInt(m) - 1]} ${a}`;
 }
 
-function mesAnterior(mes: string) {
+/** Suma (o resta, con n negativo) meses a un "YYYY-MM". */
+function sumarMeses(mes: string, n: number) {
   const [a, m] = mes.split("-").map(Number);
-  const d = new Date(a, m - 2, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
-function mesSiguiente(mes: string) {
-  const [a, m] = mes.split("-").map(Number);
-  const d = new Date(a, m, 1);
+  const d = new Date(a, m - 1 + n, 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
+const mesAnterior = (mes: string) => sumarMeses(mes, -1);
+const mesSiguiente = (mes: string) => sumarMeses(mes, 1);
+
+const anioDe = (mes: string) => mes.slice(0, 4);
+
+/** Los seis meses que TERMINAN en `mes`, del mas viejo al mas nuevo. */
+const ultimosSeisMeses = (mes: string) =>
+  Array.from({ length: 6 }, (_, i) => sumarMeses(mes, i - 5));
+
+/** Los doce meses de un año. */
+const mesesDelAnio = (anio: string) =>
+  Array.from(
+    { length: 12 },
+    (_, i) => `${anio}-${String(i + 1).padStart(2, "0")}`
+  );
+
 // ─── Gráfico de barras (CSS puro) ─────────────────────────────────────
-function GraficoBarras({ movimientos }: { movimientos: Movimiento[] }) {
+/**
+ * Los meses los decide quien lo usa.
+ *
+ * Antes se calculaban acá adentro: siempre los seis anteriores a HOY. Con
+ * eso el gráfico no acompañaba nada —se movía el resto del panel y él
+ * seguía mostrando lo mismo— y el año entero era imposible de ver.
+ */
+function GraficoBarras({
+  movimientos,
+  meses: clavesMes,
+}: {
+  movimientos: Movimiento[];
+  meses: string[];
+}) {
   const meses: Record<string, { tratamientos: number; productos: number }> = {};
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date();
-    d.setMonth(d.getMonth() - i);
-    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    meses[k] = { tratamientos: 0, productos: 0 };
-  }
+  for (const k of clavesMes) meses[k] = { tratamientos: 0, productos: 0 };
 
   movimientos.forEach((m) => {
     const k = m.fecha.slice(0, 7);
@@ -74,8 +98,16 @@ function GraficoBarras({ movimientos }: { movimientos: Movimiento[] }) {
 
   const maximo = Math.max(...Object.values(meses).map((v) => v.tratamientos + v.productos), 1);
 
+  /* Doce barras no entran con el mismo aire que seis: en celular el
+     nombre del mes se monta con el de al lado. */
+  const apretado = clavesMes.length > 6;
+
   return (
-    <div className="mt-2 flex h-40 items-end gap-1.5 sm:gap-2">
+    <div
+      className={`mt-2 flex h-40 items-end ${
+        apretado ? "gap-1" : "gap-1.5 sm:gap-2"
+      }`}
+    >
       {Object.entries(meses).map(([mes, v]) => {
         const total = v.tratamientos + v.productos;
         const alturaTrat = (v.tratamientos / maximo) * 100;
@@ -100,7 +132,13 @@ function GraficoBarras({ movimientos }: { movimientos: Movimiento[] }) {
                 </>
               )}
             </div>
-            <span className="text-center text-xs text-tinta-suave">{formatoMes(mes).slice(0, 3)}</span>
+            <span
+              className={`text-center leading-none text-tinta-suave ${
+                apretado ? "text-[10px]" : "text-xs"
+              }`}
+            >
+              {formatoMes(mes).slice(0, 3)}
+            </span>
           </div>
         );
       })}
@@ -109,110 +147,255 @@ function GraficoBarras({ movimientos }: { movimientos: Movimiento[] }) {
 }
 
 // ─── Tab: Dashboard ───────────────────────────────────────────────────
+/**
+ * El dashboard mira UN periodo, y el periodo se elige.
+ *
+ * Antes estaba clavado al mes corriente: el 1 de marzo la pantalla se
+ * ponía en cero y lo de febrero no se podía volver a ver desde acá. Para
+ * seguir un año —comparar temporadas, ver si un mes flojo es normal o
+ * no— había que ir mes por mes al flujo de caja y sumar a mano.
+ *
+ * Ahora hay flechas para moverse y un cambio de zoom: MES o AÑO. En año
+ * las flechas saltan de a doce meses y el gráfico muestra los doce, con
+ * el detalle mes a mes abajo.
+ */
 function TabDashboard({
   todos,
+  mes,
+  vista,
+  onMover,
+  onVista,
+  onElegirMes,
   onRegistrar,
 }: {
   todos: Movimiento[];
+  mes: string;
+  vista: VistaPeriodo;
+  onMover: (pasos: number) => void;
+  onVista: (v: VistaPeriodo) => void;
+  onElegirMes: (mes: string) => void;
   onRegistrar: () => void;
 }) {
-  const mes = mesActual();
-  const delMes = todos.filter((m) => m.fecha.startsWith(mes));
+  const esAnual = vista === "anio";
+  const anio = anioDe(mes);
 
-  /*
-    Cero movimientos se dice, no se disimula. Antes en este caso el panel
-    cargaba doce movimientos de ejemplo y mostraba numeros que no eran de
-    Valen: ingresos, ticket promedio y un grafico de seis meses, todo
-    inventado, con la aclaracion en letra chiquita al final de la
-    pantalla.
-  */
-  if (todos.length === 0) {
-    return (
-      <div className="rounded-2xl border border-borde bg-white px-6 py-12 text-center">
-        <p className="text-lg font-semibold text-tinta">
-          Todavía no registraste movimientos
-        </p>
-        <p className="mx-auto mt-2 max-w-sm text-sm text-tinta-suave">
-          Cuando cargues tu primera venta o tu primer gasto, acá vas a ver los
-          ingresos del mes, el ticket promedio y la evolución.
-        </p>
-        <button
-          type="button"
-          onClick={onRegistrar}
-          className="boton-principal mt-6"
-        >
-          Registrar el primero
-        </button>
-      </div>
-    );
-  }
+  /* "2026-03" filtra el mes; "2026" filtra el año. La clave de fecha es
+     "YYYY-MM-DD", así que alcanza con el prefijo. */
+  const prefijo = esAnual ? anio : mes;
+  const delPeriodo = todos.filter((m) => m.fecha.startsWith(prefijo));
 
-  const ingresosTrat = delMes.filter(esTratamiento).reduce((s, m) => s + m.monto, 0);
-  const ingresosProd = delMes.filter(esProducto).reduce((s, m) => s + m.monto, 0);
+  const meses = esAnual ? mesesDelAnio(anio) : ultimosSeisMeses(mes);
+  const titulo = esAnual ? anio : formatoMes(mes);
+  const esPeriodoActual = mesActual().startsWith(prefijo);
+
+  const ingresosTrat = delPeriodo.filter(esTratamiento).reduce((s, m) => s + m.monto, 0);
+  const ingresosProd = delPeriodo.filter(esProducto).reduce((s, m) => s + m.monto, 0);
   const totalIngresos = ingresosTrat + ingresosProd;
-  const totalGastos = delMes.filter((m) => !esIngreso(m.tipo)).reduce((s, m) => s + m.monto, 0);
+  const totalGastos = delPeriodo.filter((m) => !esIngreso(m.tipo)).reduce((s, m) => s + m.monto, 0);
   const neto = totalIngresos - totalGastos;
 
-  const sesionesTot = delMes.filter(esTratamiento).length;
+  const sesionesTot = delPeriodo.filter(esTratamiento).length;
   const ticketPromedio = sesionesTot > 0 ? Math.round(ingresosTrat / sesionesTot) : 0;
 
-  const margenBruto = delMes
+  const margenBruto = delPeriodo
     .filter((m) => esIngreso(m.tipo) && m.costo)
     .reduce((s, m) => s + m.monto - (m.costo ?? 0), 0);
 
   return (
     <div className="space-y-5">
-      <p className="text-sm font-medium uppercase tracking-wide text-tinta-suave">
-        {formatoMes(mes)}
-      </p>
+      {/*
+        Periodo: adónde estoy parada y cómo me muevo.
 
-      {/* Cards principales */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="col-span-2 rounded-2xl bg-positivo p-5 text-white">
-          <p className="text-xs font-medium uppercase tracking-wide text-white/70">Ingresos totales</p>
-          <p className="mt-1 text-3xl font-bold">{fmt(totalIngresos)}</p>
-          <div className="mt-3 flex gap-4 text-xs text-white/70">
-            <span>Tratamientos <strong className="text-white">{fmt(ingresosTrat)}</strong></span>
-            <span>Productos <strong className="text-white">{fmt(ingresosProd)}</strong></span>
-          </div>
+        Dos bloques y no cinco botones sueltos: en celular no entran en un
+        renglón, y así lo que se va abajo es el cambio de zoom entero, no
+        una flecha huérfana.
+      */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onMover(-1)}
+            aria-label={esAnual ? "Año anterior" : "Mes anterior"}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-borde text-lg text-tinta-suave hover:border-vino hover:text-vino"
+          >
+            ←
+          </button>
+
+          <span className="min-w-24 text-center text-base font-semibold text-tinta">
+            {titulo}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => onMover(1)}
+            aria-label={esAnual ? "Año siguiente" : "Mes siguiente"}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-borde text-lg text-tinta-suave hover:border-vino hover:text-vino"
+          >
+            →
+          </button>
         </div>
-        <div className="rounded-2xl border border-negativo/25 bg-negativo-suave p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-negativo/80">Gastos</p>
-          <p className="mt-1 text-2xl font-bold text-negativo">{fmt(totalGastos)}</p>
+
+        {/* Mismo control segmentado que Día/Semana en Turnos */}
+        <div className="segmentado">
+          {(["mes", "anio"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => onVista(v)}
+              data-activo={vista === v}
+              aria-pressed={vista === v}
+            >
+              {v === "mes" ? "Mes" : "Año"}
+            </button>
+          ))}
         </div>
-        {/* Si el mes cierra en perdida se invierte la tarjeta: que salte a la vista. */}
-        <div className={`rounded-2xl border p-4 ${neto >= 0 ? "border-positivo/25 bg-positivo-suave" : "border-negativo bg-negativo"}`}>
-          <p className={`text-xs font-medium uppercase tracking-wide ${neto >= 0 ? "text-positivo/80" : "text-white/75"}`}>
-            {neto >= 0 ? "Ganancia neta" : "Pérdida del mes"}
+      </div>
+
+      {/*
+        Un periodo vacío se dice con su nombre. Antes cero movimientos era
+        siempre "todavía no registraste nada", que en un mes viejo o en un
+        mes que todavía no llegó es sencillamente falso.
+      */}
+      {delPeriodo.length === 0 ? (
+        <div className="rounded-2xl border border-borde bg-white px-6 py-12 text-center">
+          <p className="text-lg font-semibold text-tinta">
+            Sin movimientos en {titulo}
           </p>
-          <p className={`mt-1 text-2xl font-bold ${neto >= 0 ? "text-positivo" : "text-white"}`}>{fmt(neto)}</p>
+          <p className="mx-auto mt-2 max-w-sm text-sm text-tinta-suave">
+            {esPeriodoActual
+              ? "Cuando cargues tu primera venta o tu primer gasto, acá vas a ver los ingresos, el ticket promedio y la evolución."
+              : "Con las flechas te movés a otro período, y con Año ves los doce meses juntos."}
+          </p>
+          {esPeriodoActual && (
+            <button type="button" onClick={onRegistrar} className="boton-principal mt-6">
+              Registrar el primero
+            </button>
+          )}
         </div>
-      </div>
-
-      {/* Métricas secundarias */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-borde bg-white p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Ticket promedio</p>
-          <p className="mt-1 text-xl font-bold text-tinta">{fmt(ticketPromedio)}</p>
-          <p className="text-xs text-tinta-suave">{sesionesTot} sesiones</p>
-        </div>
-        <div className="rounded-2xl border border-borde bg-white p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Margen bruto</p>
-          <p className="mt-1 text-xl font-bold text-tinta">{fmt(margenBruto)}</p>
-          <p className="text-xs text-tinta-suave">con costos registrados</p>
-        </div>
-      </div>
-
-      {/* Gráfico */}
-      <div className="rounded-2xl border border-borde bg-white p-5">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-tinta">Evolución mensual</p>
-          <div className="flex gap-3 text-xs text-tinta-suave">
-            <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-vino/70" />Tratamientos</span>
-            <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-vino/35" />Productos</span>
+      ) : (
+        <>
+          {/* Cards principales */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="col-span-2 rounded-2xl bg-positivo p-5 text-white">
+              <p className="text-xs font-medium uppercase tracking-wide text-white/70">Ingresos totales</p>
+              <p className="mt-1 text-3xl font-bold">{fmt(totalIngresos)}</p>
+              <div className="mt-3 flex gap-4 text-xs text-white/70">
+                <span>Tratamientos <strong className="text-white">{fmt(ingresosTrat)}</strong></span>
+                <span>Productos <strong className="text-white">{fmt(ingresosProd)}</strong></span>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-negativo/25 bg-negativo-suave p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-negativo/80">Gastos</p>
+              <p className="mt-1 text-2xl font-bold text-negativo">{fmt(totalGastos)}</p>
+            </div>
+            {/* Si el período cierra en pérdida se invierte la tarjeta: que salte a la vista. */}
+            <div className={`rounded-2xl border p-4 ${neto >= 0 ? "border-positivo/25 bg-positivo-suave" : "border-negativo bg-negativo"}`}>
+              <p className={`text-xs font-medium uppercase tracking-wide ${neto >= 0 ? "text-positivo/80" : "text-white/75"}`}>
+                {neto >= 0 ? "Ganancia neta" : esAnual ? "Pérdida del año" : "Pérdida del mes"}
+              </p>
+              <p className={`mt-1 text-2xl font-bold ${neto >= 0 ? "text-positivo" : "text-white"}`}>{fmt(neto)}</p>
+            </div>
           </div>
-        </div>
-        <GraficoBarras movimientos={todos} />
+
+          {/* Métricas secundarias */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-borde bg-white p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Ticket promedio</p>
+              <p className="mt-1 text-xl font-bold text-tinta">{fmt(ticketPromedio)}</p>
+              <p className="text-xs text-tinta-suave">{sesionesTot} sesiones</p>
+            </div>
+            <div className="rounded-2xl border border-borde bg-white p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Margen bruto</p>
+              <p className="mt-1 text-xl font-bold text-tinta">{fmt(margenBruto)}</p>
+              <p className="text-xs text-tinta-suave">con costos registrados</p>
+            </div>
+          </div>
+
+          {/* Gráfico */}
+          <div className="rounded-2xl border border-borde bg-white p-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-tinta">
+                {esAnual ? `Los doce meses de ${anio}` : "Últimos seis meses"}
+              </p>
+              <div className="flex gap-3 text-xs text-tinta-suave">
+                <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-vino/70" />Tratamientos</span>
+                <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-vino/35" />Productos</span>
+              </div>
+            </div>
+            {/*
+              Acá van TODOS los movimientos de la ventana, no los del
+              período: en vista mes el gráfico muestra los seis meses
+              anteriores, y con solo los del mes elegido los otros cinco
+              salían planos aunque tuvieran facturación.
+            */}
+            <GraficoBarras movimientos={todos} meses={meses} />
+          </div>
+
+          {/* Mes a mes: solo tiene sentido cuando se está mirando el año */}
+          {esAnual && <TablaDelAnio movimientos={todos} meses={meses} onElegirMes={onElegirMes} />}
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * El año abierto en doce renglones.
+ *
+ * El gráfico dice la forma —si sube, si cae en enero— pero no los
+ * números, y para el seguimiento hacen falta los dos. Cada mes se puede
+ * tocar: lleva al detalle de ese mes, que es lo que una busca apenas ve
+ * algo raro en la fila.
+ */
+function TablaDelAnio({
+  movimientos,
+  meses,
+  onElegirMes,
+}: {
+  movimientos: Movimiento[];
+  meses: string[];
+  onElegirMes: (mes: string) => void;
+}) {
+  const filas = meses.map((mes) => {
+    const delMes = movimientos.filter((m) => m.fecha.startsWith(mes));
+    const ingresos = delMes.filter((m) => esIngreso(m.tipo)).reduce((s, m) => s + m.monto, 0);
+    const gastos = delMes.filter((m) => !esIngreso(m.tipo)).reduce((s, m) => s + m.monto, 0);
+    return { mes, ingresos, gastos, neto: ingresos - gastos, vacio: delMes.length === 0 };
+  });
+
+  return (
+    <div className="rounded-2xl border border-borde bg-white p-5">
+      <p className="text-sm font-semibold text-tinta">Mes a mes</p>
+
+      <div className="mt-3 grid grid-cols-[auto_1fr_1fr_1fr] gap-x-3 text-xs">
+        <span className="text-tinta-suave">Mes</span>
+        <span className="text-right text-tinta-suave">Ingresos</span>
+        <span className="text-right text-tinta-suave">Gastos</span>
+        <span className="text-right text-tinta-suave">Neto</span>
+
+        {filas.map(({ mes, ingresos, gastos, neto, vacio }) => (
+          <button
+            key={mes}
+            type="button"
+            onClick={() => onElegirMes(mes)}
+            /* La fila entera es el botón: en celular un texto de 12px es
+               un blanco imposible de acertar con el pulgar. */
+            className="col-span-4 grid grid-cols-subgrid items-center rounded-xl py-2 text-left hover:bg-crema-oscuro"
+          >
+            <span className="font-medium text-tinta">{formatoMes(mes).slice(0, 3)}</span>
+            {vacio ? (
+              <span className="col-span-3 text-right text-tinta-suave">—</span>
+            ) : (
+              <>
+                <span className="text-right tabular-nums text-positivo">{fmt(ingresos)}</span>
+                <span className="text-right tabular-nums text-negativo">{fmt(gastos)}</span>
+                <span className={`text-right font-semibold tabular-nums ${neto >= 0 ? "text-tinta" : "text-negativo"}`}>
+                  {fmt(neto)}
+                </span>
+              </>
+            )}
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -831,6 +1014,9 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
 // ─── Panel principal ──────────────────────────────────────────────────
 type Tab = "dashboard" | "ingresos" | "inventario" | "fijos" | "flujo";
 
+/** El zoom del dashboard: un mes o el año entero. */
+type VistaPeriodo = "mes" | "anio";
+
 const TABS: { id: Tab; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
   { id: "ingresos", label: "Registrar venta/gasto" },
@@ -840,23 +1026,29 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 /**
- * Desde que fecha traer movimientos.
+ * Que pedazo de historia traer.
  *
- * Antes se pedian TODOS, siempre, y se filtraban en el navegador. Al
- * segundo año eso son miles de filas viajando cada vez que se abre la
- * pestaña. La ventana cubre lo que la pantalla necesita: los seis meses
- * del grafico, y el mes que se este mirando en el flujo de caja si es
- * mas viejo que eso.
+ * Los movimientos NO se piden todos: al segundo año son miles de filas
+ * viajando cada vez que se abre la pestaña. La ventana cubre exactamente
+ * lo que la pantalla puede mostrar, y por eso depende del zoom:
+ *
+ *   · mes → los seis meses del grafico, terminando en el elegido
+ *   · año → los doce meses de ese año
+ *
+ * Antes arrancaba siempre en "hace seis meses desde hoy", asi que el
+ * grafico no se podia mover de ahi.
  */
-function inicioVentana(mes: string): string {
-  const hoy = new Date();
-  const seisMeses = new Date(hoy.getFullYear(), hoy.getMonth() - 5, 1);
+function ventana(mes: string, vista: VistaPeriodo): { desde: string; hasta: string } {
+  if (vista === "anio") {
+    const anio = Number(anioDe(mes));
+    return { desde: `${anio}-01-01`, hasta: `${anio + 1}-01-01` };
+  }
 
-  const [anio, m] = mes.split("-").map(Number);
-  const elegido = new Date(anio, m - 1, 1);
-
-  const desde = elegido < seisMeses ? elegido : seisMeses;
-  return `${desde.getFullYear()}-${String(desde.getMonth() + 1).padStart(2, "0")}-01`;
+  return {
+    desde: `${ultimosSeisMeses(mes)[0]}-01`,
+    // Sin incluir: es el primero del mes que sigue al elegido.
+    hasta: `${mesSiguiente(mes)}-01`,
+  };
 }
 
 export default function PanelEconomia() {
@@ -866,11 +1058,18 @@ export default function PanelEconomia() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mes, setMes] = useState(mesActual());
+  const [vista, setVista] = useState<VistaPeriodo>("mes");
 
-  const desde = inicioVentana(mes);
+  const { desde, hasta } = ventana(mes, vista);
+
+  /* En año las flechas saltan de a doce meses: cambia el año y el mes
+     dentro del año queda donde estaba, asi el flujo de caja no se
+     desubica al volver. */
+  const moverPeriodo = (pasos: number) =>
+    setMes((actual) => sumarMeses(actual, vista === "anio" ? pasos * 12 : pasos));
 
   const cargarMovimientos = useCallback(async () => {
-    const res = await fetch(`/api/movimientos?desde=${desde}`);
+    const res = await fetch(`/api/movimientos?desde=${desde}&hasta=${hasta}`);
     if (!res.ok) {
       setError("No se pudieron traer los movimientos.");
       return;
@@ -884,7 +1083,7 @@ export default function PanelEconomia() {
     */
     setMovimientos(await res.json());
     setError(null);
-  }, [desde]);
+  }, [desde, hasta]);
 
   const cargarInventario = useCallback(async () => {
     const res = await fetch("/api/inventario");
@@ -935,6 +1134,16 @@ export default function PanelEconomia() {
       {tab === "dashboard" && (
         <TabDashboard
           todos={movimientos}
+          mes={mes}
+          vista={vista}
+          onMover={moverPeriodo}
+          onVista={setVista}
+          /* Tocar un mes de la tabla del año baja a ese mes: es lo que
+             una busca apenas ve una fila rara. */
+          onElegirMes={(m) => {
+            setMes(m);
+            setVista("mes");
+          }}
           onRegistrar={() => setTab("ingresos")}
         />
       )}
