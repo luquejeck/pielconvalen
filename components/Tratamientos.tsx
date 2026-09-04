@@ -154,8 +154,41 @@ export default function Tratamientos() {
           de las tarjetas usa justo este fondo.
         */}
         {extrasDelCatalogo.length > 0 && (
-          <div className="mx-auto mt-4 max-w-4xl rounded-suave bg-vino-suave px-6 py-6 sm:px-8 xl:max-w-none">
-            <h3 className="rotulo-seccion">Lo que se suma en algunos</h3>
+          <details className="group mx-auto mt-4 max-w-4xl rounded-suave bg-vino-suave px-6 py-5 sm:px-8 xl:max-w-none">
+            {/*
+              Plegado, y abierto solo por quien lo necesita.
+
+              Esto es una referencia, no un paso del recorrido: explica
+              los tres nombres tecnicos que despues aparecen como fichas
+              en las tarjetas. Desplegado ocupaba media pantalla de
+              celular ENTRE el texto de Valen y la primera cifra, asi que
+              habia que scrollear mil pixeles de explicaciones antes de
+              ver un precio.
+
+              Los tres nombres se leen igual con el bloque cerrado: lo
+              unico que se guarda es la explicacion de cada uno. Quien ya
+              sabe que es un peeling sigue de largo; quien no, toca.
+
+              Es <details> del navegador, como las preguntas frecuentes:
+              anda sin JavaScript y el buscador del navegador encuentra
+              el texto de adentro aunque este cerrado.
+            */}
+            <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-2 marker:hidden">
+              <h3 className="rotulo-seccion">Lo que se suma en algunos</h3>
+
+              {/* Los nombres, siempre a la vista. Cerrado, esto ya dice
+                  de que se trata sin obligar a abrirlo. */}
+              <span className="text-lg text-tinta-suave">
+                {extrasDelCatalogo.join(" · ")}
+              </span>
+
+              <span
+                aria-hidden
+                className="ml-auto text-xl text-vino transition-transform group-open:rotate-45"
+              >
+                +
+              </span>
+            </summary>
 
             {/* Cada ficha arriba de su explicacion, nunca al lado: los
                 nombres miden distinto y el texto arrancaba en tres
@@ -174,7 +207,7 @@ export default function Tratamientos() {
                 </div>
               ))}
             </dl>
-          </div>
+          </details>
         )}
 
         {/*
