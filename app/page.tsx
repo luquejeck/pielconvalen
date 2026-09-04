@@ -2,7 +2,6 @@ import Beneficios from "@/components/Beneficios";
 import BotonWhatsApp from "@/components/BotonWhatsApp";
 import Consultorio from "@/components/Consultorio";
 import Footer from "@/components/Footer";
-import Galeria from "@/components/Galeria";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Preguntas from "@/components/Preguntas";
@@ -13,7 +12,7 @@ import Videos from "@/components/Videos";
 import { obtenerAgenda, obtenerTratamientosPublicos } from "@/lib/catalogo";
 import { horariosDelDia } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
-import { obtenerGaleria, obtenerVideos } from "@/lib/galeria";
+import { obtenerVideos } from "@/lib/galeria";
 
 const DIAS_SCHEMA = [
   "Sunday",
@@ -39,11 +38,10 @@ function horaDeCierre(ultimoTurno: string): string {
 export default async function Home() {
   // Precios, tratamientos y horarios salen de la base: lo que Valen
   // edita en el panel se ve en la web sin tocar el codigo.
-  const [tratamientos, agenda, CONSULTORIO, galeria, videos] = await Promise.all([
+  const [tratamientos, agenda, CONSULTORIO, videos] = await Promise.all([
     obtenerTratamientosPublicos(),
     obtenerAgenda(),
     obtenerConfiguracion(),
-    obtenerGaleria(),
     obtenerVideos(),
   ]);
 
@@ -103,9 +101,6 @@ export default async function Home() {
             es la duda que queda justo en el medio de las dos. */}
         <Videos subidos={videos} />
         <Consultorio consultorio={CONSULTORIO} />
-        {/* Refuerza la confianza justo antes de que aparezca el precio,
-            sin empujar la reserva mas abajo de lo necesario. */}
-        <Galeria fotos={galeria} />
         <Tratamientos />
         <Reservas />
         {/* Al final de todo: es una seccion de consulta, no parte del

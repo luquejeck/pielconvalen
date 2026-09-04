@@ -22,25 +22,20 @@ export type FotoGaleria = {
   url: string;
 };
 
-/** Un video propio pesa lo mismo que una foto en esta tabla: ver el tipo. */
+/**
+ * Un video propio: misma fila que una foto, distinta etiqueta.
+ *
+ * La galeria de fotos de la web se quito, asi que hoy `tipo = 'video'` es
+ * lo unico que se muestra. La columna se conserva igual: el dia que
+ * vuelva a haber fotos del consultorio, la unica pieza que falta es la
+ * seccion que las dibuja.
+ */
 export type VideoGaleria = FotoGaleria;
 
 export const urlFoto = (archivo: string) =>
   `${URL_SUPABASE}/storage/v1/object/public/${BUCKET}/${archivo}`;
 
 export { BUCKET as BUCKET_GALERIA };
-
-/**
- * Las fotos publicadas, para la web.
- *
- * Si no hay ninguna, devuelve vacio y la seccion entera no se muestra:
- * mejor eso que un titulo sobre un hueco.
- */
-export async function obtenerGaleria(): Promise<FotoGaleria[]> {
-  if (!hayBaseDeDatos) return [];
-
-  return await publicadas("foto");
-}
 
 /**
  * Los videos propios de "Cómo es una sesión".

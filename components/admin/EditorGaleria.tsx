@@ -16,10 +16,16 @@ type Foto = {
 const esVideo = (f: Foto) => f.tipo === "video";
 
 /**
- * Las fotos que se ven en la galería de la web.
+ * Los videos de "Cómo es una sesión".
  *
- * Se suben SIN publicar y aparecen recien cuando Valen las publica a
- * mano. Una foto que se sube por error no llega a la web.
+ * Se suben SIN publicar y aparecen recien cuando Valen los publica a
+ * mano. Un video que se sube por error no llega a la web.
+ *
+ * La pantalla se sigue llamando `galeria` por dentro —la ruta, la tabla y
+ * el bucket— porque antes tambien manejaba las fotos del consultorio. Esa
+ * seccion se quito de la web, asi que lo unico que se sube aca son
+ * videos. Renombrar la ruta obligaria a tocar tabla, politicas y bucket
+ * para arreglar un nombre que solo se ve en el codigo.
  *
  * El orden se cambia con flechas y no arrastrando: arrastrar en una
  * pantalla tactil compite con el desplazamiento de la pagina y termina
@@ -110,9 +116,8 @@ export default function EditorGaleria({ urlBase }: { urlBase: string }) {
   return (
     <div className="space-y-6">
       <p className="text-lg text-tinta-suave">
-        Fotos del consultorio, de los productos o de un tratamiento, y los
-        videos de &ldquo;Cómo es una sesión&rdquo;. Se suben sin publicar:
-        aparecen en la web recién cuando las publicás vos.
+        Los videos que se ven en &ldquo;Cómo es una sesión&rdquo;. Se suben sin
+        publicar: aparecen en la web recién cuando los publicás vos.
       </p>
 
       {error && (
@@ -123,7 +128,7 @@ export default function EditorGaleria({ urlBase }: { urlBase: string }) {
 
       <form ref={formulario} onSubmit={subir} className="tarjeta space-y-4 px-5 py-5">
         <h2 className="text-xl font-semibold text-tinta">
-          Agregar una foto o un video
+          Agregar un video
         </h2>
 
         <label className="block">
@@ -131,26 +136,26 @@ export default function EditorGaleria({ urlBase }: { urlBase: string }) {
           <input
             type="file"
             name="foto"
-            accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm"
+            accept="video/mp4,video/quicktime,video/webm"
             required
             className="mt-1.5 w-full text-base"
           />
           {/*
-            El peso de la foto no importa: la web la achica sola. El del
-            video si, porque se sirve tal cual.
+            El peso del video si importa, porque se sirve tal cual: no hay
+            nada que lo achique como pasa con las fotos.
 
             Un video subido acá se ve SIN el marco de Instagram. Mientras
             no haya ninguno, la sección muestra los reels embebidos, que
             traen la cabecera con el arroba y el pie con los corazones.
           */}
           <span className="mt-1 block text-sm text-tinta-suave">
-            Foto: como sale de la cámara, hasta 10 MB. Video: MP4 o MOV,
-            hasta 60 MB. El video se ve sin el marco de Instagram.
+            MP4 o MOV, hasta 60 MB. Subí uno y se ve sin el marco de
+            Instagram: sin el arroba arriba ni los corazones abajo.
           </span>
         </label>
 
         <label className="block">
-          <span className="text-base text-tinta">Qué se ve</span>
+          <span className="text-base text-tinta">Qué se ve en el video</span>
           <input
             type="text"
             name="titulo"
@@ -183,15 +188,14 @@ export default function EditorGaleria({ urlBase }: { urlBase: string }) {
         <p className="text-center text-tinta-suave">Cargando…</p>
       ) : fotos.length === 0 ? (
         <p className="rounded-suave border border-borde bg-white px-6 py-10 text-center text-base text-tinta-suave">
-          Todavía no subiste ninguna foto. Mientras no haya ninguna publicada,
-          la sección no aparece en la web.
+          Todavía no subiste ningún video. Mientras no haya ninguno publicado,
+          &ldquo;Cómo es una sesión&rdquo; muestra los reels de Instagram, con
+          su marco.
         </p>
       ) : (
         <>
           <p className="text-sm text-tinta-suave">
-            {fotos.length} {fotos.length === 1 ? "archivo" : "archivos"} ·{" "}
-            {fotos.filter(esVideo).length}{" "}
-            {fotos.filter(esVideo).length === 1 ? "video" : "videos"} ·{" "}
+            {fotos.length} {fotos.length === 1 ? "video" : "videos"} ·{" "}
             {publicadas} en la web
           </p>
 
@@ -281,7 +285,7 @@ export default function EditorGaleria({ urlBase }: { urlBase: string }) {
                 {porBorrar === f.id && (
                   <div className="border-t border-borde bg-negativo-suave px-4 py-3">
                     <p className="text-base text-negativo">
-                      ¿Eliminar esta foto? Se borra también el archivo.
+                      ¿Eliminar este video? Se borra también el archivo.
                     </p>
                     <div className="mt-3 flex gap-2">
                       <button
