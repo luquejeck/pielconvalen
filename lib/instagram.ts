@@ -20,6 +20,17 @@ export function codigoDeReel(link: string): string | null {
 }
 
 /**
+ * Si el link es de un reel o de un posteo comun.
+ *
+ * Instagram usa `/reel/` para los reels y `/p/` para posteos y
+ * carruseles de fotos. Los dos se embeben igual y los dos tienen
+ * portada, asi que en la tarjeta se ven parecido; lo unico que cambia es
+ * como hay que llamarlos. Un boton que dice "Ver el reel" y abre cinco
+ * fotos promete una cosa y entrega otra.
+ */
+export const esUrlDeReel = (link: string) => /instagram\.com\/reels?\//.test(link);
+
+/**
  * El embebido oficial de Instagram. No necesita clave, ni cuenta de
  * desarrollador, ni la libreria que Instagram ofrece para incrustar: es
  * una direccion que devuelve el reel listo para meter en un <iframe>.

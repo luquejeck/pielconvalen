@@ -3,7 +3,7 @@
 import { useState } from "react";
 import TituloSeccion from "./TituloSeccion";
 import { useReserva } from "./ReservaContext";
-import { codigoDeReel, urlEmbebido } from "@/lib/instagram";
+import { codigoDeReel, esUrlDeReel, urlEmbebido } from "@/lib/instagram";
 import type { VideoGaleria } from "@/lib/galeria";
 import { IconoFlecha, IconoInstagram, IconoPlay } from "./iconos";
 
@@ -62,7 +62,14 @@ import { IconoFlecha, IconoInstagram, IconoPlay } from "./iconos";
 /** Lo que se puede reproducir en una tarjeta, venga de donde venga. */
 type Video =
   | { id: string; titulo: string; clase: "propio"; url: string }
-  | { id: string; titulo: string; clase: "instagram"; codigo: string };
+  | {
+      id: string;
+      titulo: string;
+      clase: "instagram";
+      codigo: string;
+      /* Un carrusel de fotos no es un reel: cambia como se lo nombra. */
+      esReel: boolean;
+    };
 
 export default function Videos({ subidos }: { subidos: VideoGaleria[] }) {
   const { consultorio } = useReserva();
@@ -88,6 +95,7 @@ export default function Videos({ subidos }: { subidos: VideoGaleria[] }) {
           titulo: reel.titulo,
           clase: "instagram" as const,
           codigo,
+          esReel: esUrlDeReel(reel.url),
         });
       }
     }
@@ -189,8 +197,15 @@ export default function Videos({ subidos }: { subidos: VideoGaleria[] }) {
                         <IconoPlay className="ml-1 h-7 w-7" />
                       </span>
 
+                      {/* Cada cosa por su nombre: el archivo propio es un
+                          video, `/reel/` es un reel y `/p/` puede ser un
+                          carrusel de fotos, que no es ninguna de las dos. */}
                       <span className="relative text-lg font-semibold">
-                        {video.clase === "propio" ? "Ver el video" : "Ver el reel"}
+                        {video.clase === "propio"
+                          ? "Ver el video"
+                          : video.esReel
+                            ? "Ver el reel"
+                            : "Ver en Instagram"}
                       </span>
                     </button>
                   ) : video.clase === "propio" ? (
