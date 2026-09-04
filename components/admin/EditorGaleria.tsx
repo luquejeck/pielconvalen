@@ -9,7 +9,11 @@ type Foto = {
   archivo: string;
   orden: number;
   publicado: boolean;
+  /* Las filas viejas no lo traen: antes de la migracion todo era foto. */
+  tipo?: "foto" | "video";
 };
+
+const esVideo = (f: Foto) => f.tipo === "video";
 
 /**
  * Las fotos que se ven en la galería de la web.
@@ -106,8 +110,9 @@ export default function EditorGaleria({ urlBase }: { urlBase: string }) {
   return (
     <div className="space-y-6">
       <p className="text-lg text-tinta-suave">
-        Fotos del consultorio, de los productos o de un tratamiento. Se suben
-        sin publicar: aparecen en la web recién cuando las publicás vos.
+        Fotos del consultorio, de los productos o de un tratamiento, y los
+        videos de &ldquo;Cómo es una sesión&rdquo;. Se suben sin publicar:
+        aparecen en la web recién cuando las publicás vos.
       </p>
 
       {error && (
@@ -117,20 +122,30 @@ export default function EditorGaleria({ urlBase }: { urlBase: string }) {
       )}
 
       <form ref={formulario} onSubmit={subir} className="tarjeta space-y-4 px-5 py-5">
-        <h2 className="text-xl font-semibold text-tinta">Agregar una foto</h2>
+        <h2 className="text-xl font-semibold text-tinta">
+          Agregar una foto o un video
+        </h2>
 
         <label className="block">
-          <span className="text-base text-tinta">La foto</span>
+          <span className="text-base text-tinta">El archivo</span>
           <input
             type="file"
             name="foto"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm"
             required
             className="mt-1.5 w-full text-base"
           />
-          {/* El peso no importa: la web la achica sola. */}
+          {/*
+            El peso de la foto no importa: la web la achica sola. El del
+            video si, porque se sirve tal cual.
+
+            Un video subido acá se ve SIN el marco de Instagram. Mientras
+            no haya ninguno, la sección muestra los reels embebidos, que
+            traen la cabecera con el arroba y el pie con los corazones.
+          */}
           <span className="mt-1 block text-sm text-tinta-suave">
-            Podés subirla tal como sale de la cámara. Hasta 10 MB.
+            Foto: como sale de la cámara, hasta 10 MB. Video: MP4 o MOV,
+            hasta 60 MB. El video se ve sin el marco de Instagram.
           </span>
         </label>
 
@@ -174,7 +189,9 @@ export default function EditorGaleria({ urlBase }: { urlBase: string }) {
       ) : (
         <>
           <p className="text-sm text-tinta-suave">
-            {fotos.length} {fotos.length === 1 ? "foto" : "fotos"} ·{" "}
+            {fotos.length} {fotos.length === 1 ? "archivo" : "archivos"} ·{" "}
+            {fotos.filter(esVideo).length}{" "}
+            {fotos.filter(esVideo).length === 1 ? "video" : "videos"} ·{" "}
             {publicadas} en la web
           </p>
 
@@ -182,13 +199,25 @@ export default function EditorGaleria({ urlBase }: { urlBase: string }) {
             {fotos.map((f, i) => (
               <li key={f.id} className="tarjeta overflow-hidden">
                 <div className="flex items-stretch gap-4">
-                  {/* Sin next/image: es el panel, no la web. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={url(f.archivo)}
-                    alt={f.titulo}
-                    className="aspect-square w-28 shrink-0 object-cover"
-                  />
+                  {/* Sin next/image: es el panel, no la web. Y un video
+                      no se dibuja con <img>: se pide solo el primer
+                      cuadro, que alcanza para reconocerlo en la lista. */}
+                  {esVideo(f) ? (
+                    <video
+                      src={url(f.archivo)}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="aspect-square w-28 shrink-0 bg-tinta object-cover"
+                    />
+                  ) : (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={url(f.archivo)}
+                      alt={f.titulo}
+                      className="aspect-square w-28 shrink-0 object-cover"
+                    />
+                  )}
 
                   <div className="min-w-0 flex-1 py-3 pr-4">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">

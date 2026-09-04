@@ -39,6 +39,7 @@ const CLAVES = new Set([
   "preguntas",
   "contraindicaciones",
   "protocolo",
+  "videos",
 ]);
 
 export async function GET() {

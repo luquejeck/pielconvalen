@@ -113,6 +113,31 @@ export default function Footer({
         </div>
 
         {/*
+          El mapa, mostrado y no linkeado.
+
+          "Cómo llegar" arriba abre Google Maps en otra pestaña: en
+          celular eso saca a la clienta de la pagina, y la pregunta que
+          venia a contestarse —¿me queda cerca?— se responde de un
+          vistazo si el mapa esta a la vista. El link sigue estando para
+          quien quiera las indicaciones puerta a puerta.
+
+          `loading="lazy"` no es un detalle: el mapa es una pagina entera
+          de Google adentro de la nuestra. Aca abajo casi nadie llega, y
+          asi el que no llega no la paga.
+        */}
+        <div className="mt-8 overflow-hidden rounded-suave border border-crema/15">
+          <iframe
+            src={`https://www.google.com/maps?q=${encodeURIComponent(
+              CONSULTORIO.direccion
+            )}&z=16&output=embed`}
+            title={`Mapa de ${CONSULTORIO.direccion}`}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            className="block h-52 w-full border-0 md:h-64"
+          />
+        </div>
+
+        {/*
           Barra inferior. El padding de abajo deja libre la esquina donde flota
           el boton de WhatsApp: sin el, tapa el acceso de Valen a su agenda.
         */}

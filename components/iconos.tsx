@@ -85,3 +85,13 @@ export function IconoTelefono({ className = "h-6 w-6" }: Props) {
     </svg>
   );
 }
+
+/* El triangulo de reproducir. Va relleno y sin contorno: a este tamaño
+   el contorno se cierra sobre si mismo y se ve como una mancha. */
+export function IconoPlay({ className = "h-6 w-6" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M8.2 5.4a1 1 0 0 1 1.53-.85l8.4 5.35a1.2 1.2 0 0 1 0 2.02l-8.4 5.35a1 1 0 0 1-1.53-.85V5.4z" />
+    </svg>
+  );
+}

@@ -9,10 +9,11 @@ import Preguntas from "@/components/Preguntas";
 import { ReservaProvider } from "@/components/ReservaContext";
 import Reservas from "@/components/Reservas";
 import Tratamientos from "@/components/Tratamientos";
+import Videos from "@/components/Videos";
 import { obtenerAgenda, obtenerTratamientosPublicos } from "@/lib/catalogo";
 import { horariosDelDia } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
-import { obtenerGaleria } from "@/lib/galeria";
+import { obtenerGaleria, obtenerVideos } from "@/lib/galeria";
 
 const DIAS_SCHEMA = [
   "Sunday",
@@ -38,11 +39,12 @@ function horaDeCierre(ultimoTurno: string): string {
 export default async function Home() {
   // Precios, tratamientos y horarios salen de la base: lo que Valen
   // edita en el panel se ve en la web sin tocar el codigo.
-  const [tratamientos, agenda, CONSULTORIO, galeria] = await Promise.all([
+  const [tratamientos, agenda, CONSULTORIO, galeria, videos] = await Promise.all([
     obtenerTratamientosPublicos(),
     obtenerAgenda(),
     obtenerConfiguracion(),
     obtenerGaleria(),
+    obtenerVideos(),
   ]);
 
   /** Ficha de negocio local para Google. */
@@ -97,6 +99,9 @@ export default async function Home() {
       <main>
         <Hero consultorio={CONSULTORIO} />
         <Beneficios consultorio={CONSULTORIO} />
+        {/* Que te van a hacer, en video. Va entre la promesa y la cara:
+            es la duda que queda justo en el medio de las dos. */}
+        <Videos subidos={videos} />
         <Consultorio consultorio={CONSULTORIO} />
         {/* Refuerza la confianza justo antes de que aparezca el precio,
             sin empujar la reserva mas abajo de lo necesario. */}

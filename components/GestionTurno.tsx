@@ -12,7 +12,7 @@ export default function GestionTurno() {
   const { agenda, consultorio } = useReserva();
 
   return (
-    <div className="mx-auto mt-10 max-w-5xl xl:max-w-none rounded-suave border border-borde bg-crema-oscuro px-5 py-5 sm:px-7">
+    <div className="mx-auto mt-8 max-w-5xl xl:max-w-none rounded-suave border border-borde bg-crema-oscuro px-5 py-5 sm:px-7">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-xl font-semibold text-tinta">

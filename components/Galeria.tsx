@@ -13,22 +13,38 @@ import type { FotoGaleria } from "@/lib/galeria";
  * modulo de reservas ni lo empuja mas abajo de lo necesario.
  *
  * ----------------------------------------------------------------------
- * POR QUE NO SE MUEVE SOLA
+ * COMO SE MUEVE SOLA, SIN SECUESTRAR LA VISTA
  *
- * Un carrusel con autoplay es, por definicion, algo que le saca la
- * atencion a lo demas: la foto cambia mientras la clienta esta leyendo
- * otra cosa. Y para alguien de sesenta y pico es peor todavia, porque el
- * contenido se va antes de que termine de mirarlo.
+ * Pasa una foto cada cinco segundos y al llegar al final vuelve al
+ * principio. Es lo que hace que la seccion muestre el lugar sin que
+ * nadie tenga que tocar nada.
  *
- * El movimiento sale de otro lado: el desplazamiento suave al tocar las
- * flechas, y el "imán" que hace que cada foto quede siempre bien
- * encuadrada. Se siente vivo sin secuestrar la vista.
+ * Un carrusel con autoplay tiene un problema conocido: la foto cambia
+ * mientras la clienta esta mirando otra, y para alguien de sesenta y
+ * pico eso es perder el hilo. Asi que se frena solo en los tres momentos
+ * en que estorbaria:
+ *
+ *   1. Cuando el puntero esta encima o el teclado entro en la tira: la
+ *      esta mirando.
+ *   2. Cuando arrastra con el dedo o toca una flecha: manda ella, y no
+ *      vuelve a arrancar hasta diez segundos despues de que suelte.
+ *   3. Cuando la seccion no esta en pantalla, no corre. Un intervalo
+ *      moviendo cosas que nadie ve solo gasta bateria.
+ *
+ * Y si el sistema pide menos movimiento (`prefers-reduced-motion`), no
+ * se mueve nunca: quedan las flechas, como antes.
  *
  * La tira usa scroll nativo, asi que en celular se arrastra con el dedo
  * como cualquier lista, sin libreria ni gestos que haya que aprender. Y
  * en cada extremo se ve el borde de la foto siguiente: es lo que avisa
  * que hay mas, sin tener que explicarlo.
  * ---------------------------------------------------------------------- */
+
+/** Cada cuanto pasa sola. */
+const PASO_MS = 5000;
+/** Cuanto espera despues de que la clienta toca algo, antes de retomar. */
+const ESPERA_TRAS_TOCAR_MS = 10000;
+
 export default function Galeria({ fotos }: { fotos: FotoGaleria[] }) {
   const tira = useRef<HTMLUListElement>(null);
   const [puedeIzquierda, setPuedeIzquierda] = useState(false);
@@ -55,7 +71,7 @@ export default function Galeria({ fotos }: { fotos: FotoGaleria[] }) {
     };
   }, [revisarBordes]);
 
-  const mover = (direccion: 1 | -1) => {
+  const mover = useCallback((direccion: 1 | -1) => {
     const t = tira.current;
     if (!t) return;
 
@@ -66,14 +82,91 @@ export default function Galeria({ fotos }: { fotos: FotoGaleria[] }) {
 
     const suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     t.scrollBy({ left: paso * direccion, behavior: suave ? "smooth" : "auto" });
-  };
+  }, []);
+
+  /* ------------------------------------------------------------------
+     Que pase sola.
+     ------------------------------------------------------------------ */
+
+  const seccion = useRef<HTMLElement>(null);
+  /** La esta mirando: puntero encima o teclado adentro. */
+  const [mirando, setMirando] = useState(false);
+  /** En pantalla. Fuera de vista el intervalo no corre. */
+  const [enPantalla, setEnPantalla] = useState(false);
+  /**
+   * Hasta cuando manda ella. Es un ref y no estado a proposito: se
+   * escribe en cada rueda de scroll y cada toque, y un `setState` ahi
+   * volveria a dibujar la seccion decenas de veces por segundo.
+   */
+  const mandaElla = useRef(0);
+
+  useEffect(() => {
+    const s = seccion.current;
+    if (!s) return;
+    const observador = new IntersectionObserver(
+      ([e]) => setEnPantalla(e.isIntersecting),
+      { threshold: 0.25 }
+    );
+    observador.observe(s);
+    return () => observador.disconnect();
+  }, []);
+
+  /* Arrastrar con el dedo, girar la rueda o tocar una flecha cuenta como
+     "me estoy fijando yo": el turno vuelve recien diez segundos despues
+     del ultimo movimiento. */
+  const tomaElControl = useCallback(() => {
+    mandaElla.current = Date.now() + ESPERA_TRAS_TOCAR_MS;
+  }, []);
+
+  useEffect(() => {
+    if (!enPantalla || mirando || fotos.length < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const reloj = setInterval(() => {
+      if (Date.now() < mandaElla.current) return;
+
+      const t = tira.current;
+      if (!t) return;
+
+      /*
+        El destino se calcula entero y se salta ahi, en vez de pedir "una
+        foto mas" y despues preguntar si ya llegamos al final.
+
+        Con lo de antes las dos cuentas miraban `scrollLeft`, que durante
+        un desplazamiento suave todavia esta viajando: la lectura llegaba
+        a destiempo y el carrusel podia creerse al final estando al
+        principio, y rebotar. Asi hay una sola cuenta y una sola orden.
+      */
+      const foto = t.querySelector("li");
+      const paso = foto ? foto.getBoundingClientRect().width + 12 : t.clientWidth;
+      const maximo = t.scrollWidth - t.clientWidth;
+      const siguiente = t.scrollLeft + paso;
+
+      const suave = !window.matchMedia("(prefers-reduced-motion: reduce)")
+        .matches;
+
+      t.scrollTo({
+        left: siguiente > maximo - 8 ? 0 : siguiente,
+        behavior: suave ? "smooth" : "auto",
+      });
+    }, PASO_MS);
+
+    return () => clearInterval(reloj);
+  }, [enPantalla, mirando, fotos.length]);
 
   if (fotos.length === 0) return null;
 
   return (
     <section
+      ref={seccion}
       id="galeria"
       className="border-t border-borde bg-crema-oscuro py-14 md:py-16 xl:py-20"
+      /* Mientras la mira, no se mueve. `focus`/`blur` con captura para
+         que tambien cuente el teclado, que no dispara mouseenter. */
+      onMouseEnter={() => setMirando(true)}
+      onMouseLeave={() => setMirando(false)}
+      onFocusCapture={() => setMirando(true)}
+      onBlurCapture={() => setMirando(false)}
     >
       <div className="contenedor">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -92,12 +185,18 @@ export default function Galeria({ fotos }: { fotos: FotoGaleria[] }) {
             <Flecha
               hacia="izquierda"
               activa={puedeIzquierda}
-              onClick={() => mover(-1)}
+              onClick={() => {
+                tomaElControl();
+                mover(-1);
+              }}
             />
             <Flecha
               hacia="derecha"
               activa={puedeDerecha}
-              onClick={() => mover(1)}
+              onClick={() => {
+                tomaElControl();
+                mover(1);
+              }}
             />
           </div>
         </div>
@@ -109,7 +208,10 @@ export default function Galeria({ fotos }: { fotos: FotoGaleria[] }) {
         */}
         <ul
           ref={tira}
-          className="-mx-5 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 xl:-mx-10 xl:px-10"
+          onPointerDown={tomaElControl}
+          onWheel={tomaElControl}
+          onTouchMove={tomaElControl}
+          className="-mx-5 mt-6 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 xl:-mx-10 xl:px-10"
           style={{ scrollbarWidth: "none" }}
         >
           {fotos.map((foto, i) => (

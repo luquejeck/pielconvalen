@@ -4,8 +4,14 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const TIPOS = ["image/jpeg", "image/png", "image/webp"];
-const MAXIMO = 10 * 1024 * 1024; // 10 MB
+const TIPOS_FOTO = ["image/jpeg", "image/png", "image/webp"];
+/* Un reel exportado del celular sale en mp4 y, en iPhone, a veces en
+   .mov (quicktime). Los dos los reproduce cualquier navegador de hoy. */
+const TIPOS_VIDEO = ["video/mp4", "video/quicktime", "video/webm"];
+const MAXIMO_FOTO = 10 * 1024 * 1024; // 10 MB
+/* Un reel de un minuto en buena calidad ronda los 15 MB. 60 deja aire
+   sin que nadie suba una pelicula por error. */
+const MAXIMO_VIDEO = 60 * 1024 * 1024; // 60 MB
 
 /** Nombre sin sorpresas: nada de rutas, acentos ni mayusculas. */
 function nombreSeguro(original: string) {
@@ -43,15 +49,21 @@ export async function POST(req: NextRequest) {
   if (!(foto instanceof File)) {
     return NextResponse.json({ error: "Falta la foto." }, { status: 400 });
   }
-  if (!TIPOS.includes(foto.type)) {
+  const esVideo = TIPOS_VIDEO.includes(foto.type);
+
+  if (!esVideo && !TIPOS_FOTO.includes(foto.type)) {
     return NextResponse.json(
-      { error: "La foto tiene que ser JPG, PNG o WEBP." },
+      { error: "Tiene que ser una foto (JPG, PNG o WEBP) o un video (MP4 o MOV)." },
       { status: 400 }
     );
   }
-  if (foto.size > MAXIMO) {
+  if (foto.size > (esVideo ? MAXIMO_VIDEO : MAXIMO_FOTO)) {
     return NextResponse.json(
-      { error: "La foto tiene que pesar menos de 10 MB." },
+      {
+        error: esVideo
+          ? "El video tiene que pesar menos de 60 MB."
+          : "La foto tiene que pesar menos de 10 MB.",
+      },
       { status: 400 }
     );
   }
@@ -76,6 +88,7 @@ export async function POST(req: NextRequest) {
       titulo,
       descripcion: String(form.get("descripcion") ?? "").trim() || null,
       archivo: ruta,
+      tipo: esVideo ? "video" : "foto",
       publicado: false,
     })
     .select()

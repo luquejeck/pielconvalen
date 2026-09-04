@@ -147,7 +147,7 @@ export default function Reservas() {
           el horario el boton de confirmar quedaba fuera de pantalla,
           que es justo el momento en que hace falta.
         */}
-        <div className="mx-auto mt-10 grid max-w-5xl gap-6 lg:grid-cols-[1.15fr_0.85fr] xl:max-w-none">
+        <div className="mx-auto mt-8 grid max-w-5xl gap-5 lg:grid-cols-[1.15fr_0.85fr] xl:max-w-none">
           <div>
             {/* ---------- Paso 1 ---------- */}
             <Paso numero={1} titulo="Elegí el día y la hora" />

@@ -2,7 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { Beneficio, ConfiguracionWeb, Pregunta } from "@/lib/consultorio";
+import type {
+  Beneficio,
+  ConfiguracionWeb,
+  Pregunta,
+  Video,
+} from "@/lib/consultorio";
+import { codigoDeReel } from "@/lib/instagram";
 
 /**
  * "Mi web": lo que se ve en la pagina, editable sin programador.
@@ -81,6 +87,18 @@ export default function EditorWeb({ inicial }: { inicial: ConfiguracionWeb }) {
 
   const quitarProtocolo = (i: number) =>
     setDatos((d) => ({ ...d, protocolo: d.protocolo.filter((_, j) => j !== i) }));
+
+  const setVideo = (i: number, parte: keyof Video, valor: string) =>
+    setDatos((d) => ({
+      ...d,
+      videos: d.videos.map((v, j) => (j === i ? { ...v, [parte]: valor } : v)),
+    }));
+
+  const agregarVideo = () =>
+    setDatos((d) => ({ ...d, videos: [...d.videos, { titulo: "", url: "" }] }));
+
+  const quitarVideo = (i: number) =>
+    setDatos((d) => ({ ...d, videos: d.videos.filter((_, j) => j !== i) }));
 
   const setGlosario = (termino: string, texto: string) =>
     setDatos((d) => ({ ...d, glosario: { ...d.glosario, [termino]: texto } }));
@@ -330,6 +348,66 @@ export default function EditorWeb({ inicial }: { inicial: ConfiguracionWeb }) {
             />
           </label>
         ))}
+      </Grupo>
+
+      <Grupo titulo="Videos de Instagram">
+        <p className="text-base text-tinta-suave">
+          Se ven en &ldquo;Cómo es una sesión&rdquo;, arriba de tu foto. Pegá el
+          link del reel como te lo copia Instagram: sirve tal cual, con la
+          barra del final y con lo que venga pegado atrás. Si sacás todos,
+          la sección desaparece de la web.
+        </p>
+
+        <p className="text-base text-tinta-suave">
+          El <b>nombre</b> no se ve en la web: es para que sepas cuál es cuál
+          acá adentro, y para quien navega con lector de pantalla.
+        </p>
+
+        {datos.videos.map((v, i) => (
+          <div key={i} className="rounded-chico bg-crema-oscuro p-3">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={v.titulo}
+                onChange={(e) => setVideo(i, "titulo", e.target.value)}
+                placeholder="Una limpieza profunda, de principio a fin"
+                className="min-h-12 w-full px-4 text-base font-medium"
+              />
+              <button
+                type="button"
+                onClick={() => quitarVideo(i)}
+                aria-label={`Quitar el video ${v.titulo}`}
+                className="shrink-0 rounded-full px-4 text-base text-tinta-suave hover:text-vino"
+              >
+                Quitar
+              </button>
+            </div>
+            <input
+              type="text"
+              value={v.url}
+              onChange={(e) => setVideo(i, "url", e.target.value)}
+              placeholder="https://www.instagram.com/reel/..."
+              inputMode="url"
+              className="mt-2 min-h-12 w-full px-4 text-base"
+            />
+            {/* Que el link no sirva se avisa acá y no en la web, donde el
+                video simplemente no aparece y no hay forma de saber por qué. */}
+            {v.url.trim() !== "" && !codigoDeReel(v.url) && (
+              <p className="mt-2 text-sm text-negativo">
+                Este link no parece de Instagram. Tenés que copiar el del reel,
+                que empieza con instagram.com/reel/
+              </p>
+            )}
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={agregarVideo}
+          className="min-h-12 rounded-full border border-vino px-6 text-base text-vino hover:bg-vino hover:text-white"
+        >
+          Agregar video
+        </button>
       </Grupo>
 
       <Grupo titulo="Preguntas frecuentes">

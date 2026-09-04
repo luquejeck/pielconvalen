@@ -10,12 +10,27 @@ export default function Tratamientos() {
      en castellano de los nombres tecnicos. */
   const GLOSARIO = consultorio.glosario;
 
-  /* Un renglon del panel = un parrafo. Los vacios se descartan para que
-     un Enter de mas no abra un hueco en la web. */
+  /*
+    Un renglon del panel = un paso. Los vacios se descartan para que un
+    Enter de mas no abra un hueco en la web.
+
+    Cada renglon puede venir como "Titulo | texto". La barra es opcional:
+    sin ella el paso queda solo con su texto, que es como estaban
+    escritos los tres originales. Se parte en la PRIMERA barra nada mas,
+    asi que el texto puede llevar todas las que quiera.
+  */
   const comoTrabajo = agenda.comoTrabajo
     .split("\n")
-    .map((parrafo) => parrafo.trim())
-    .filter(Boolean);
+    .map((renglon) => renglon.trim())
+    .filter(Boolean)
+    .map((renglon) => {
+      const barra = renglon.indexOf("|");
+      if (barra === -1) return { titulo: null, texto: renglon };
+      return {
+        titulo: renglon.slice(0, barra).trim() || null,
+        texto: renglon.slice(barra + 1).trim(),
+      };
+    });
 
   const extrasDelCatalogo = [
     ...new Set(tratamientos.flatMap((t) => t.extras)),
@@ -54,19 +69,70 @@ export default function Tratamientos() {
           parte de la seccion donde habla ella y no el catalogo.
         */}
         {comoTrabajo.length > 0 && (
-          <div className="tarjeta mx-auto mt-10 max-w-4xl px-6 py-8 sm:px-8 xl:max-w-none">
+          <div className="tarjeta mx-auto mt-8 max-w-4xl px-6 py-7 sm:px-8 xl:max-w-none">
             {/* Mismo rotulo que el bloque de abajo: son un par y antes
                 tenian dos titulos distintos, uno centrado y otro no. */}
             <h3 className="rotulo-seccion">Cómo trabajo</h3>
 
-            {/* El ancho del texto se corta aunque la tarjeta siga: en
-                pantalla grande un renglon de punta a punta se pierde al
-                volver al margen izquierdo. */}
-            <div className="mt-5 max-w-3xl space-y-4 text-lg leading-relaxed text-tinta">
-              {comoTrabajo.map((parrafo, i) => (
-                <p key={i}>{parrafo}</p>
+            {/*
+              Tres tiempos, no tres parrafos.
+
+              Antes esto era un bloque de texto corrido de media pantalla
+              de alto: todo cierto, y todo del mismo peso, asi que no
+              habia por donde entrar. Adentro habia tres momentos bien
+              distintos —te miro, armo la sesion, por eso ninguna se
+              repite— que quedaban enterrados en el medio del renglon.
+
+              Separados y numerados se leen de un vistazo aunque no se
+              lea una palabra: se ve que son tres pasos y en que orden
+              van. El numero grande y palido es el mismo recurso que usan
+              las tarjetas de video, asi la pagina repite un gesto en vez
+              de inventar uno nuevo en cada seccion.
+
+              Una columna por paso y no tres renglones largos: la linea
+              corta es lo que hace que esto deje de leerse como un texto
+              legal.
+            */}
+            {/*
+              En celular el numero va a la izquierda y en PC arriba.
+
+              Arriba, en una sola columna, cada numero se comia un
+              renglon entero: tres numeros, tres renglones, y el bloque
+              terminaba MAS alto que el parrafo corrido que vino a
+              reemplazar. De costado no cuesta nada de alto y ademas
+              arma la sangria que separa un paso del otro.
+
+              En pantalla ancha son tres columnas de verdad, y ahi el
+              numero arriba funciona: encabeza su columna.
+            */}
+            <ol className="mt-6 grid gap-6 sm:grid-cols-3 sm:gap-8">
+              {comoTrabajo.map(({ titulo, texto }, i) => (
+                <li key={i} className="flex gap-4 sm:block">
+                  <span
+                    aria-hidden
+                    className="w-7 shrink-0 text-2xl font-semibold tabular-nums leading-tight text-vino/35 sm:w-auto"
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+
+                  <div className="min-w-0">
+                    {titulo && (
+                      <h4 className="text-xl font-semibold text-tinta sm:mt-1">
+                        {titulo}
+                      </h4>
+                    )}
+
+                    <p
+                      className={`text-lg leading-snug text-tinta-suave ${
+                        titulo ? "mt-1.5" : "sm:mt-1"
+                      }`}
+                    >
+                      {texto}
+                    </p>
+                  </div>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         )}
 
@@ -88,13 +154,13 @@ export default function Tratamientos() {
           de las tarjetas usa justo este fondo.
         */}
         {extrasDelCatalogo.length > 0 && (
-          <div className="mx-auto mt-4 max-w-4xl rounded-suave bg-vino-suave px-6 py-7 sm:px-8 xl:max-w-none">
+          <div className="mx-auto mt-4 max-w-4xl rounded-suave bg-vino-suave px-6 py-6 sm:px-8 xl:max-w-none">
             <h3 className="rotulo-seccion">Lo que se suma en algunos</h3>
 
             {/* Cada ficha arriba de su explicacion, nunca al lado: los
                 nombres miden distinto y el texto arrancaba en tres
                 sangrias diferentes. */}
-            <dl className="mt-6 grid gap-6 lg:grid-cols-3 lg:gap-x-10">
+            <dl className="mt-5 grid gap-5 lg:grid-cols-3 lg:gap-x-10">
               {extrasDelCatalogo.map((extra) => (
                 <div key={extra}>
                   <dt>
@@ -102,7 +168,7 @@ export default function Tratamientos() {
                       {extra}
                     </span>
                   </dt>
-                  <dd className="mt-2.5 text-lg leading-snug text-tinta">
+                  <dd className="mt-2 text-lg leading-snug text-tinta">
                     {GLOSARIO[extra]}
                   </dd>
                 </div>
@@ -122,7 +188,7 @@ export default function Tratamientos() {
           lo que sale es lo que hace desconfiar—, pero el turno es uno
           solo y sale como consulta.
         */}
-        <ul className="mx-auto mt-6 grid max-w-5xl gap-3 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
+        <ul className="mx-auto mt-5 grid max-w-5xl gap-3 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
           {tratamientos.filter((t) => !esConsulta(t)).map((t) => {
             const esMasCompleto = maxExtras > 0 && t.extras.length === maxExtras;
 
@@ -134,7 +200,7 @@ export default function Tratamientos() {
                   con cinco tarjetas dejaba un hueco, y de paso el que mas
                   suma es el que mas espacio ocupa.
                 */
-                className={`tarjeta relative flex flex-col px-6 py-6 ${
+                className={`tarjeta relative flex flex-col px-6 py-5 ${
                   esMasCompleto ? "sm:col-span-2 xl:col-span-2" : ""
                 }`}
               >
@@ -155,7 +221,7 @@ export default function Tratamientos() {
                   {t.nombre}
                 </h3>
 
-                <p className="mt-2 text-2xl font-semibold text-vino">
+                <p className="mt-1 text-2xl font-semibold text-vino">
                   {formatearPrecio(t.precio)}
                 </p>
 
@@ -165,7 +231,7 @@ export default function Tratamientos() {
                   todos iguales; asi se ve de un vistazo que cada uno
                   agrega una ficha mas que el anterior.
                 */}
-                <div className="mt-4 grow">
+                <div className="mt-3 grow">
                   {t.extras.length === 0 ? (
                     <p className="text-lg leading-snug text-tinta-suave">
                       La limpieza profunda completa.
@@ -202,7 +268,7 @@ export default function Tratamientos() {
           que lo primero que hace el bloque es decirlo: nadie tiene que
           quedarse buscando el boton de un tratamiento que ya no esta.
         */}
-        <div className="mx-auto mt-3 max-w-5xl rounded-suave bg-vino-suave px-6 py-6 sm:px-8 xl:max-w-none">
+        <div className="mx-auto mt-3 max-w-5xl rounded-suave bg-vino-suave px-6 py-5 sm:px-8 xl:max-w-none">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-xl font-semibold text-tinta">
@@ -226,7 +292,7 @@ export default function Tratamientos() {
         </div>
 
         {/* Debajo de los precios, que es donde aparece la duda */}
-        <p className="mt-6 text-center text-lg text-tinta-suave">
+        <p className="mt-5 text-center text-lg text-tinta-suave">
           Se puede pagar con{" "}
           <span className="font-medium text-tinta">
             {consultorio.mediosDePago}

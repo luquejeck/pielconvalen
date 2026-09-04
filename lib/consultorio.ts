@@ -21,6 +21,7 @@ import { clienteServidor } from "./supabase-servidor";
 
 export type Beneficio = { titulo: string; texto: string };
 export type Pregunta = { pregunta: string; respuesta: string };
+export type Video = { titulo: string; url: string };
 
 export type ConfiguracionWeb = DatosConsultorio & {
   beneficios: Beneficio[];
@@ -28,6 +29,7 @@ export type ConfiguracionWeb = DatosConsultorio & {
   preguntas: Pregunta[];
   contraindicaciones: string[];
   protocolo: string[];
+  videos: Video[];
 };
 
 /** Los tres de "Que vas a notar", que estaban clavados en Beneficios.tsx */
@@ -117,6 +119,34 @@ export const PROTOCOLO_POR_DEFECTO: string[] = [
   "Cabina privada",
 ];
 
+/**
+ * Los reels que se muestran en "Cómo es una sesión".
+ *
+ * Una foto de una limpieza de cutis muestra una cara con una crema
+ * encima; el video muestra las manos, el ritmo y cuanto se tarda, que es
+ * exactamente lo que no se puede contar por escrito. Y no hay que
+ * producir nada nuevo: son los reels que Valen ya publica.
+ *
+ * Se guarda el link entero, no el codigo: ver `lib/instagram.ts`.
+ *
+ * VALEN: elegi vos cuales van y en que orden. Se editan desde el panel,
+ * en Mi web. Si sacas todos, la seccion entera desaparece de la pagina.
+ */
+export const VIDEOS_POR_DEFECTO: Video[] = [
+  {
+    titulo: "Una limpieza profunda, de principio a fin",
+    url: "https://www.instagram.com/reel/DRfURrFETkx/",
+  },
+  {
+    titulo: "Dermaplaning: cómo es la técnica",
+    url: "https://www.instagram.com/reel/DQmd_-oEek1/",
+  },
+  {
+    titulo: "Microneedling paso a paso",
+    url: "https://www.instagram.com/reel/DOXFEJejNZG/",
+  },
+];
+
 export const CONFIGURACION_POR_DEFECTO: ConfiguracionWeb = {
   ...CONSULTORIO,
   beneficios: BENEFICIOS_POR_DEFECTO,
@@ -124,6 +154,7 @@ export const CONFIGURACION_POR_DEFECTO: ConfiguracionWeb = {
   preguntas: PREGUNTAS_POR_DEFECTO,
   contraindicaciones: CONTRAINDICACIONES_POR_DEFECTO,
   protocolo: PROTOCOLO_POR_DEFECTO,
+  videos: VIDEOS_POR_DEFECTO,
 };
 
 /**
@@ -140,6 +171,7 @@ const CAMPOS_JSON = new Set([
   "preguntas",
   "contraindicaciones",
   "protocolo",
+  "videos",
 ]);
 
 type FilaConfig = { clave: string; valor: string };

@@ -24,7 +24,7 @@ export default function TituloSeccion({
         {titulo}
       </Titulo>
       {bajada && (
-        <p className="mt-4 text-xl leading-snug text-tinta-suave">{bajada}</p>
+        <p className="mt-2 text-xl leading-snug text-tinta-suave">{bajada}</p>
       )}
     </header>
   );

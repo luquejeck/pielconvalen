@@ -77,3 +77,27 @@ sin atribución obligatoria). Están para que la web no se vea vacía:
 | `reservas.jpg` | toalla, velas y difusor | unsplash.com/photos/photo-1620733723572-11c53f73a416 (Mediamodifier) |
 
 Para reemplazarlas: borrá el archivo y poné el tuyo con el mismo nombre.
+
+---
+
+## Fotos de la galería (provisorias)
+
+Estas NO van en esta carpeta: viven en Supabase y se cargan desde el panel,
+en `/admin/galeria`. Se anotan acá para que quede asentado que son de banco
+y hay que reemplazarlas.
+
+Son de Pexels, licencia de uso comercial libre y sin atribución obligatoria.
+Están **sin publicar**: no se ven en la web hasta que alguien las publique.
+
+| Título en el panel | Qué muestra | Origen |
+|---|---|---|
+| La cabina, durante una sesión | cosmetóloga trabajando con espátula ultrasónica | pexels.com/photo/7446659 |
+| Aplicación de máscara | manos con guantes aplicando producto | pexels.com/photo/12115040 |
+| Con qué se trabaja | gua sha, rodillo y frasco sobre mármol | pexels.com/photo/5928033 |
+| Aparatología | equipo de radiofrecuencia en uso | pexels.com/photo/3865548 |
+
+**Reemplazarlas es lo primero que conviene hacer.** La sección se llama "El
+consultorio por dentro" y dice "dónde vas a estar": mientras sean de banco,
+le está mostrando a la clienta un lugar que no es el de Valen. Con cinco
+fotos sacadas con el celular cerca de una ventana alcanza. Se borran y se
+suben las nuevas desde el mismo panel.
