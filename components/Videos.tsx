@@ -121,8 +121,16 @@ export default function Videos({ subidos }: { subidos: VideoGaleria[] }) {
               className="w-[72%] shrink-0 snap-center sm:w-[46%] lg:w-[31%]"
             >
               <figure className="tarjeta overflow-hidden">
-                {/* Vertical, como se filma y como se mira en el celular. */}
-                <div className="relative aspect-9/16 bg-vino-suave">
+                {/*
+                  Vertical, como se filma y como se mira en el celular.
+
+                  El fondo es tinta y no vino suave: encima va la portada,
+                  y si algun dia no carga —un reel borrado, Instagram
+                  caido— la tarjeta queda oscura y el texto blanco se
+                  sigue leyendo. Con el rosa palido de antes, una portada
+                  que no llega dejaba letras blancas sobre casi blanco.
+                */}
+                <div className="relative aspect-9/16 bg-tinta">
                   {abierto !== video.id ? (
                     <button
                       type="button"
@@ -131,21 +139,57 @@ export default function Videos({ subidos }: { subidos: VideoGaleria[] }) {
                          nombre: para un lector de pantalla serian tres
                          botones identicos que dicen "Ver el reel". */
                       aria-label={`${video.titulo} — ver el video`}
-                      className="group flex h-full w-full flex-col items-center justify-center gap-3 px-5 text-vino transition-colors hover:bg-vino/12"
+                      className="group absolute inset-0 flex flex-col items-center justify-center gap-3 px-5 text-white"
                     >
+                      {/*
+                        La portada. Antes esto era un color liso: no se
+                        veia nada de lo que hay adentro y no habia ninguna
+                        razon para tocarlo.
+
+                        El reel la saca de nuestra propia direccion, que
+                        se la pide a Instagram del lado del servidor. El
+                        video propio muestra su primer fotograma, que es
+                        lo que dibuja el navegador con `preload`.
+                      */}
+                      {video.clase === "instagram" ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={`/api/reel-portada?codigo=${video.codigo}`}
+                          alt=""
+                          loading="lazy"
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                      ) : (
+                        <video
+                          src={video.url}
+                          muted
+                          playsInline
+                          preload="metadata"
+                          aria-hidden
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                      )}
+
+                      {/* Velo: sin esto el boton y el numero pelean con lo
+                          que haya en la foto, que cambia en cada reel. */}
+                      <span
+                        aria-hidden
+                        className="absolute inset-0 bg-linear-to-t from-tinta/80 via-tinta/25 to-tinta/45 transition-opacity group-hover:opacity-90"
+                      />
+
                       {/* El numero da orden de lectura sin sumar palabras:
                           se ve que son tres y cual va primero. */}
-                      <span className="absolute left-5 top-4 text-lg font-semibold tabular-nums text-vino/45">
+                      <span className="absolute left-5 top-4 text-lg font-semibold tabular-nums text-white/70">
                         {String(i + 1).padStart(2, "0")}
                       </span>
 
-                      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-vino text-white shadow-boton transition-transform group-hover:scale-105 group-active:scale-95">
+                      <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-vino text-white shadow-boton transition-transform group-hover:scale-105 group-active:scale-95">
                         {/* Corrido a la derecha: centrado a ojo, un
                             triangulo se ve pegado al borde izquierdo. */}
                         <IconoPlay className="ml-1 h-7 w-7" />
                       </span>
 
-                      <span className="text-lg font-semibold">
+                      <span className="relative text-lg font-semibold">
                         {video.clase === "propio" ? "Ver el video" : "Ver el reel"}
                       </span>
                     </button>
