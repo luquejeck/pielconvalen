@@ -110,7 +110,7 @@ export default async function Home() {
           Lo demas queda abajo para quien todavia esta mirando, y el boton
           del encabezado lo trae de vuelta en cualquier momento.
         */}
-        <Consultorio consultorio={CONSULTORIO} />
+        <Consultorio consultorio={CONSULTORIO} agenda={agenda} />
         <Reservas />
 
         {/* De aca para abajo, para quien no reservo todavia. */}

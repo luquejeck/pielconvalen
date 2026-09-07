@@ -125,7 +125,21 @@ export default function Footer({
           de Google adentro de la nuestra. Aca abajo casi nadie llega, y
           asi el que no llega no la paga.
         */}
-        <div className="mt-8 overflow-hidden rounded-suave border border-crema/15">
+        {/*
+          Como venir, al lado del mapa.
+
+          Estaba metido adentro del paso 2 de la reserva, alargando el
+          momento de confirmar. Es informacion que se usa el dia del
+          turno, saliendo de casa, y ahi lo que se busca es el mapa: los
+          dos juntos y en el pie, que es donde ya vivia la direccion.
+        */}
+        {CONSULTORIO.comoVenir && (
+          <p className="mt-10 max-w-2xl text-lg leading-snug text-crema/75">
+            {CONSULTORIO.comoVenir}
+          </p>
+        )}
+
+        <div className="mt-4 overflow-hidden rounded-suave border border-crema/15">
           <iframe
             src={`https://www.google.com/maps?q=${encodeURIComponent(
               CONSULTORIO.direccion

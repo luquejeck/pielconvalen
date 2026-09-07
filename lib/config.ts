@@ -196,6 +196,35 @@ export type Agenda = {
   comoTrabajo: string;
 };
 
+/** Un paso de "Como trabajo". El titulo es opcional. */
+export type PasoComoTrabajo = { titulo: string | null; texto: string };
+
+/**
+ * Los pasos de "Como trabajo", tal como los escribe Valen en el panel.
+ *
+ * Un renglon = un paso. Cada uno puede venir como "Titulo | texto"; sin
+ * la barra, el paso queda solo con su texto. Se parte en la PRIMERA
+ * barra nada mas, asi que el texto puede llevar todas las que quiera.
+ *
+ * Vive aca y no adentro de un componente porque el bloque se mudo de
+ * Tratamientos a la seccion de Valen, y no tiene sentido que la forma de
+ * leer el dato viaje con el.
+ */
+export function pasosComoTrabajo(agenda: Agenda): PasoComoTrabajo[] {
+  return agenda.comoTrabajo
+    .split("\n")
+    .map((renglon) => renglon.trim())
+    .filter(Boolean)
+    .map((renglon) => {
+      const barra = renglon.indexOf("|");
+      if (barra === -1) return { titulo: null, texto: renglon };
+      return {
+        titulo: renglon.slice(0, barra).trim() || null,
+        texto: renglon.slice(barra + 1).trim(),
+      };
+    });
+}
+
 /** Los horarios de arranque, iguales para todos los dias. */
 export const HORARIOS_POR_DEFECTO = [
   "08:00",

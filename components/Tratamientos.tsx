@@ -5,32 +5,10 @@ import { useReserva } from "./ReservaContext";
 import TituloSeccion from "./TituloSeccion";
 
 export default function Tratamientos() {
-  const { tratamientos, agenda, consultorio, irAReservar } = useReserva();
+  const { tratamientos, consultorio, irAReservar } = useReserva();
   /* El glosario tambien se edita desde el panel: son las explicaciones
      en castellano de los nombres tecnicos. */
   const GLOSARIO = consultorio.glosario;
-
-  /*
-    Un renglon del panel = un paso. Los vacios se descartan para que un
-    Enter de mas no abra un hueco en la web.
-
-    Cada renglon puede venir como "Titulo | texto". La barra es opcional:
-    sin ella el paso queda solo con su texto, que es como estaban
-    escritos los tres originales. Se parte en la PRIMERA barra nada mas,
-    asi que el texto puede llevar todas las que quiera.
-  */
-  const comoTrabajo = agenda.comoTrabajo
-    .split("\n")
-    .map((renglon) => renglon.trim())
-    .filter(Boolean)
-    .map((renglon) => {
-      const barra = renglon.indexOf("|");
-      if (barra === -1) return { titulo: null, texto: renglon };
-      return {
-        titulo: renglon.slice(0, barra).trim() || null,
-        texto: renglon.slice(barra + 1).trim(),
-      };
-    });
 
   const extrasDelCatalogo = [
     ...new Set(tratamientos.flatMap((t) => t.extras)),
@@ -44,6 +22,29 @@ export default function Tratamientos() {
   */
   const maxExtras = Math.max(...tratamientos.map((t) => t.extras.length));
 
+  /*
+    Cual es EL mas completo, uno solo.
+
+    Con `maxExtras` a secas, dos tratamientos empatados en cantidad de
+    extras se llevaban los dos la etiqueta, y "el mas completo" deja de
+    querer decir algo cuando hay dos. Hoy pasa: Full Glow y la higiene
+    con microneedling y radiofrecuencia suman tres cada uno.
+
+    El empate lo desempata el precio, que es el orden en que la clienta
+    los va a leer igual.
+  */
+  const masCompleto = tratamientos
+    .filter((t) => !esConsulta(t))
+    .reduce<(typeof tratamientos)[number] | null>(
+      (mejor, t) =>
+        !mejor ||
+        t.extras.length > mejor.extras.length ||
+        (t.extras.length === mejor.extras.length && t.precio > mejor.precio)
+          ? t
+          : mejor,
+      null
+    );
+
   return (
     <section
       id="tratamientos"
@@ -54,87 +55,6 @@ export default function Tratamientos() {
           titulo="Tratamientos"
           bajada="Todos parten de la misma limpieza profunda. La diferencia es lo que se le suma."
         />
-
-        {/*
-          Como trabaja ella, con sus palabras.
-
-          Aca antes habia siete pasos numerados, iguales para todo el
-          mundo. Prometian lo contrario de lo que pasa en la camilla: no
-          hay una receta que se repita sesion tras sesion, hay una piel
-          que se mira antes de empezar y un tratamiento que se arma con
-          eso y con lo que la clienta pide. Una lista numerada dice
-          "protocolo"; un texto en primera persona dice "te miro a vos".
-
-          Se lee como un parrafo y no como una ficha tecnica: es la unica
-          parte de la seccion donde habla ella y no el catalogo.
-        */}
-        {comoTrabajo.length > 0 && (
-          <div className="tarjeta mx-auto mt-8 max-w-4xl px-6 py-7 sm:px-8 xl:max-w-none">
-            {/* Mismo rotulo que el bloque de abajo: son un par y antes
-                tenian dos titulos distintos, uno centrado y otro no. */}
-            <h3 className="rotulo-seccion">Cómo trabajo</h3>
-
-            {/*
-              Tres tiempos, no tres parrafos.
-
-              Antes esto era un bloque de texto corrido de media pantalla
-              de alto: todo cierto, y todo del mismo peso, asi que no
-              habia por donde entrar. Adentro habia tres momentos bien
-              distintos —te miro, armo la sesion, por eso ninguna se
-              repite— que quedaban enterrados en el medio del renglon.
-
-              Separados y numerados se leen de un vistazo aunque no se
-              lea una palabra: se ve que son tres pasos y en que orden
-              van. El numero grande y palido es el mismo recurso que usan
-              las tarjetas de video, asi la pagina repite un gesto en vez
-              de inventar uno nuevo en cada seccion.
-
-              Una columna por paso y no tres renglones largos: la linea
-              corta es lo que hace que esto deje de leerse como un texto
-              legal.
-            */}
-            {/*
-              En celular el numero va a la izquierda y en PC arriba.
-
-              Arriba, en una sola columna, cada numero se comia un
-              renglon entero: tres numeros, tres renglones, y el bloque
-              terminaba MAS alto que el parrafo corrido que vino a
-              reemplazar. De costado no cuesta nada de alto y ademas
-              arma la sangria que separa un paso del otro.
-
-              En pantalla ancha son tres columnas de verdad, y ahi el
-              numero arriba funciona: encabeza su columna.
-            */}
-            <ol className="mt-6 grid gap-6 sm:grid-cols-3 sm:gap-8">
-              {comoTrabajo.map(({ titulo, texto }, i) => (
-                <li key={i} className="flex gap-4 sm:block">
-                  <span
-                    aria-hidden
-                    className="w-7 shrink-0 text-2xl font-semibold tabular-nums leading-tight text-vino/35 sm:w-auto"
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-
-                  <div className="min-w-0">
-                    {titulo && (
-                      <h4 className="text-xl font-semibold text-tinta sm:mt-1">
-                        {titulo}
-                      </h4>
-                    )}
-
-                    <p
-                      className={`text-lg leading-snug text-tinta-suave ${
-                        titulo ? "mt-1.5" : "sm:mt-1"
-                      }`}
-                    >
-                      {texto}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
 
         {/*
           Los nombres tecnicos se explican UNA sola vez. Repetirlos en
@@ -221,72 +141,57 @@ export default function Tratamientos() {
           lo que sale es lo que hace desconfiar—, pero el turno es uno
           solo y sale como consulta.
         */}
-        <ul className="mx-auto mt-5 grid max-w-5xl gap-3 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3">
+        {/*
+          Una fila por tratamiento, no una tarjeta.
+
+          Eran cinco tarjetas con nombre, precio y fichas de colores, y
+          ocupaban una pantalla y media de celular para decir cinco
+          nombres y cinco numeros. Puestos en renglones —nombre a la
+          izquierda, precio a la derecha— se comparan de un vistazo, que
+          es lo unico que se hace con una lista de precios: mirar la
+          diferencia entre uno y el siguiente.
+
+          Lo que suma cada uno pasa de fichas a texto corrido debajo del
+          nombre. Los nombres son los mismos del bloque de arriba, asi
+          que la referencia sigue funcionando.
+        */}
+        <ul className="tarjeta mx-auto mt-5 max-w-3xl divide-y divide-borde px-5 sm:px-7 xl:max-w-4xl">
           {tratamientos.filter((t) => !esConsulta(t)).map((t) => {
-            const esMasCompleto = maxExtras > 0 && t.extras.length === maxExtras;
+            const esMasCompleto = maxExtras > 0 && t.id === masCompleto?.id;
 
             return (
               <li
                 key={t.id}
-                /*
-                  El mas completo ocupa dos columnas: cierra la grilla, que
-                  con cinco tarjetas dejaba un hueco, y de paso el que mas
-                  suma es el que mas espacio ocupa.
-                */
-                className={`tarjeta relative flex flex-col px-6 py-5 ${
-                  esMasCompleto ? "sm:col-span-2 xl:col-span-2" : ""
-                }`}
+                className="flex items-baseline justify-between gap-4 py-4"
               >
-                {esMasCompleto && (
-                  <span className="absolute right-5 top-5 rounded-full bg-vino px-3 py-1 text-sm font-semibold text-white">
-                    El más completo
-                  </span>
-                )}
+                <div className="min-w-0">
+                  <h3 className="text-lg font-semibold text-tinta">
+                    {t.nombre}
+                    {/* El espacio va escrito: sin el, el nombre y la
+                        etiqueta quedan pegados para un lector de
+                        pantalla ("Full GlowEl mas completo"). */}
+                    {esMasCompleto && (
+                      <>
+                        {" "}
+                        <span className="whitespace-nowrap rounded-full bg-vino px-2.5 py-0.5 align-middle text-sm font-semibold text-white">
+                          El más completo
+                        </span>
+                      </>
+                    )}
+                  </h3>
 
-                {/* Nombre arriba y precio debajo, siempre. Cuando iban en
-                    la misma linea, los nombres largos empujaban el precio
-                    al renglon siguiente y cada tarjeta quedaba distinta. */}
-                <h3
-                  className={`text-xl font-semibold text-tinta ${
-                    esMasCompleto ? "pr-28" : ""
-                  }`}
-                >
-                  {t.nombre}
-                </h3>
+                  <p className="mt-0.5 text-base leading-snug text-tinta-suave">
+                    {t.extras.length === 0
+                      ? "La limpieza profunda completa"
+                      : `Suma ${t.extras.join(" · ")}`}
+                  </p>
+                </div>
 
-                <p className="mt-1 text-2xl font-semibold text-vino">
+                {/* `shrink-0` y tabular: los precios quedan alineados entre
+                    si aunque los nombres midan distinto. */}
+                <p className="shrink-0 text-xl font-semibold tabular-nums text-vino">
                   {formatearPrecio(t.precio)}
                 </p>
-
-                {/*
-                  Lo que suma, en fichas y no en una frase. Los seis
-                  decian "Los 7 pasos base + ..." y de lejos se leian
-                  todos iguales; asi se ve de un vistazo que cada uno
-                  agrega una ficha mas que el anterior.
-                */}
-                <div className="mt-3 grow">
-                  {t.extras.length === 0 ? (
-                    <p className="text-lg leading-snug text-tinta-suave">
-                      La limpieza profunda completa.
-                    </p>
-                  ) : (
-                    <>
-                      <p className="text-lg leading-snug text-tinta-suave">
-                        Suma:
-                      </p>
-                      <ul className="mt-2 flex flex-wrap gap-1.5">
-                        {t.extras.map((extra) => (
-                          <li
-                            key={extra}
-                            className="rounded-full bg-vino-suave px-3 py-1 text-base font-medium text-vino"
-                          >
-                            {extra}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
-                </div>
               </li>
             );
           })}

@@ -293,9 +293,10 @@ export default function Reservas() {
                   Queda confirmado cuando Valen te responde.
                 </p>
 
-                <p className="mt-4 border-t border-vino/15 pt-4 text-lg leading-snug text-tinta-suave">
-                  {consultorio.comoVenir}
-                </p>
+                {/* Como venir se fue al pie, al lado del mapa. Aca
+                    alargaba el paso 2 justo en el momento de confirmar, y
+                    quien lo necesita lo necesita al salir de casa, no al
+                    elegir el horario. */}
               </div>
             )}
             </div>
