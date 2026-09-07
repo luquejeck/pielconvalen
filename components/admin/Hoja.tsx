@@ -69,7 +69,7 @@ export default function Hoja({
           <button
             type="button"
             onClick={onCerrar}
-            className="-mr-1 -mt-1 shrink-0 rounded-full px-4 py-2 text-base text-tinta-suave hover:text-vino"
+            className="-mr-1 -mt-1 flex min-h-11 shrink-0 items-center rounded-full px-4 text-base text-tinta-suave hover:text-vino"
           >
             Cerrar
           </button>

@@ -1209,7 +1209,9 @@ function FormularioTurno({
                   key={h}
                   type="button"
                   onClick={() => setHora(h)}
-                  className={`rounded-full border px-3 py-1 text-sm ${
+                  /* 44px de alto: son los atajos que mas se tocan al
+                     cargar un turno a mano, y median 30. */
+                  className={`min-h-11 rounded-full border px-4 text-base ${
                     hora === h
                       ? "border-vino bg-vino text-crema"
                       : "border-borde text-tinta-suave hover:border-vino hover:text-vino"
@@ -1281,7 +1283,9 @@ function FormularioTurno({
             type="checkbox"
             checked={cobrada}
             onChange={(e) => setCobrada(e.target.checked)}
-            className="mt-1.5 h-5 w-5 shrink-0 accent-[var(--color-vino)]"
+            /* Mas grande de lo que viene por defecto: en un celular un
+               cuadrito de 20px se falla mas de lo que se acierta. */
+            className="mt-0.5 h-6 w-6 shrink-0 accent-[var(--color-vino)]"
           />
           <span>
             <span className="text-lg text-tinta">Ya la atendí y me pagó</span>

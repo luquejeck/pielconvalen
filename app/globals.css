@@ -349,6 +349,11 @@
    dos se veian igual y no se notaba cual estaba elegido. */
 .segmentado a,
 .segmentado button {
+  /* 44px de alto: es el selector que mas se toca del panel y medía 37.
+     En un celular, 7px de menos son los que hacen fallar el dedo. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
   border-radius: 9999px;
   padding: 0.5rem 1.25rem;
   font-size: 0.875rem;
