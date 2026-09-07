@@ -32,65 +32,43 @@ export default function ComoTrabajo({ agenda }: { agenda: Agenda }) {
             secciones de la pagina era la unica que no se anunciaba. */}
         <TituloSeccion titulo="Cómo trabajo" />
 
-        <div className="tarjeta mx-auto mt-8 max-w-5xl px-6 py-7 sm:px-8 xl:max-w-6xl">
-          {/*
-            TRES PASOS QUE SE VEN COMO UN PROCESO, NO COMO TRES BLOQUES.
+        {/*
+          LA MISMA FORMA QUE "QUE VAS A NOTAR".
 
-            Antes eran tres numeros sueltos en vino al 35%: tan palidos
-            que no se leian, y sin nada que dijera que el 02 viene
-            despues del 01. Tres parrafos con una cifra al costado.
+          Las dos secciones dicen lo mismo estructuralmente: tres cosas
+          cortas, cada una con un rotulo y su explicacion. Que una fuera
+          tres columnas con numeros al costado y la otra una tarjeta de
+          renglones divididos hacia que se leyeran como partes de dos
+          sitios distintos.
 
-            Ahora el numero va en un circulo —el mismo recurso que usan
-            los iconos de "Que vas a notar", asi la pagina repite un
-            gesto en vez de inventar uno por seccion— y en celular un
-            riel vertical los encadena. El riel es lo que convierte una
-            lista en una secuencia: se ve el orden antes de leer una
-            palabra.
+          Ahora comparten todo: la tarjeta, el circulo de 44px, la linea
+          que separa cada fila y el titulo en negrita seguido de su texto
+          en el mismo renglon. Lo unico que cambia es lo que va adentro
+          del circulo —ahi un icono, aca el numero del paso— porque estos
+          tres SI tienen orden.
 
-            En pantalla ancha el riel desaparece: ahi son tres columnas
-            y el orden ya lo da la lectura de izquierda a derecha.
-          */}
-          <ol className="grid sm:grid-cols-3 sm:gap-8">
-            {pasos.map(({ titulo, texto }, i) => (
-              <li
-                key={i}
-                className="relative flex gap-4 pb-7 last:pb-0 sm:block sm:pb-0"
+          Va en <ol> y no en <div> justo por eso: son pasos, y para quien
+          escucha la pagina eso se anuncia solo.
+        */}
+        <ol className="tarjeta mx-auto mt-6 max-w-2xl divide-y divide-borde px-5 sm:px-7 xl:max-w-3xl">
+          {pasos.map(({ titulo, texto }, i) => (
+            <li key={i} className="flex items-center gap-4 py-4">
+              <span
+                aria-hidden
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vino-suave text-lg font-semibold tabular-nums text-vino"
               >
-                {/* El riel arranca debajo del circulo y llega hasta el
-                    siguiente. En el ultimo no va: no lleva a ninguna
-                    parte. */}
-                {i < pasos.length - 1 && (
-                  <span
-                    aria-hidden
-                    className="absolute bottom-2 left-[22px] top-12 w-px bg-borde sm:hidden"
-                  />
-                )}
+                {String(i + 1).padStart(2, "0")}
+              </span>
 
-                <span
-                  aria-hidden
-                  className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vino-suave text-lg font-semibold tabular-nums text-vino"
-                >
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-
-                <div className="min-w-0 sm:mt-4">
-                  {titulo && (
-                    <h3 className="text-xl font-semibold text-tinta">
-                      {titulo}
-                    </h3>
-                  )}
-                  <p
-                    className={`text-lg leading-snug text-tinta-suave ${
-                      titulo ? "mt-1.5" : ""
-                    }`}
-                  >
-                    {texto}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
+              <p className="text-lg leading-snug text-tinta-suave">
+                {titulo && (
+                  <span className="font-semibold text-tinta">{titulo}.</span>
+                )}{" "}
+                {texto}
+              </p>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );
