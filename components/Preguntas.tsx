@@ -1,4 +1,5 @@
 import type { ConfiguracionWeb } from "@/lib/consultorio";
+import TituloSeccion from "./TituloSeccion";
 
 /**
  * Preguntas frecuentes, al final de todo.
@@ -28,14 +29,14 @@ export default function Preguntas({
     >
       <div className="contenedor">
         <div className="mx-auto max-w-3xl">
-          {/* Titulo chico: aca abajo no compite con nada. */}
-          <h2 className="text-2xl font-semibold text-tinta">
-            Preguntas frecuentes
-          </h2>
+          {/* El mismo encabezado que las demas. Antes era un h2 chico y
+              alineado a la izquierda: la seccion se leia como una nota al
+              pie y no como una parte mas de la pagina. */}
+          <TituloSeccion titulo="Preguntas frecuentes" />
 
           {/* Un solo bloque con renglones divididos, en vez de una
               tarjeta por pregunta: la seccion mide la mitad. */}
-          <ul className="mt-5 divide-y divide-borde border-y border-borde">
+          <ul className="mt-8 divide-y divide-borde border-y border-borde">
             {preguntas.map(({ pregunta, respuesta }) => (
               <li key={pregunta}>
                 <details className="group">

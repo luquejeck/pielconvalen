@@ -1,4 +1,5 @@
 import { pasosComoTrabajo, type Agenda } from "@/lib/config";
+import TituloSeccion from "./TituloSeccion";
 
 /**
  * "Cómo trabajo": tres pasos, en primera persona.
@@ -26,10 +27,13 @@ export default function ComoTrabajo({ agenda }: { agenda: Agenda }) {
       className="border-t border-borde bg-crema-oscuro py-12 md:py-14"
     >
       <div className="contenedor">
-        <div className="tarjeta mx-auto max-w-5xl px-6 py-7 sm:px-8 xl:max-w-6xl">
-          <h2 className="rotulo-seccion">Cómo trabajo</h2>
+        {/* Mismo encabezado que el resto de las secciones. Antes esto
+            era una etiqueta chica adentro de una tarjeta, y de todas las
+            secciones de la pagina era la unica que no se anunciaba. */}
+        <TituloSeccion titulo="Cómo trabajo" />
 
-          <ol className="mt-6 grid gap-6 sm:grid-cols-3 sm:gap-8">
+        <div className="tarjeta mx-auto mt-8 max-w-5xl px-6 py-7 sm:px-8 xl:max-w-6xl">
+          <ol className="grid gap-6 sm:grid-cols-3 sm:gap-8">
             {pasos.map(({ titulo, texto }, i) => (
               <li key={i} className="flex gap-4 sm:block">
                 {/* En celular el numero va al costado y en PC arriba:

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import fotoValen from "@/public/imagenes/valen.jpg";
 import type { ConfiguracionWeb } from "@/lib/consultorio";
+import TituloSeccion from "./TituloSeccion";
 import { IconoCheck } from "./iconos";
 
 /**
@@ -36,7 +37,13 @@ export default function Consultorio({
       className="border-t border-borde bg-crema py-14 md:py-16 xl:py-20"
     >
       <div className="contenedor">
-        <div className="mx-auto grid max-w-5xl items-center gap-8 lg:grid-cols-2 lg:gap-12 xl:max-w-6xl">
+        {/* El titulo sale de la columna de texto y pasa arriba, como en
+            todas las demas secciones. Estaba al lado de la foto, que se
+            leia bien pero era el unico h2 de la pagina alineado a la
+            izquierda: de lejos, esta seccion parecia de otro sitio. */}
+        <TituloSeccion titulo="Quién te va a atender" />
+
+        <div className="mx-auto mt-8 grid max-w-5xl items-center gap-8 lg:grid-cols-2 lg:gap-12 xl:max-w-6xl">
           {/*
             El retrato es cuadrado y el marco tambien.
 
@@ -66,11 +73,7 @@ export default function Consultorio({
           )}
 
           <div className="text-center lg:text-left">
-            <h2 className="text-4xl font-semibold text-tinta sm:text-5xl">
-              Quién te va a atender
-            </h2>
-
-            <p className="mt-6 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+            <p className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
               <span className="text-2xl font-semibold text-tinta">
                 {CONSULTORIO.profesional}
               </span>

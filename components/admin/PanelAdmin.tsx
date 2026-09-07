@@ -17,6 +17,7 @@ import {
   normalizarTelefono,
 } from "@/lib/whatsapp";
 import BuscadorCliente from "./BuscadorCliente";
+import Hoja from "./Hoja";
 import BandejaPendientes from "./BandejaPendientes";
 import Recordatorios from "./Recordatorios";
 import FormularioCobro, { MEDIOS_DE_PAGO } from "./FormularioCobro";
@@ -93,10 +94,25 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
   const [diaCerrado, setDiaCerrado] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [moviendo, setMoviendo] = useState<string | null>(null);
-  const [vinculando, setVinculando] = useState<string | null>(null);
-  const [rechazando, setRechazando] = useState<string | null>(null);
-  const [cobrando, setCobrando] = useState<string | null>(null);
+  /**
+   * Que hoja esta abierta, si hay alguna.
+   *
+   * Antes eran cuatro estados sueltos —mover, vincular, rechazar,
+   * cobrar— y nada impedia que se abrieran dos a la vez. Con uno solo,
+   * abrir una cierra la anterior sin que haya que acordarse.
+   */
+  const [hoja, setHoja] = useState<
+    | { tipo: "cobrar" | "mover" | "vincular" | "cancelar"; id: string }
+    | { tipo: "libre"; hora: string }
+    | null
+  >(null);
+
+  /** Abre la hoja de un turno, o la cierra si ya era esa. */
+  const abrirHoja = (
+    tipo: "cobrar" | "mover" | "vincular" | "cancelar",
+    id: string
+  ) =>
+    setHoja((h) => (h && h.tipo === tipo && "id" in h && h.id === id ? null : { tipo, id }));
   /**
    * Que turno tiene abierto su menu de acciones.
    *
@@ -217,7 +233,7 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
           .eq("id", turnoId),
       "vincular la clienta"
     );
-    if (ok) setVinculando(null);
+    if (ok) setHoja(null);
   };
 
   /**
@@ -250,7 +266,7 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
       return mensaje ?? "No se pudo registrar el cobro.";
     }
 
-    setCobrando(null);
+    setHoja(null);
     await cargar();
     return null;
   };
@@ -288,6 +304,7 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
 
   const turnoDe = (hora: string) => turnos.find((t) => t.hora === hora);
 
+
   /**
    * La grilla del dia: los horarios de la agenda MAS los de los turnos
    * que ya existen.
@@ -305,6 +322,30 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
 
   const horasLibres = horasDeLaAgenda.filter((h) => !turnoDe(h));
   const fueraDeAgenda = (hora: string) => !horasDeLaAgenda.includes(hora);
+  /**
+   * Como viene el dia, en una frase.
+   *
+   * Solo nombra lo que hay: un dia sin pendientes no dice "0 sin
+   * responder". Un contador en cero ocupa lugar para informar que no hay
+   * nada que hacer, y se aprende a ignorar junto con los que si importan.
+   */
+  const resumenDelDia = (() => {
+    const reales = turnos.filter((t) => t.estado !== "bloqueado");
+    const pendientes = reales.filter((t) => t.estado === "pendiente").length;
+    const libres = horasDelDia.filter((h) => !turnoDe(h)).length;
+
+    const partes = [
+      reales.length === 1 ? "1 turno" : `${reales.length} turnos`,
+    ];
+    if (pendientes > 0) {
+      partes.push(
+        pendientes === 1 ? "1 sin responder" : `${pendientes} sin responder`
+      );
+    }
+    if (libres > 0) partes.push(`${libres} ${libres === 1 ? "libre" : "libres"}`);
+
+    return partes.join(" · ");
+  })();
 
   return (
     <section>
@@ -393,6 +434,19 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
         {fecha === claveFecha(new Date()) && " · hoy"}
       </p>
 
+      {/*
+        Como viene el dia, en un renglon.
+
+        Es lo mismo que ya hace la vista de semana con cada dia, y era
+        justo lo que faltaba al abrir uno: habia que contar las tarjetas
+        para saber si habia algo que responder.
+      */}
+      {!cargando && horasDelDia.length > 0 && (
+        <p className="mt-1 text-lg font-medium text-tinta">
+          {resumenDelDia}
+        </p>
+      )}
+
       {diaCerrado && (
         <p className="mt-5 rounded-2xl bg-crema-oscuro px-5 py-4 text-lg text-tinta">
           Este día está cerrado. No aparece en la web.
@@ -417,6 +471,48 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
         ) : (
           horasDelDia.map((hora) => {
             const turno = turnoDe(hora);
+
+            /*
+              UN HORARIO LIBRE NO ES UNA TARJETA.
+
+              Cada hora de la agenda dibujaba la misma tarjeta con borde,
+              padding y su boton de "Bloquear", estuviera ocupada o no. Un
+              jueves tiene ocho horarios: ocho tarjetas iguales aunque no
+              hubiera un solo turno, y los turnos de verdad se perdian
+              entre el vacio.
+
+              Ahora el libre es un renglon de una linea. Se mantiene el
+              orden por hora —la agenda se sigue leyendo de arriba abajo—
+              pero el peso visual queda para lo que existe.
+
+              El renglon entero es el boton: lo que se puede hacer con una
+              hora libre se elige en la hoja, y asi la lista no arrastra
+              un boton por fila.
+            */
+            if (!turno) {
+              return (
+                <li key={hora}>
+                  <button
+                    type="button"
+                    onClick={() => setHoja({ tipo: "libre", hora })}
+                    className="flex w-full items-center gap-3 rounded-chico px-4 py-2.5 text-left transition-colors hover:bg-crema-oscuro"
+                  >
+                    <span className="w-14 shrink-0 text-lg tabular-nums text-tinta-suave">
+                      {hora}
+                    </span>
+                    <span className="text-base text-tinta-suave">Libre</span>
+                    {fueraDeAgenda(hora) && (
+                      <span className="text-base text-tinta-suave/70">
+                        · fuera de tu horario
+                      </span>
+                    )}
+                    <span aria-hidden className="ml-auto text-xl text-vino/45">
+                      +
+                    </span>
+                  </button>
+                </li>
+              );
+            }
 
             /*
               La tarjeta del turno pendiente tiene fondo vino pleno, asi
@@ -493,16 +589,6 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                 )}
 
                 <div className="mt-5 flex flex-wrap items-center gap-2">
-                  {!turno && (
-                    <button
-                      type="button"
-                      onClick={() => bloquear(hora)}
-                      className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
-                    >
-                      Bloquear
-                    </button>
-                  )}
-
                   {turno?.estado === "pendiente" && (
                     <button
                       type="button"
@@ -526,12 +612,12 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                     <button
                       type="button"
                       onClick={() =>
-                        setCobrando(cobrando === turno.id ? null : turno.id)
+                        abrirHoja("cobrar", turno.id)
                       }
                       className={`flex min-h-12 items-center gap-2 rounded-full px-7 text-lg font-semibold shadow-sm ${btnPrincipal}`}
                     >
                       <IconoCheck className="h-4 w-4" />
-                      {cobrando === turno.id ? "Cerrar" : "Atendida y cobrada"}
+                      Cobrar
                     </button>
                   )}
 
@@ -588,15 +674,11 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                     <button
                       type="button"
                       onClick={() =>
-                        setMoviendo(moviendo === turno.id ? null : turno.id)
+                        abrirHoja("mover", turno.id)
                       }
                       className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
                     >
-                      {moviendo === turno.id
-                        ? "Cerrar"
-                        : turno.estado === "pendiente"
-                          ? "Cambiar"
-                          : "Mover"}
+                      Mover
                     </button>
                   )}
 
@@ -604,7 +686,7 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                     <button
                       type="button"
                       onClick={() =>
-                        setVinculando(vinculando === turno.id ? null : turno.id)
+                        abrirHoja("vincular", turno.id)
                       }
                       className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
                     >
@@ -626,7 +708,7 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                     <button
                       type="button"
                       onClick={() =>
-                        setRechazando(rechazando === turno.id ? null : turno.id)
+                        abrirHoja("cancelar", turno.id)
                       }
                       className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
                     >
@@ -656,11 +738,7 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                       onClick={() => {
                         const abrir = menu === turno.id ? null : turno.id;
                         setMenu(abrir);
-                        if (!abrir) {
-                          setMoviendo(null);
-                          setVinculando(null);
-                          setRechazando(null);
-                        }
+                        if (!abrir) setHoja(null);
                       }}
                       className={`min-h-12 rounded-full px-5 text-lg leading-none ${btnSecundario}`}
                     >
@@ -674,8 +752,15 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                   pregunta antes. Y ofrece avisarle a la clienta: sin eso,
                   ella se queda esperando una respuesta que no llega.
                 */}
-                {turno && rechazando === turno.id && (
-                  <div className="mt-4 border-t border-current/15 pt-4">
+                {turno && hoja?.tipo === "cancelar" && hoja.id === turno.id && (
+                  <Hoja
+                    titulo={
+                      turno.estado === "pendiente"
+                        ? "Rechazar el pedido"
+                        : "Cancelar el turno"
+                    }
+                    onCerrar={() => setHoja(null)}
+                  >
                     <p className="text-base">
                       {turno.estado === "pendiente"
                         ? "Se rechaza el pedido y el horario queda libre."
@@ -697,7 +782,7 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                           rel="noopener noreferrer"
                           onClick={() => {
                             void borrar(turno.id);
-                            setRechazando(null);
+                            setHoja(null);
                           }}
                           className={`rounded-full px-5 py-2.5 text-base font-medium ${btnPrincipal}`}
                         >
@@ -709,7 +794,7 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                         type="button"
                         onClick={async () => {
                           await borrar(turno.id);
-                          setRechazando(null);
+                          setHoja(null);
                         }}
                         className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
                       >
@@ -718,18 +803,20 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
 
                       <button
                         type="button"
-                        onClick={() => setRechazando(null)}
+                        onClick={() => setHoja(null)}
                         className="rounded-full px-5 py-2.5 text-base underline"
                       >
                         Volver
                       </button>
                     </div>
-                  </div>
+                  </Hoja>
                 )}
 
-                {turno && vinculando === turno.id && (
-                  <div className="mt-4 border-t border-current/15 pt-4">
-                    <p className="mb-2 text-sm text-tinta-suave">Vincular a una clienta (opcional)</p>
+                {turno && hoja?.tipo === "vincular" && hoja.id === turno.id && (
+                  <Hoja titulo="Ficha de la clienta" onCerrar={() => setHoja(null)}>
+                    <p className="mb-2 text-base text-tinta-suave">
+                      Buscá la ficha para que el turno quede en su historial.
+                    </p>
                     <BuscadorCliente
                       valorInicial={turno.cliente ?? ""}
                       onSeleccionar={(c) => vincularCliente(turno.id, c)}
@@ -743,10 +830,11 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                         Desvincular
                       </button>
                     )}
-                  </div>
+                  </Hoja>
                 )}
 
-                {turno && cobrando === turno.id && (
+                {turno && hoja?.tipo === "cobrar" && hoja.id === turno.id && (
+                  <Hoja titulo="Cobrar el turno" onCerrar={() => setHoja(null)}>
                   <FormularioCobro
                     precioSugerido={turno.precio}
                     tratamientos={tratamientos}
@@ -755,25 +843,69 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                     fecha={turno.fecha}
                     hayClienta={Boolean(turno.cliente_id)}
                     onListo={(datos) => registrarCobro(turno.id, datos)}
-                    onCancelar={() => setCobrando(null)}
+                    onCancelar={() => setHoja(null)}
                   />
+                  </Hoja>
                 )}
 
-                {turno && moviendo === turno.id && (
-                  <FormularioMover
-                    turno={turno}
-                    agenda={agenda}
-                    onListo={async () => {
-                      setMoviendo(null);
-                      await cargar();
-                    }}
-                  />
+                {turno && hoja?.tipo === "mover" && hoja.id === turno.id && (
+                  <Hoja titulo="Mover el turno" onCerrar={() => setHoja(null)}>
+                    <FormularioMover
+                      turno={turno}
+                      agenda={agenda}
+                      onListo={async () => {
+                        setHoja(null);
+                        await cargar();
+                      }}
+                    />
+                  </Hoja>
                 )}
               </li>
             );
           })
         )}
       </ul>
+
+      {/*
+        Lo que se puede hacer con una hora libre.
+
+        Antes cada fila libre traia su propio boton "Bloquear" a la
+        vista. Con ocho horarios eran ocho botones para una accion que se
+        usa de vez en cuando; ahora se toca la hora y se elige.
+      */}
+      {hoja?.tipo === "libre" && (
+        <Hoja titulo={`${hoja.hora} · horario libre`} onCerrar={() => setHoja(null)}>
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMostrarFormulario(true);
+                setHoja(null);
+              }}
+              className="min-h-12 rounded-full bg-vino px-6 text-lg font-semibold text-crema"
+            >
+              Cargar un turno acá
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const hora = hoja.hora;
+                setHoja(null);
+                void bloquear(hora);
+              }}
+              className="min-h-12 rounded-full border border-borde px-6 text-lg text-tinta hover:border-vino hover:text-vino"
+            >
+              Bloquear este horario
+            </button>
+          </div>
+
+          <p className="mt-4 text-base leading-snug text-tinta-suave">
+            Bloquearlo lo saca de la web para que nadie lo reserve. Se puede
+            liberar cuando quieras.
+          </p>
+        </Hoja>
+      )}
 
       {/* Acciones del dia */}
       <div className="mt-8 flex flex-wrap gap-3">
