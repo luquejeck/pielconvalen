@@ -143,14 +143,14 @@ export default function Calendario({
       </div>
 
       {/* Dias de la semana */}
-      <div className="mt-4 grid grid-cols-7 gap-1.5 text-center text-lg font-medium text-tinta-suave">
+      <div className="mt-4 grid grid-cols-7 gap-1 text-center text-lg font-medium text-tinta-suave sm:gap-1.5">
         {DIAS_SEMANA.map((d) => (
           <span key={d}>{d}</span>
         ))}
       </div>
 
       {/* Grilla */}
-      <div className="mt-2 grid grid-cols-7 gap-1.5">
+      <div className="mt-2 grid grid-cols-7 gap-1 sm:gap-1.5">
         {celdas.map((dia, i) => {
           if (!dia) return <span key={`vacio-${i}`} />;
 
@@ -187,8 +187,17 @@ export default function Calendario({
                 fondo blanco, el que no tiene queda hundido contra la
                 tarjeta.
               */
+              /*
+                48px de alto minimo en celular.
+
+                Con `aspect-square` la celda medida en un telefono de 375
+                daba 38px de lado: por debajo del minimo que se toca sin
+                apuntar, y este es justo el gesto que decide si hay turno
+                o no. La altura se fija primero y el cuadrado queda para
+                pantalla ancha, donde sobra lugar.
+              */
               className={[
-                "flex aspect-square items-center justify-center rounded-chico text-lg transition-colors",
+                "flex min-h-12 items-center justify-center rounded-chico text-xl transition-colors sm:aspect-square sm:text-lg",
                 seleccionado
                   ? "bg-vino font-semibold text-crema"
                   : disponible

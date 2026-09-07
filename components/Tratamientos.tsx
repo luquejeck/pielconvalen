@@ -304,13 +304,18 @@ export default function Tratamientos() {
         <div className="mx-auto mt-3 max-w-5xl rounded-suave bg-vino-suave px-6 py-5 sm:px-8 xl:max-w-none">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
+              {/*
+                Antes esto repetia, casi palabra por palabra, lo que ahora
+                se lee dos secciones mas arriba: que el turno entra como
+                consulta y que Valen define el tratamiento al ver la piel.
+                Con el modulo de reservas movido al principio, decirlo de
+                nuevo aca solo suma renglones.
+              */}
               <h3 className="text-xl font-semibold text-tinta">
-                El turno se saca como consulta
+                ¿Cuál te corresponde?
               </h3>
               <p className="mt-1.5 max-w-xl text-lg leading-snug text-tinta-suave">
-                No hace falta que elijas: Valen te mira la piel al llegar y
-                ahí definen juntas cuál de estos te corresponde y cuánto sale.
-                Sin compromiso.
+                Lo deciden juntas al llegar, mirando tu piel.
               </p>
             </div>
 
@@ -319,7 +324,7 @@ export default function Tratamientos() {
               onClick={irAReservar}
               className="boton-principal shrink-0 whitespace-nowrap"
             >
-              Pedir un turno
+              Reservar turno
             </button>
           </div>
         </div>

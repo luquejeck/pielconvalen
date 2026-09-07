@@ -25,12 +25,15 @@ export default function Header({
           className="boton-principal compacto shrink-0 whitespace-nowrap"
         >
           {/*
-            Una etiqueta u otra, nunca partida en dos: el boton principal
-            separa sus hijos con un gap, y "Reservar" + " turno" quedaban
-            con doble espacio en el medio.
+            Siempre "Reservar turno", tambien en celular.
+
+            Antes decia "Reservar" a secas en pantalla angosta, el hero
+            decia "Reservar turno" y la seccion de precios "Pedir un
+            turno": tres nombres para el mismo boton en la misma pagina.
+            Para una clienta de cincuenta y pico eso no son sinonimos,
+            son tres cosas distintas que hay que ir a entender.
           */}
-          <span className="sm:hidden">Reservar</span>
-          <span className="hidden sm:inline">Reservar turno</span>
+          Reservar turno
         </a>
       </div>
     </header>

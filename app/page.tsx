@@ -96,13 +96,27 @@ export default async function Home() {
       <Header consultorio={CONSULTORIO} />
       <main>
         <Hero consultorio={CONSULTORIO} />
-        <Beneficios consultorio={CONSULTORIO} />
-        {/* Que te van a hacer, en video. Va entre la promesa y la cara:
-            es la duda que queda justo en el medio de las dos. */}
-        <Videos subidos={videos} />
+
+        {/*
+          PRIMERO LA CARA, DESPUES EL CALENDARIO, Y RECIEN AHI EL FOLLETO.
+
+          El modulo de reservas estaba al 65% de la pagina: quien entraba
+          decidido a sacar turno tenia que pasar 7,3 pantallas de celular
+          para llegar a el. La pagina estaba armada como un folleto con un
+          formulario al final.
+
+          Ahora arranca con quien la va a atender —la cara y la credencial,
+          que es lo que hace falta para confiar— y sigue con el calendario.
+          Lo demas queda abajo para quien todavia esta mirando, y el boton
+          del encabezado lo trae de vuelta en cualquier momento.
+        */}
         <Consultorio consultorio={CONSULTORIO} />
-        <Tratamientos />
         <Reservas />
+
+        {/* De aca para abajo, para quien no reservo todavia. */}
+        <Beneficios consultorio={CONSULTORIO} />
+        <Videos subidos={videos} />
+        <Tratamientos />
         {/* Al final de todo: es una seccion de consulta, no parte del
             recorrido. Quien la necesita la busca. */}
         <Preguntas consultorio={CONSULTORIO} />

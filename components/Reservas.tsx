@@ -133,7 +133,7 @@ export default function Reservas() {
       <div className="contenedor">
         <TituloSeccion
           titulo="Reservá tu turno"
-          bajada="Dos pasos. Al final se abre WhatsApp con el mensaje ya escrito."
+          bajada="Elegí el día y la hora. Se confirma por WhatsApp."
         />
 
         {/*
@@ -162,7 +162,10 @@ export default function Reservas() {
               y ahí definen el tratamiento y el precio.
             </p>
 
-            <div className="tarjeta mt-3 p-4 sm:p-5">
+            {/* En celular la tarjeta aprieta el padding: cada pixel que se le
+                saca al margen se lo gana el dia del calendario, que es lo
+                que hay que tocar. */}
+            <div className="tarjeta mt-3 p-3 sm:p-5">
               <Calendario
                 key={version}
                 agenda={agenda}

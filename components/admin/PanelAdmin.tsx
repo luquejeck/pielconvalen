@@ -97,6 +97,16 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
   const [vinculando, setVinculando] = useState<string | null>(null);
   const [rechazando, setRechazando] = useState<string | null>(null);
   const [cobrando, setCobrando] = useState<string | null>(null);
+  /**
+   * Que turno tiene abierto su menu de acciones.
+   *
+   * Un turno confirmado mostraba cinco botones a la vez, todos del mismo
+   * tamaño salvo uno, mas dos enlaces. En un dia de ocho turnos eran unos
+   * cincuenta controles en pantalla para una decision que casi siempre es
+   * una sola: aceptar, o cobrar. Ahora se ve la accion del dia y el resto
+   * espera detras de los tres puntos.
+   */
+  const [menu, setMenu] = useState<string | null>(null);
   /** Lo ultimo que salio mal. Antes las escrituras fallaban en silencio. */
   const [error, setError] = useState<string | null>(null);
 
@@ -525,7 +535,12 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                     </button>
                   )}
 
-                  {turno?.estado === "confirmado" && (
+                  {/*
+                    De aca para abajo, lo que se usa de vez en cuando: se
+                    despliega con los tres puntos. Lo de arriba es la
+                    accion del dia y se toca sin buscar.
+                  */}
+                  {turno?.estado === "confirmado" && menu === turno.id && (
                     <button
                       type="button"
                       onClick={() => marcarNoVino(turno.id)}
@@ -559,7 +574,7 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                     </button>
                   )}
 
-                  {turno?.estado === "realizado" && (
+                  {turno?.estado === "realizado" && menu === turno.id && (
                     <button
                       type="button"
                       onClick={() => anularCobro(turno.id)}
@@ -569,7 +584,7 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                     </button>
                   )}
 
-                  {turno && turno.estado !== "bloqueado" && turno.estado !== "realizado" && (
+                  {turno && menu === turno.id && turno.estado !== "bloqueado" && turno.estado !== "realizado" && (
                     <button
                       type="button"
                       onClick={() =>
@@ -585,7 +600,7 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                     </button>
                   )}
 
-                  {turno && turno.estado !== "bloqueado" && (
+                  {turno && menu === turno.id && turno.estado !== "bloqueado" && (
                     <button
                       type="button"
                       onClick={() =>
@@ -607,7 +622,7 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                     </button>
                   )}
 
-                  {turno && turno.estado !== "bloqueado" && (
+                  {turno && menu === turno.id && turno.estado !== "bloqueado" && (
                     <button
                       type="button"
                       onClick={() =>
@@ -616,6 +631,40 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                       className={`rounded-full px-5 py-2.5 text-base ${btnSecundario}`}
                     >
                       {turno.estado === "pendiente" ? "Rechazar" : "Cancelar"}
+                    </button>
+                  )}
+
+                  {/*
+                    Los tres puntos. Aparecen solo si hay algo detras: un
+                    horario libre o bloqueado no tiene mas que su unico
+                    boton, y un menu vacio es peor que ningun menu.
+
+                    Al cerrarlo se cierran tambien los formularios que
+                    haya abiertos: si no, quedaba el de mover o el de
+                    vincular desplegado y sin ningun boton visible que
+                    explicara de donde habia salido.
+                  */}
+                  {turno && turno.estado !== "bloqueado" && (
+                    <button
+                      type="button"
+                      aria-expanded={menu === turno.id}
+                      aria-label={
+                        menu === turno.id
+                          ? "Ocultar las demás acciones"
+                          : "Ver las demás acciones"
+                      }
+                      onClick={() => {
+                        const abrir = menu === turno.id ? null : turno.id;
+                        setMenu(abrir);
+                        if (!abrir) {
+                          setMoviendo(null);
+                          setVinculando(null);
+                          setRechazando(null);
+                        }
+                      }}
+                      className={`min-h-12 rounded-full px-5 text-lg leading-none ${btnSecundario}`}
+                    >
+                      {menu === turno.id ? "Cerrar" : "⋯"}
                     </button>
                   )}
                 </div>
