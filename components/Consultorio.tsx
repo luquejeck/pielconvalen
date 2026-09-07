@@ -1,7 +1,6 @@
 import Image from "next/image";
 import fotoValen from "@/public/imagenes/valen.jpg";
 import type { ConfiguracionWeb } from "@/lib/consultorio";
-import { pasosComoTrabajo, type Agenda } from "@/lib/config";
 import { IconoCheck } from "./iconos";
 
 /**
@@ -25,22 +24,10 @@ import { IconoCheck } from "./iconos";
 
 export default function Consultorio({
   consultorio: CONSULTORIO,
-  agenda,
 }: {
   consultorio: ConfiguracionWeb;
-  agenda: Agenda;
 }) {
   const { valen: hayValen, consultorio: hayConsultorio } = CONSULTORIO.fotos;
-  /*
-    "Como trabajo" se mudo aca desde la lista de precios.
-
-    Son tres pasos en primera persona: ella mirando la piel, ella armando
-    la sesion. Eso pertenece al lado de su cara, no arriba de una tabla
-    de numeros, donde ademas partia la seccion de precios en dos y
-    obligaba a pasar media pantalla de texto antes de ver una cifra.
-  */
-  const comoTrabajo = pasosComoTrabajo(agenda);
-
   if (!hayValen && !hayConsultorio) return null;
 
   return (
@@ -174,50 +161,6 @@ export default function Consultorio({
             </a>
           </div>
         </div>
-
-        {/*
-          Los tres pasos, a lo ancho y debajo de las dos columnas.
-
-          Aca abajo tienen las tres columnas que necesitan en pantalla
-          grande; metidos en la columna del texto quedaban en fila india
-          y estiraban la seccion.
-        */}
-        {comoTrabajo.length > 0 && (
-          <div className="tarjeta mx-auto mt-10 max-w-5xl px-6 py-7 sm:px-8 xl:max-w-6xl">
-            <h3 className="rotulo-seccion">Cómo trabajo</h3>
-
-            <ol className="mt-6 grid gap-6 sm:grid-cols-3 sm:gap-8">
-              {comoTrabajo.map(({ titulo, texto }, i) => (
-                <li key={i} className="flex gap-4 sm:block">
-                  {/* En celular el numero va al costado y en PC arriba:
-                      arriba, en una sola columna, cada numero se comia un
-                      renglon entero. */}
-                  <span
-                    aria-hidden
-                    className="w-7 shrink-0 text-2xl font-semibold tabular-nums leading-tight text-vino/35 sm:w-auto"
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-
-                  <div className="min-w-0">
-                    {titulo && (
-                      <h4 className="text-xl font-semibold text-tinta sm:mt-1">
-                        {titulo}
-                      </h4>
-                    )}
-                    <p
-                      className={`text-lg leading-snug text-tinta-suave ${
-                        titulo ? "mt-1.5" : "sm:mt-1"
-                      }`}
-                    >
-                      {texto}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
 
         {/* Si algun dia se suma la foto del lugar, va debajo y a lo ancho */}
         {hayConsultorio && (

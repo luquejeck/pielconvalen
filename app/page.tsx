@@ -1,5 +1,6 @@
 import Beneficios from "@/components/Beneficios";
 import BotonWhatsApp from "@/components/BotonWhatsApp";
+import ComoTrabajo from "@/components/ComoTrabajo";
 import Consultorio from "@/components/Consultorio";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -110,10 +111,11 @@ export default async function Home() {
           Lo demas queda abajo para quien todavia esta mirando, y el boton
           del encabezado lo trae de vuelta en cualquier momento.
         */}
-        <Consultorio consultorio={CONSULTORIO} agenda={agenda} />
+        <Consultorio consultorio={CONSULTORIO} />
         <Reservas />
 
         {/* De aca para abajo, para quien no reservo todavia. */}
+        <ComoTrabajo agenda={agenda} />
         <Beneficios consultorio={CONSULTORIO} />
         <Videos subidos={videos} />
         <Tratamientos />

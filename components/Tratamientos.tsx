@@ -33,6 +33,24 @@ export default function Tratamientos() {
     El empate lo desempata el precio, que es el orden en que la clienta
     los va a leer igual.
   */
+  /* Los que se muestran con precio. La consulta no va: no tiene numero. */
+  const conPrecio = tratamientos.filter((t) => !esConsulta(t));
+
+  /* De menor a mayor: la lista se recorre como una escalera. `slice`
+     porque `sort` ordena en el lugar y `tratamientos` viene del contexto. */
+  const porPrecio = conPrecio.slice().sort((a, b) => a.precio - b.precio);
+
+  /*
+    La duracion se muestra solo si TODOS duran lo mismo.
+
+    Es lo que la hace decible en una sola linea arriba de la lista. Si
+    algun dia Valen carga uno de media hora, la banda deja de afirmar
+    algo que seria falso para esa fila y la duracion simplemente no
+    aparece: mejor no decirla que decirla mal.
+  */
+  const duraciones = [...new Set(conPrecio.map((t) => t.duracion))];
+  const duracionComun = duraciones.length === 1 ? duraciones[0] : null;
+
   const masCompleto = tratamientos
     .filter((t) => !esConsulta(t))
     .reduce<(typeof tratamientos)[number] | null>(
@@ -142,60 +160,91 @@ export default function Tratamientos() {
           solo y sale como consulta.
         */}
         {/*
-          Una fila por tratamiento, no una tarjeta.
+          UNA BASE, Y LO QUE SE LE SUMA.
 
-          Eran cinco tarjetas con nombre, precio y fichas de colores, y
-          ocupaban una pantalla y media de celular para decir cinco
-          nombres y cinco numeros. Puestos en renglones —nombre a la
-          izquierda, precio a la derecha— se comparan de un vistazo, que
-          es lo unico que se hace con una lista de precios: mirar la
-          diferencia entre uno y el siguiente.
+          La bajada de la seccion ya lo dice: "todos parten de la misma
+          limpieza profunda, la diferencia es lo que se le suma". La
+          lista ahora lo muestra en vez de contarlo.
 
-          Lo que suma cada uno pasa de fichas a texto corrido debajo del
-          nombre. Los nombres son los mismos del bloque de arriba, asi
-          que la referencia sigue funcionando.
+          Lo que comparten los seis —la limpieza completa y la duracion—
+          se dice UNA vez, en la banda de arriba. Antes cada fila
+          repetia "La limpieza profunda completa" o no decia nada, y la
+          duracion no aparecia en ningun lado de la web pese a estar
+          cargada en la base: alguien que reservaba a las 18:00 no tenia
+          como saber que salia a las 20:00.
+
+          Debajo, una fila por tratamiento con un "+" adelante de lo que
+          agrega. El signo hace el trabajo que antes hacia la palabra
+          "Suma", ocupa un caracter y se entiende sin leerlo.
+
+          Ordenadas por precio: asi la lista se recorre como una escalera
+          y se ve que cada peldaño agrega algo mas que el anterior.
         */}
-        <ul className="tarjeta mx-auto mt-5 max-w-3xl divide-y divide-borde px-5 sm:px-7 xl:max-w-4xl">
-          {tratamientos.filter((t) => !esConsulta(t)).map((t) => {
-            const esMasCompleto = maxExtras > 0 && t.id === masCompleto?.id;
+        <div className="tarjeta mx-auto mt-5 max-w-3xl overflow-hidden xl:max-w-4xl">
+          <div className="border-b border-borde bg-vino-suave px-5 py-4 sm:px-7">
+            <h3 className="rotulo-seccion">Todas incluyen</h3>
+            <p className="mt-1 text-lg leading-snug text-tinta">
+              La limpieza profunda completa
+              {duracionComun && (
+                <>
+                  {" · "}
+                  <span className="whitespace-nowrap">{duracionComun}</span>
+                </>
+              )}
+            </p>
+          </div>
 
-            return (
-              <li
-                key={t.id}
-                className="flex items-baseline justify-between gap-4 py-4"
-              >
-                <div className="min-w-0">
-                  <h3 className="text-lg font-semibold text-tinta">
-                    {t.nombre}
-                    {/* El espacio va escrito: sin el, el nombre y la
-                        etiqueta quedan pegados para un lector de
-                        pantalla ("Full GlowEl mas completo"). */}
-                    {esMasCompleto && (
-                      <>
-                        {" "}
-                        <span className="whitespace-nowrap rounded-full bg-vino px-2.5 py-0.5 align-middle text-sm font-semibold text-white">
-                          El más completo
+          <ul className="divide-y divide-borde px-5 sm:px-7">
+            {porPrecio.map((t) => {
+              const esMasCompleto = t.id === masCompleto?.id;
+
+              return (
+                <li
+                  key={t.id}
+                  className="flex items-baseline justify-between gap-4 py-4"
+                >
+                  <div className="min-w-0">
+                    <h4 className="text-lg font-semibold text-tinta">
+                      {t.nombre}
+                      {/* El espacio va escrito: sin el, el nombre y la
+                          etiqueta quedan pegados para un lector de
+                          pantalla ("Full GlowEl mas completo"). */}
+                      {esMasCompleto && (
+                        <>
+                          {" "}
+                          <span className="whitespace-nowrap rounded-full bg-vino px-2.5 py-0.5 align-middle text-sm font-semibold text-white">
+                            El más completo
+                          </span>
+                        </>
+                      )}
+                    </h4>
+
+                    {t.extras.length > 0 && (
+                      <p className="mt-1 text-base leading-snug text-tinta-suave">
+                        <span
+                          aria-hidden
+                          className="mr-1 font-semibold text-vino"
+                        >
+                          +
                         </span>
-                      </>
+                        {/* Para quien escucha la pagina, "+" no se lee: la
+                            palabra va escondida y el signo queda de adorno. */}
+                        <span className="sr-only">Suma </span>
+                        {t.extras.join(" · ")}
+                      </p>
                     )}
-                  </h3>
+                  </div>
 
-                  <p className="mt-0.5 text-base leading-snug text-tinta-suave">
-                    {t.extras.length === 0
-                      ? "La limpieza profunda completa"
-                      : `Suma ${t.extras.join(" · ")}`}
+                  {/* `shrink-0` y tabular: los precios quedan alineados
+                      entre si aunque los nombres midan distinto. */}
+                  <p className="shrink-0 text-xl font-semibold tabular-nums text-vino">
+                    {formatearPrecio(t.precio)}
                   </p>
-                </div>
-
-                {/* `shrink-0` y tabular: los precios quedan alineados entre
-                    si aunque los nombres midan distinto. */}
-                <p className="shrink-0 text-xl font-semibold tabular-nums text-vino">
-                  {formatearPrecio(t.precio)}
-                </p>
-              </li>
-            );
-          })}
-        </ul>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
 
         {/*
           La unica puerta de entrada, y por eso va aparte y con otro
