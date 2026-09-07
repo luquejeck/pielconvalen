@@ -31,26 +31,28 @@ export default function Beneficios({
       <div className="contenedor">
         <TituloSeccion titulo="Qué vas a notar" />
 
-        {/* Un icono por idea: la tarjeta se reconoce antes de leerla. */}
-        <div className="mx-auto mt-8 grid max-w-4xl gap-4 sm:grid-cols-3">
+        {/*
+          Tres renglones, no tres tarjetas.
+
+          Eran tres tarjetas apiladas con un circulo de 56px cada una,
+          media pantalla de celular para decir tres frases de seis
+          palabras. La promesa no necesita tanto lugar: se lee de un
+          vistazo o no se lee.
+
+          El icono baja a 44 y el titulo entra en el mismo renglon que su
+          explicacion, separado por el punto. Asi cada beneficio ocupa una
+          linea y los tres se leen como una lista, que es lo que son.
+        */}
+        <div className="tarjeta mx-auto mt-6 max-w-2xl divide-y divide-borde px-5 sm:px-7 xl:max-w-3xl">
           {BENEFICIOS.map(({ Icono, titulo, texto }) => (
-            /* En celular van apaisadas: apiladas y centradas ocupaban
-               tres pantallas para decir tres renglones. */
-            <div
-              key={titulo}
-              className="tarjeta flex items-center gap-4 px-5 py-5 transition-shadow hover:shadow-lg hover:shadow-tinta/5 sm:flex-col sm:px-6 sm:py-8 sm:text-center"
-            >
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-vino-suave text-vino">
-                <Icono className="h-7 w-7" />
+            <div key={titulo} className="flex items-center gap-4 py-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vino-suave text-vino">
+                <Icono className="h-6 w-6" />
               </span>
-              <div className="sm:contents">
-                <h3 className="text-xl font-semibold text-tinta sm:mt-5">
-                  {titulo}
-                </h3>
-                <p className="mt-1 text-lg leading-relaxed text-tinta-suave sm:mt-2">
-                  {texto}
-                </p>
-              </div>
+              <p className="text-lg leading-snug text-tinta-suave">
+                <span className="font-semibold text-tinta">{titulo}.</span>{" "}
+                {texto}
+              </p>
             </div>
           ))}
         </div>

@@ -6,14 +6,6 @@ import TituloSeccion from "./TituloSeccion";
 
 export default function Tratamientos() {
   const { tratamientos, consultorio, irAReservar } = useReserva();
-  /* El glosario tambien se edita desde el panel: son las explicaciones
-     en castellano de los nombres tecnicos. */
-  const GLOSARIO = consultorio.glosario;
-
-  const extrasDelCatalogo = [
-    ...new Set(tratamientos.flatMap((t) => t.extras)),
-  ].filter((extra) => GLOSARIO[extra]);
-
   /*
     "El mas completo" se calcula: es el que suma mas extras. Antes salia
     de la marca `destacado` de la base, y con dos tratamientos marcados
@@ -73,80 +65,6 @@ export default function Tratamientos() {
           titulo="Tratamientos"
           bajada="Todos parten de la misma limpieza profunda. La diferencia es lo que se le suma."
         />
-
-        {/*
-          Los nombres tecnicos se explican UNA sola vez. Repetirlos en
-          cada tarjeta llenaba la pantalla de letra chica.
-
-          Va sobre vino suave y no en otra tarjeta blanca: apilada debajo
-          de la de arriba, las dos se leian como una sola cosa partida al
-          medio. Ademas el vino suave ya es el color de la ayuda en esta
-          seccion —lo usa el bloque de abajo, el que lleva a reservar— y
-          esto es exactamente eso: la explicacion para quien no conoce
-          los nombres.
-
-          Cada nombre va en la MISMA ficha que despues aparece en las
-          tarjetas de tratamiento. Asi esto se lee como lo que es: la
-          referencia de esas fichas, no una lista suelta de terminos.
-          Sobre el vino suave la ficha se invierte a blanco, porque la
-          de las tarjetas usa justo este fondo.
-        */}
-        {extrasDelCatalogo.length > 0 && (
-          <details className="group mx-auto mt-4 max-w-4xl rounded-suave bg-vino-suave px-6 py-5 sm:px-8 xl:max-w-none">
-            {/*
-              Plegado, y abierto solo por quien lo necesita.
-
-              Esto es una referencia, no un paso del recorrido: explica
-              los tres nombres tecnicos que despues aparecen como fichas
-              en las tarjetas. Desplegado ocupaba media pantalla de
-              celular ENTRE el texto de Valen y la primera cifra, asi que
-              habia que scrollear mil pixeles de explicaciones antes de
-              ver un precio.
-
-              Los tres nombres se leen igual con el bloque cerrado: lo
-              unico que se guarda es la explicacion de cada uno. Quien ya
-              sabe que es un peeling sigue de largo; quien no, toca.
-
-              Es <details> del navegador, como las preguntas frecuentes:
-              anda sin JavaScript y el buscador del navegador encuentra
-              el texto de adentro aunque este cerrado.
-            */}
-            <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-2 marker:hidden">
-              <h3 className="rotulo-seccion">Lo que se suma en algunos</h3>
-
-              {/* Los nombres, siempre a la vista. Cerrado, esto ya dice
-                  de que se trata sin obligar a abrirlo. */}
-              <span className="text-lg text-tinta-suave">
-                {extrasDelCatalogo.join(" · ")}
-              </span>
-
-              <span
-                aria-hidden
-                className="ml-auto text-xl text-vino transition-transform group-open:rotate-45"
-              >
-                +
-              </span>
-            </summary>
-
-            {/* Cada ficha arriba de su explicacion, nunca al lado: los
-                nombres miden distinto y el texto arrancaba en tres
-                sangrias diferentes. */}
-            <dl className="mt-5 grid gap-5 lg:grid-cols-3 lg:gap-x-10">
-              {extrasDelCatalogo.map((extra) => (
-                <div key={extra}>
-                  <dt>
-                    <span className="inline-flex rounded-full bg-white px-4 py-1.5 text-base font-semibold text-vino">
-                      {extra}
-                    </span>
-                  </dt>
-                  <dd className="mt-2 text-lg leading-snug text-tinta">
-                    {GLOSARIO[extra]}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </details>
-        )}
 
         {/*
           La lista de precios, para mirar y no para elegir.
