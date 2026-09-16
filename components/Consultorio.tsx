@@ -74,7 +74,9 @@ export default function Consultorio({
 
           <div className="text-center lg:text-left">
             <p className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-              <span className="text-2xl font-semibold text-tinta">
+              {/* En Montserrat, como los titulos: en la letra del sistema
+                  el nombre se leia como un renglon mas del parrafo. */}
+              <span className="font-display text-[1.75rem] font-semibold leading-tight tracking-tight text-tinta">
                 {CONSULTORIO.profesional}
               </span>
               {/* Insignia y no texto corrido: colgaba sola al final del
@@ -97,35 +99,60 @@ export default function Consultorio({
               pagina, a la persona que te va a tocar la cara.
             */}
             {CONSULTORIO.bio && (
-              <p className="mt-5 text-lg leading-relaxed text-tinta">
-                {CONSULTORIO.bio}
-              </p>
+              /*
+                Como cita, con su comilla. Suelto era un parrafo centrado
+                mas, y no se distinguia que ahi hablaba ella.
+
+                text-balance reparte el largo entre los renglones: sin eso
+                "al revés." quedaba colgando solo en el ultimo, que en un
+                texto centrado es lo primero que se ve. text-pretty no
+                alcanza: evita una palabra sola, y "al revés." son dos.
+              */
+              <blockquote className="mt-6">
+                <span
+                  aria-hidden
+                  className="block h-6 font-display text-5xl leading-none text-vino"
+                >
+                  “
+                </span>
+                <p className="text-lg leading-relaxed text-balance text-tinta">
+                  {CONSULTORIO.bio}
+                </p>
+              </blockquote>
             )}
 
             {/*
-              Las tres garantias, en fila y como sellos.
+              Las tres garantias, como sellos: una columna cada una, con
+              el tilde en el mismo circulo de 44px que usan "Que vas a
+              notar" y "Como trabajo".
 
-              Antes eran una lista con vinetas adentro de una caja con
-              titulo propio, debajo de otra caja con titulo propio. Tres
-              bloques apilados se leen como un formulario; esto se lee de
-              un vistazo, que es lo que tiene que pasar.
+              Antes eran una lista de tildes finitos de 16px, que se leia
+              como letra chica. Y en escritorio no entraban en un renglon:
+              quedaban dos arriba y "Cabina privada" sola abajo. En tres
+              columnas fijas no hay corte posible, y la franja entre dos
+              lineas las junta como un solo bloque.
+
+              Sin tarjeta a proposito: el papel sobre este crema casi no
+              se distingue, y la tarjeta quedaba como una sombra flotando.
+
+              El rotulo lleva un ancho maximo para que los tres ocupen dos
+              renglones tambien en escritorio. Con la columna ancha
+              "Cabina privada" entraba en uno e "Instrumental
+              esterilizado" no, y los tres sellos quedaban desparejos.
             */}
             {CONSULTORIO.protocolo.length > 0 && (
-              /*
-                Apiladas en celular y en fila desde tablet. Con
-                flex-wrap a secas caia una arriba y dos apretadas abajo,
-                con los tildes de cada una pegados al texto de la
-                anterior. Tres garantias mal cortadas dejan de leerse
-                como garantias.
-              */
-              <ul className="mx-auto mt-6 flex w-fit flex-col items-start gap-2 sm:mx-0 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-6 lg:justify-start">
+              <ul className="mx-auto mt-7 grid max-w-xl grid-cols-3 divide-x divide-borde border-y border-borde py-5">
                 {CONSULTORIO.protocolo.slice(0, 3).map((punto) => (
                   <li
                     key={punto}
-                    className="flex items-center gap-2 text-base font-medium text-tinta"
+                    className="flex flex-col items-center gap-2.5 px-1.5 text-center"
                   >
-                    <IconoCheck className="h-4 w-4 shrink-0 text-vino" />
-                    {punto}
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-vino-suave text-vino">
+                      <IconoCheck className="h-5 w-5" />
+                    </span>
+                    <span className="max-w-[6.5rem] text-base leading-tight font-medium text-balance text-tinta">
+                      {punto}
+                    </span>
                   </li>
                 ))}
               </ul>
