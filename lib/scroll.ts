@@ -50,3 +50,27 @@ export function bajarA(
     });
   });
 }
+
+/**
+ * La version de escritorio de `bajarA`: mover la pagina LO JUSTO para
+ * que el paso se vea entero.
+ *
+ * En dos columnas no se puede llevar el paso al tope (ver `soloApilado`
+ * arriba), pero tampoco alcanza con quedarse quieto: al elegir el dia,
+ * los horarios aparecen abajo del calendario y en una pantalla de 800px
+ * quedan cortados por el borde, justo los libres, que van al final.
+ * `nearest` baja solo lo que falta para verlos, un tramo corto que el
+ * resumen fijo de la derecha acompaña sin salirse de su columna.
+ */
+export function asomarEnEscritorio(nodo: HTMLElement | null) {
+  if (!nodo) return;
+  if (!window.matchMedia("(min-width: 1024px)").matches) return;
+
+  requestAnimationFrame(() => {
+    const suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    nodo.scrollIntoView({
+      behavior: suave ? "smooth" : "auto",
+      block: "nearest",
+    });
+  });
+}

@@ -2,13 +2,13 @@
 
 import { useRef, useState } from "react";
 import TituloSeccion from "./TituloSeccion";
-import Calendario from "./Calendario";
+import Calendario, { Horarios, useDisponibilidad } from "./Calendario";
 import FondoImagen from "./FondoImagen";
 import GestionTurno from "./GestionTurno";
 import { useReserva } from "./ReservaContext";
 import { IconoCheck, IconoWhatsApp } from "./iconos";
 import { formatearFechaLarga } from "@/lib/fechas";
-import { bajarA } from "@/lib/scroll";
+import { asomarEnEscritorio, bajarA } from "@/lib/scroll";
 import { CONSULTA, esConsulta } from "@/lib/tratamientos";
 import { linkWhatsApp } from "@/lib/whatsapp";
 
@@ -33,7 +33,11 @@ export default function Reservas() {
    */
   const tratamiento = tratamientos.find(esConsulta) ?? CONSULTA;
 
-  const pasoDos = useRef<HTMLDivElement>(null);
+  const { ahora, disponibilidad, cargando } = useDisponibilidad(version);
+  const datosAgenda = { agenda, ahora, disponibilidad, cargando };
+
+  const pasoHorarios = useRef<HTMLDivElement>(null);
+  const pasoConfirmar = useRef<HTMLDivElement>(null);
 
   /* El nombre entra en la cuenta: sin el, el turno llega a la agenda
      sin decir de quien es. */
@@ -133,7 +137,7 @@ export default function Reservas() {
       <div className="contenedor">
         <TituloSeccion
           titulo="Reservá tu turno"
-          bajada="Elegí el día y la hora. Se confirma por WhatsApp."
+          bajada="En tres pasos: el día, el horario y confirmás por WhatsApp."
         />
 
         {/*
@@ -150,7 +154,11 @@ export default function Reservas() {
         <div className="mx-auto mt-8 grid max-w-5xl gap-5 lg:grid-cols-[1.15fr_0.85fr] xl:max-w-none">
           <div>
             {/* ---------- Paso 1 ---------- */}
-            <Paso numero={1} titulo="Elegí el día y la hora" />
+            <Paso
+              numero={1}
+              titulo="Elegí el día"
+              estado={fecha ? "hecho" : "actual"}
+            />
 
             {/*
               Lo primero que se aclara es que no hay que elegir nada mas.
@@ -168,18 +176,43 @@ export default function Reservas() {
             <div className="tarjeta mt-3 p-3 sm:p-5">
               <Calendario
                 key={version}
-                agenda={agenda}
+                {...datosAgenda}
+                fecha={fecha}
+                onElegirDia={(nuevaFecha) => {
+                  manejarCambio(nuevaFecha, null);
+                  /* Los horarios quedan abajo del calendario, fuera de
+                     pantalla: sin bajar, la clienta toca el dia y no ve
+                     que haya pasado nada. En celular se llevan al tope;
+                     en escritorio se baja lo justo para verlos. */
+                  bajarA(pasoHorarios.current, 120, true);
+                  asomarEnEscritorio(pasoHorarios.current);
+                }}
+              />
+            </div>
+
+            {/* ---------- Paso 2 ---------- */}
+            <div ref={pasoHorarios} className="mt-8 scroll-mt-24">
+              <Paso
+                numero={2}
+                titulo="Elegí el horario"
+                estado={hora ? "hecho" : fecha ? "actual" : "pendiente"}
+              />
+
+              <Horarios
+                {...datosAgenda}
                 fecha={fecha}
                 hora={hora}
-                onCambio={manejarCambio}
-                /* Elegida la hora ya no queda nada que tocar arriba:
-                   lo que sigue es confirmar. */
-                onHoraElegida={() => bajarA(pasoDos.current, 150, true)}
+                onElegirHora={(nuevaHora) => {
+                  manejarCambio(fecha, nuevaHora);
+                  /* Elegida la hora ya no queda nada que tocar arriba:
+                     lo que sigue es confirmar. */
+                  bajarA(pasoConfirmar.current, 150, true);
+                }}
               />
             </div>
           </div>
 
-          {/* ---------- Paso 2 ---------- */}
+          {/* ---------- Paso 3 ---------- */}
           {/*
             Dos divs y no uno: el de afuera es la celda del grid y se
             estira a lo alto de la fila; el de adentro es el que se pega.
@@ -191,8 +224,12 @@ export default function Reservas() {
             el boton de confirmar desaparecia justo al elegir el horario.
           */}
           <div>
-            <div ref={pasoDos} className="scroll-mt-24 lg:sticky lg:top-22">
-            <Paso numero={2} titulo="Confirmá por WhatsApp" />
+            <div ref={pasoConfirmar} className="scroll-mt-24 lg:sticky lg:top-22">
+            <Paso
+              numero={3}
+              titulo="Confirmá por WhatsApp"
+              estado={fecha && hora ? "actual" : "pendiente"}
+            />
 
             {resultado ? (
               <TurnoEnviado
@@ -278,14 +315,16 @@ export default function Reservas() {
                     </a>
                   </>
                 ) : (
-                  /* Antes decia siempre "completa los pasos 1 y 2",
-                     tambien cuando lo unico que faltaba era el nombre.
-                     Quien lee eso vuelve a mirar arriba y no encuentra
-                     nada mal. */
+                  /* Dice exactamente que falta, y en que paso. Antes decia
+                     "Elegí el día y la hora" tambien con el dia ya
+                     elegido: quien lo leia miraba el calendario, veia su
+                     dia marcado y no entendia que le faltaba. */
                   <p className="mt-3 rounded-full bg-vino/12 px-6 py-3.5 text-center text-lg text-tinta-suave">
-                    {fecha && hora
-                      ? "Escribí tu nombre para confirmar"
-                      : "Elegí el día y la hora"}
+                    {!fecha
+                      ? "Falta elegir el día (paso 1)"
+                      : !hora
+                        ? "Falta elegir el horario (paso 2)"
+                        : "Escribí tu nombre para confirmar"}
                   </p>
                 )}
 
@@ -463,13 +502,53 @@ function TurnoEnviado({
   );
 }
 
-function Paso({ numero, titulo }: { numero: number; titulo: string }) {
+/**
+ * En que paso esta, dicho con el circulo del numero.
+ *
+ *   pendiente  todavia no toca: circulo vacio y titulo apagado
+ *   actual     es lo que hay que hacer ahora: vino, con un halo
+ *   hecho      listo: vino con un tilde en vez del numero
+ *
+ * Es lo que le permite a alguien que no reserva por internet saber, de
+ * un vistazo, cuanto hizo y que le falta. Antes los dos pasos se veian
+ * siempre iguales, hubiera elegido algo o no.
+ */
+type EstadoPaso = "pendiente" | "actual" | "hecho";
+
+function Paso({
+  numero,
+  titulo,
+  estado,
+}: {
+  numero: number;
+  titulo: string;
+  estado: EstadoPaso;
+}) {
   return (
-    <div className="mt-6 flex items-center gap-3 first:mt-0">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-vino text-lg font-medium text-white">
-        {numero}
+    <div className="flex items-center gap-3">
+      <span
+        aria-hidden
+        className={[
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg font-semibold transition-all",
+          estado === "pendiente"
+            ? "border-2 border-borde bg-white text-tinta-suave"
+            : "bg-vino text-white",
+          estado === "actual" ? "ring-4 ring-vino/20" : "",
+        ].join(" ")}
+      >
+        {estado === "hecho" ? <IconoCheck className="h-5 w-5" /> : numero}
       </span>
-      <h3 className="text-xl font-semibold text-tinta">{titulo}</h3>
+      <h3
+        className={`text-xl font-semibold ${
+          estado === "pendiente" ? "text-tinta-suave" : "text-tinta"
+        }`}
+      >
+        <span className="sr-only">
+          Paso {numero}
+          {estado === "hecho" ? ", listo" : ""}:{" "}
+        </span>
+        {titulo}
+      </h3>
     </div>
   );
 }
