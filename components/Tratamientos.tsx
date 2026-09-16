@@ -1,9 +1,47 @@
 "use client";
 
 import { esConsulta, formatearPrecio } from "@/lib/tratamientos";
-import { IconoCheck, IconoReloj } from "./iconos";
 import { useReserva } from "./ReservaContext";
 import TituloSeccion from "./TituloSeccion";
+
+/*
+  LOS TONOS DE LAS CAPAS, de la mas clara a la mas intensa.
+
+  Van escritos y no calculados: una mezcla lineal entre el crema y el
+  vino pasa justo por el color del fondo de la seccion, y esa capa
+  quedaba sin bordes, como un hueco en la pila. Estos saltan ese tramo:
+  las dos primeras son mas claras que el fondo y las demas, mas oscuras.
+
+  Cada tono trae sus colores de texto, medidos contra ese fondo. El salto
+  de la cuarta a la quinta es donde el texto pasa a blanco: ahi la tinta
+  deja de leerse bien y el blanco empieza a pasar 4,5:1.
+
+    fondo     texto de la capa
+    suave     los extras (4,5:1 o mas)
+    precio    el numero (letra grande: alcanza con 3:1, todos pasan 5)
+    acento    la etiqueta "El más completo"
+*/
+const TONOS = [
+  { fondo: "#fdfbfc", texto: "#1d0f14", suave: "#6b525a", precio: "#7d0d46", acento: "#7d0d46" },
+  { fondo: "#f7e8ee", texto: "#1d0f14", suave: "#6b525a", precio: "#7d0d46", acento: "#7d0d46" },
+  { fondo: "#e3c3d1", texto: "#1d0f14", suave: "#5a4148", precio: "#7d0d46", acento: "#7d0d46" },
+  { fondo: "#cf9ab3", texto: "#1d0f14", suave: "#3d2a31", precio: "#5d0a34", acento: "#5d0a34" },
+  { fondo: "#a24a76", texto: "#ffffff", suave: "#fbeef4", precio: "#ffffff", acento: "#fbeef4" },
+  { fondo: "#7d0d46", texto: "#ffffff", suave: "#f3dbe6", precio: "#ffffff", acento: "#f3dbe6" },
+];
+
+/*
+  Que tono le toca a cada fila.
+
+  Hoy son seis tratamientos y seis tonos, uno para cada uno. Si Valen
+  carga menos, se reparten a lo largo de la escala y la ultima sigue
+  siendo la mas intensa; si carga mas, se repiten los del medio. Asi la
+  pila siempre arranca clara y termina en vino.
+*/
+function tonoDe(indice: number, total: number) {
+  if (total <= 1) return TONOS[0];
+  return TONOS[Math.round((indice * (TONOS.length - 1)) / (total - 1))];
+}
 
 export default function Tratamientos() {
   const { tratamientos, consultorio, irAReservar } = useReserva();
@@ -11,17 +49,17 @@ export default function Tratamientos() {
   /* Los que se muestran con precio. La consulta no va: no tiene numero. */
   const conPrecio = tratamientos.filter((t) => !esConsulta(t));
 
-  /* De menor a mayor: la lista se recorre como una escalera. `slice`
+  /* De menor a mayor: la pila se recorre como una escalera. `slice`
      porque `sort` ordena en el lugar y `tratamientos` viene del contexto. */
   const porPrecio = conPrecio.slice().sort((a, b) => a.precio - b.precio);
 
   /*
     La duracion se muestra solo si TODOS duran lo mismo.
 
-    Es lo que la hace decible en una sola linea arriba de la lista. Si
-    algun dia Valen carga uno de media hora, la banda deja de afirmar
-    algo que seria falso para esa fila y la duracion simplemente no
-    aparece: mejor no decirla que decirla mal.
+    Es lo que la hace decible en una sola linea. Si algun dia Valen carga
+    uno de media hora, la linea deja de afirmar algo que seria falso para
+    esa fila y la duracion simplemente no aparece: mejor no decirla que
+    decirla mal.
   */
   const duraciones = [...new Set(conPrecio.map((t) => t.duracion))];
   const duracionComun = duraciones.length === 1 ? duraciones[0] : null;
@@ -49,12 +87,9 @@ export default function Tratamientos() {
   );
 
   /*
-    Los extras siempre en el mismo orden, alfabetico.
-
-    En la base cada tratamiento los tiene en el orden en que se cargaron:
-    una fila decia "Dermaplaning · Ácidos" y la de abajo "Ácidos ·
-    Microneedling". Con el orden fijo, Ácidos cae siempre primero y lo
-    que cambia de una fila a la otra salta a la vista.
+    Los extras siempre en el mismo orden, alfabetico. En la base cada
+    tratamiento los tiene en el orden en que se cargaron, y una fila
+    decia "Dermaplaning · Ácidos" y la de abajo "Ácidos · Microneedling".
   */
   const ordenar = (extras: string[]) =>
     extras.slice().sort((a, b) => a.localeCompare(b, "es"));
@@ -71,150 +106,119 @@ export default function Tratamientos() {
         />
 
         {/*
-          La lista de precios, para mirar y no para elegir.
+          CAPAS.
 
-          Antes cada tarjeta tenia su boton "Reservar este" y el
-          tratamiento viajaba elegido hasta el turno. Elegirlo de
-          antemano es pedirle a la clienta una decision que no esta en
-          condiciones de tomar: cual corresponde se sabe recien con la
-          piel a la vista. Los precios siguen todos publicados —esconder
-          lo que sale es lo que hace desconfiar—, pero el turno es uno
-          solo y sale como consulta.
+          La bajada dice "todos parten de la misma limpieza, la
+          diferencia es lo que se le suma". Esto lo dibuja: cada
+          tratamiento es una capa apoyada sobre la anterior, y cada capa
+          es un tono mas intensa, del crema al vino. El mas completo
+          queda abajo de todo y en vino pleno, y se distingue sin
+          necesidad de un cartel.
 
-          UNA BASE, Y LO QUE SE LE SUMA.
+          Antes fue una lista de precios con renglones divididos y
+          despues con etiquetas; las dos se leian como una planilla.
 
-          Lo que comparten todos —la limpieza completa y la duracion— se
-          dice UNA vez, arriba. Debajo, una fila por tratamiento, ordenadas
-          por precio: la lista se recorre como una escalera y cada peldaño
-          agrega algo mas que el anterior.
+          Las capas se pisan 20px: la de abajo tapa el borde inferior de
+          la de arriba, y por las esquinas redondeadas asoma el tono
+          anterior. Cada una es `relative` para que se pinten en orden y
+          ninguna deje ver el texto de la que tiene encima. El margen
+          inferior de cada capa (pb-9) es mas grande que lo que se pisa,
+          asi que el texto nunca queda tapado.
 
-          Todo en UNA tarjeta, con el cierre adentro. Antes eran tres
-          piezas sueltas —la franja de arriba, la lista y una caja rosa
-          aparte con el boton— sobre un fondo rosa casi del mismo tono, y
-          de lejos se leia como una sola mancha. Ahora es un objeto:
-          arriba lo que incluye, al medio los precios, abajo que hacer.
+          La lista de precios es para mirar, no para elegir: cual
+          corresponde se sabe recien con la piel a la vista. Por eso no
+          hay un boton por capa, sino uno solo abajo.
         */}
-        <div className="tarjeta mx-auto mt-6 max-w-3xl overflow-hidden xl:max-w-4xl">
-          <div className="border-b border-borde px-5 pt-5 pb-4 sm:px-7">
-            <h3 className="rotulo-seccion text-sm">Todas incluyen</h3>
-            <ul className="mt-2.5 flex flex-wrap gap-x-6 gap-y-2 text-lg leading-snug text-tinta">
-              <li className="flex items-center gap-2.5">
-                <IconoCheck className="h-5 w-5 shrink-0 text-vino" />
-                La limpieza profunda completa
-              </li>
-              {duracionComun && (
-                <li className="flex items-center gap-2.5">
-                  <IconoReloj className="h-5 w-5 shrink-0 text-vino" />
-                  {duracionComun}
-                </li>
-              )}
-            </ul>
-          </div>
+        <ul className="mx-auto mt-8 max-w-3xl xl:max-w-4xl">
+          {porPrecio.map((t, i) => {
+            const tono = tonoDe(i, porPrecio.length);
+            const esMasCompleto = t.id === masCompleto?.id;
+            const esUltima = i === porPrecio.length - 1;
 
-          <ul className="divide-y divide-borde px-5 sm:px-7">
-            {porPrecio.map((t) => {
-              const esMasCompleto = t.id === masCompleto?.id;
-
-              return (
-                /* Grilla de dos columnas: el nombre y su precio
-                   comparten renglon aunque arriba haya etiqueta, y los
-                   extras usan el ancho entero, tambien bajo el precio. */
-                <li
-                  key={t.id}
-                  className="grid grid-cols-[1fr_auto] items-baseline gap-x-4 py-4"
-                >
-                  {/*
-                    La etiqueta va ARRIBA del nombre y no pegada al
-                    final. Pegada, en celular caia sola en un renglon
-                    entre el nombre y sus extras, y parecia un error de
-                    armado.
-                  */}
+            return (
+              <li
+                key={t.id}
+                style={{ backgroundColor: tono.fondo, color: tono.texto }}
+                className={`relative flex items-baseline justify-between gap-4 rounded-suave px-5 pt-4 sm:px-8 sm:pt-5 ${
+                  i > 0 ? "-mt-5" : ""
+                } ${esUltima ? "pb-5 sm:pb-6" : "pb-9 sm:pb-10"}`}
+              >
+                <div className="min-w-0">
                   {esMasCompleto && (
-                    <p className="col-span-2 mb-2">
-                      <span className="rounded-full bg-vino px-2.5 py-1 text-sm font-semibold text-white">
-                        El más completo
-                      </span>
+                    <p
+                      style={{ color: tono.acento }}
+                      className="mb-1 font-display text-sm font-medium tracking-[0.16em] uppercase"
+                    >
+                      El más completo
                     </p>
                   )}
 
-                  <h4 className="min-w-0 text-lg leading-snug font-semibold text-tinta">
+                  <h3 className="font-display text-lg leading-snug font-medium">
                     {t.nombre}
-                  </h4>
+                  </h3>
 
-                  {/* Tabular: los precios quedan alineados entre si
-                      aunque los nombres midan distinto. */}
-                  <p className="text-xl leading-snug font-semibold tabular-nums text-vino">
-                    {formatearPrecio(t.precio)}
-                  </p>
-
-                  {/*
-                    Lo que suma, en etiquetas y no en texto corrido.
-
-                    Es lo unico que distingue una fila de la otra, y como
-                    texto gris de 16px era lo que menos se veia. En
-                    etiquetas se cuentan de un vistazo: una, dos, tres.
-                    El "+" va adentro de cada una porque cada una es algo
-                    que se agrega.
-                  */}
                   {t.extras.length > 0 && (
-                    <ul className="col-span-2 mt-2.5 flex flex-wrap gap-1.5">
-                      {ordenar(t.extras).map((extra) => (
-                        <li
-                          key={extra}
-                          className="rounded-full bg-vino-suave px-3 py-1 text-base leading-tight font-medium text-vino"
-                        >
-                          {/* Para quien escucha la pagina, "+" no se lee:
-                              la palabra va escondida y el signo queda de
-                              adorno. */}
-                          <span aria-hidden>+ </span>
-                          <span className="sr-only">Suma </span>
-                          {extra}
-                        </li>
-                      ))}
-                    </ul>
+                    <p
+                      style={{ color: tono.suave }}
+                      className="mt-1 text-base leading-snug"
+                    >
+                      {/* Para quien escucha la pagina, "+" no se lee: la
+                          palabra va escondida y el signo queda de adorno. */}
+                      <span aria-hidden>+ </span>
+                      <span className="sr-only">Suma </span>
+                      {ordenar(t.extras).join(" · ")}
+                    </p>
                   )}
-                </li>
-              );
-            })}
-          </ul>
+                </div>
 
-          {/*
-            La unica puerta de entrada. Va con otro fondo porque la lista
-            informa y esto es lo que se toca.
+                {/* Tabular: los precios quedan alineados entre si aunque
+                    los nombres midan distinto. */}
+                <p
+                  style={{ color: tono.precio }}
+                  className="shrink-0 font-display text-xl font-medium tabular-nums"
+                >
+                  {formatearPrecio(t.precio)}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
 
-            Antes repetia, casi palabra por palabra, lo que se lee dos
-            secciones mas arriba: que el turno entra como consulta y que
-            Valen define el tratamiento al ver la piel. Aca alcanza con
-            una linea.
-          */}
-          <div className="flex flex-col gap-4 border-t border-borde bg-crema px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
-            <div>
-              <h3 className="text-xl font-semibold text-tinta">
-                ¿Cuál te corresponde?
-              </h3>
-              <p className="mt-1 text-lg leading-snug text-tinta-suave">
-                Lo deciden juntas al llegar, mirando tu piel.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={irAReservar}
-              className="boton-principal shrink-0 whitespace-nowrap"
-            >
-              Reservar turno
-            </button>
-          </div>
-        </div>
-
-        {/* Debajo de los precios, que es donde aparece la duda */}
-        <p className="mx-auto mt-5 max-w-3xl text-center text-lg text-balance text-tinta-suave">
+        {/*
+          Lo que falta saber antes de decidir, en un renglon y sin caja:
+          cuanto dura y como se paga. La duracion estuvo mucho tiempo sin
+          aparecer en ningun lado, y quien reservaba a las 18:00 no tenia
+          como saber que salia a las 20:00.
+        */}
+        <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-snug text-balance text-tinta-suave">
+          {duracionComun && <>Cada sesión dura {duracionComun}. </>}
           Se puede pagar con{" "}
           <span className="font-medium text-tinta">
             {consultorio.mediosDePago}
           </span>
           .
         </p>
+
+        {/*
+          La unica puerta de entrada. Suelta y centrada, sin tarjeta: las
+          capas ya son lo bastante vistosas, y una caja mas abajo competia
+          con ellas.
+        */}
+        <div className="mx-auto mt-10 max-w-xl text-center">
+          <h3 className="font-display text-2xl font-semibold text-tinta">
+            ¿Cuál te corresponde?
+          </h3>
+          <p className="mt-1.5 text-lg leading-snug text-tinta-suave">
+            Lo deciden juntas al llegar, mirando tu piel.
+          </p>
+          <button
+            type="button"
+            onClick={irAReservar}
+            className="boton-principal mt-5 w-full sm:w-auto sm:px-9"
+          >
+            Reservar turno
+          </button>
+        </div>
       </div>
     </section>
   );
