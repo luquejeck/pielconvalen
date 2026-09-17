@@ -46,6 +46,17 @@ export type Producto = {
   categoria: Categoria;
   /** En pesos. 0 muestra "Consultar" y manda igual al WhatsApp. */
   precio: number;
+  /**
+   * Lo que salia antes, para las ofertas. Cargarlo prende solo la
+   * etiqueta de descuento y el precio tachado; vacio, la ficha no
+   * muestra nada de eso.
+   *
+   * Es un campo aparte y no un "descuento: 32" a proposito: el numero
+   * que la clienta compara es el precio viejo, y el porcentaje se
+   * calcula. Al reves, un porcentaje cargado a mano se desincroniza
+   * apenas Valen toca el precio.
+   */
+  precioAnterior?: number;
   /** Dos renglones como mucho: que hace y para quien. */
   descripcion: string;
   /** Para que sirve, en dos o tres palabras. Son las etiquetas de la ficha. */
@@ -287,6 +298,61 @@ export const marcas = () =>
   );
 
 export const fotoDe = (p: Producto) => `/imagenes/productos/${p.id}.webp`;
+
+/** El porcentaje de descuento, o null si el producto no esta en oferta. */
+export function descuentoDe(p: Producto): number | null {
+  if (!p.precioAnterior || p.precioAnterior <= p.precio) return null;
+  return Math.round((1 - p.precio / p.precioAnterior) * 100);
+}
+
+export const aSlug = (texto: string) =>
+  texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+export type MarcaConFoto = {
+  nombre: string;
+  slug: string;
+  cuantos: number;
+  /** La foto que la representa: la del producto mas caro de esa marca. */
+  foto: string;
+};
+
+/**
+ * Las marcas para el mosaico, de la que mas productos tiene a la que
+ * menos.
+ *
+ * El orden no es alfabetico porque el mosaico no trata a todas igual: la
+ * primera ocupa el doble que las demas. Que ese lugar se lo lleve la
+ * marca con mas productos es lo unico que se sostiene solo cuando Valen
+ * cargue o saque cosas, sin tener que acordarse de reordenar nada.
+ *
+ * La foto de cada una es la del producto mas caro: no por el precio en
+ * si, sino porque suele ser el envase mas vistoso de la linea.
+ */
+export function marcasConFoto(): MarcaConFoto[] {
+  const publicados = productosPublicados();
+
+  return marcas()
+    .map((nombre) => {
+      const suyos = publicados.filter((p) => p.marca === nombre);
+      const cara = suyos.reduce((a, b) => (b.precio > a.precio ? b : a));
+      return {
+        nombre,
+        slug: aSlug(nombre),
+        cuantos: suyos.length,
+        foto: fotoDe(cara),
+      };
+    })
+    .sort((a, b) => b.cuantos - a.cuantos || a.nombre.localeCompare(b.nombre, "es"));
+}
+
+/** Los de una marca, buscada por slug. Vacio si el slug no existe. */
+export const productosDeMarca = (slug: string) =>
+  productosPublicados().filter((p) => aSlug(p.marca) === slug);
 
 /**
  * El precio como se muestra en la ficha.

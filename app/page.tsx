@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Preguntas from "@/components/Preguntas";
+import Marcas from "@/components/Marcas";
 import Productos from "@/components/Productos";
 import { ReservaProvider } from "@/components/ReservaContext";
 import Reservas from "@/components/Reservas";
@@ -133,6 +134,16 @@ export default async function Home() {
           mesa oscura y sobre el crema quedaban como parches negros.
         */}
         <Productos consultorio={CONSULTORIO} />
+
+        {/*
+          El mosaico de marcas va DESPUES del carrusel y no antes.
+
+          Quien baja hasta aca todavia no sabe que Valen vende productos:
+          primero tiene que verlos. La marca es la segunda pregunta —"¿y
+          tiene la que yo uso?"— y es la que lleva al catalogo filtrado,
+          que es donde se compra.
+        */}
+        <Marcas />
 
         {/* Al final de todo: es una seccion de consulta, no parte del
             recorrido. Quien la necesita la busca. */}

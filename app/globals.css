@@ -59,47 +59,30 @@
   --color-tinta-suave: #6b525a;
 
   /*
-    LA TIENDA — una paleta aparte, sin vino
-    ==================================================================
-    Los productos no son de Valen: son de Medicube, Beauty of Joseon,
-    Ariul. Vestirlos de vino los volvia parte de la marca, que es
-    justo lo que no son, y encima los envases ya traen su propio color
-    —rosa, celeste, amarillo— que peleaba con el de la casa.
+    LA TIENDA — sin color propio
+    ------------------------------------------------------------------
+    La tienda usa la paleta de la casa: crema y papel de superficie,
+    tinta de texto, vino de acento. No trae tokens nuevos.
 
-    Asi que la tienda es GRIS NEUTRO Y BLANCO, sin una gota de croma.
-    Es el sistema de Apple y el razonamiento es el mismo: si el marco
-    no tiene color, el unico color de la pantalla es el del producto.
-    El resto de la web sigue en vino, que es la marca de Valen.
+    Un intento anterior la vistio de gris neutro para que el unico color
+    de la pantalla fuera el del envase. Se veia bien sola y se veia como
+    otro sitio al lado de la portada, que es lo que no queria Lucas.
 
-    El salto del fondo a la ficha blanca es 1,12:1. Quedo apretado
-    entre dos limites: abajo, el 1,11 que en esta web es donde un
-    cambio de superficie se empieza a ver; arriba, el 4,5:1 que el
-    gris secundario tiene que conservar sobre el fondo, y que se
-    pierde apenas el fondo se oscurece un paso mas (#efeff2 ya lo
-    baja a 4,42). De todos modos el que dibuja el borde de la ficha
-    no es este salto sino la escena oscura de la foto.
+    El vino queda como acento y no como superficie: pinta el precio de
+    oferta y la etiqueta de descuento, que es donde tiene que saltar, y
+    no el fondo de nada. Los envases —rosa, celeste, amarillo— ya no
+    pelean con el, porque no lo tienen al lado.
+
+    La UNICA superficie oscura es la base donde se apoya el envase, y es
+    --color-tinta, el mismo negro teñido de vino del pie de pagina. Las
+    fotos vinieron sacadas de noche contra una mesa oscura y no se pueden
+    pasar a fondo claro: la mano con flash tiene el mismo brillo que la
+    caja, asi que recortar por luminancia la deja fantasma, y sumarle un
+    peso por posicion —el envase esta centrado, la mano entra por los
+    costados— recorta los envases altos. Sin retocar a mano, no salen.
+    Las fotos funden exactamente a ese valor en
+    scripts/preparar-fotos.mjs.
   */
-  --color-tienda-fondo: #f2f2f5;
-  --color-tienda-ficha: #ffffff;
-
-  /*
-    La escena donde se apoya el envase.
-
-    Las fotos vinieron sacadas de noche contra una mesa oscura, y no se
-    pueden pasar a fondo claro: la mano con flash tiene el mismo brillo
-    que la caja, asi que recortar por luminancia deja la mano fantasma.
-    En vez de pelear con eso, cada producto va sobre su propia base
-    oscura, como la pieza de una vitrina. Las fotos funden exactamente a
-    este valor (scripts/preparar-fotos.mjs), asi que la escena y la foto
-    son una sola cosa.
-
-    Es gris neutro y no la tinta de la web: la tinta esta teñida de vino
-    (30 16 21) y al lado del blanco puro de la ficha ese tinte se ve.
-  */
-  --color-tienda-escena: #2b2b2e;
-
-  --color-tienda-tinta: #1d1d1f; /* texto y botones: 16,8:1 sobre blanco */
-  --color-tienda-suave: #6e6e73; /* secundario: 5,1:1 sobre blanco */
 
   /* La tipografia que ya trae cada aparato: San Francisco en iPhone y
      Mac, Segoe en Windows, Roboto en Android. Ninguna se descarga, y son
@@ -233,6 +216,24 @@
     .contenedor {
       max-width: 84rem;
     }
+  }
+
+  /*
+    La fila del carrusel se desliza pero no dibuja la barra.
+
+    En celular la barra ya no se ve (los sistemas la esconden solos),
+    pero en Windows y Linux ocupa 15px permanentes debajo de cada fila de
+    productos: con cinco categorias en /productos eran cinco barras
+    grises cruzando la pagina. El gesto no se pierde —rueda, dedo y las
+    flechas siguen andando— y el foco del teclado tampoco, porque la
+    lista es `tabIndex={0}` y se recorre con las flechas.
+  */
+  .sin-barra {
+    scrollbar-width: none;
+  }
+
+  .sin-barra::-webkit-scrollbar {
+    display: none;
   }
 
   /* Boton principal: alto generoso para que sea facil de tocar */

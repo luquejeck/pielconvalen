@@ -49,8 +49,10 @@ const AJUSTE = 1;
 /**
  * El color al que se funden los bordes.
  *
- * TIENE QUE SER EXACTAMENTE --color-tienda-escena de app/globals.css,
- * que es la base oscura sobre la que se apoya el envase en cada ficha.
+ * TIENE QUE SER EXACTAMENTE --color-tinta de app/globals.css, que es la
+ * base oscura sobre la que se apoya el envase en cada ficha —y el mismo
+ * negro teñido de vino que usa el pie de pagina, asi que la tienda no
+ * trae un color que la web no tenga.
  * Si los dos valores se separan aparece un halo rectangular alrededor de
  * cada producto.
  *
@@ -63,7 +65,7 @@ const AJUSTE = 1;
  * alrededor (la Dynasty Cream llega a rgb(97,65,75) en las esquinas)
  * mostraban el corte, y ahora terminan todas igual.
  */
-const ESCENA = "43,43,46";
+const ESCENA = "29,15,20";
 
 /*
   De que archivo sale cada producto.
