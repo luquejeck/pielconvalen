@@ -159,6 +159,57 @@ export function mensajeProducto({
   return lineas.join("\n");
 }
 
+/**
+ * El pedido entero en un solo mensaje.
+ *
+ * Es la razon de ser del carrito: antes cada producto abria su propio
+ * chat, asi que llevarse tres cosas eran tres conversaciones sueltas que
+ * Valen tenia que juntar a mano para saber que estaba pidiendo la
+ * clienta.
+ *
+ * El total va escrito aunque se pueda sumar mirando: es el numero sobre
+ * el que las dos tienen que estar de acuerdo, y ponerlo evita el ida y
+ * vuelta de "¿cuanto era todo?".
+ */
+export function mensajePedido(
+  lineas: { marca: string; nombre: string; medida?: string; precio: number; cantidad: number }[]
+): string {
+  const partes = [`Hola Valen! Te hago un pedido 🌿`, ``];
+
+  for (const l of lineas) {
+    const detalle = l.medida ? ` (${l.medida})` : "";
+    /* Sin precio cargado se pide en el renglon, en vez de mostrar un
+       "$ 0" que no dice nada y ensucia el total. */
+    const importe =
+      l.precio > 0
+        ? formatearPrecio(l.precio * l.cantidad).replace(/ /g, " ")
+        : "a confirmar";
+    partes.push(`• ${l.cantidad} × ${l.nombre}${detalle} — ${importe}`);
+  }
+
+  const total = lineas.reduce((n, l) => n + l.precio * l.cantidad, 0);
+  const hayAConfirmar = lineas.some((l) => l.precio === 0);
+
+  partes.push(``);
+  partes.push(
+    `Total: ${formatearPrecio(total).replace(/ /g, " ")}${
+      hayAConfirmar ? " + los que faltan confirmar" : ""
+    }`
+  );
+  partes.push(``, `¿Me confirmás disponibilidad?`);
+
+  return partes.join("\n");
+}
+
+export function linkPedido(
+  lineas: Parameters<typeof mensajePedido>[0],
+  numero?: string
+): string {
+  return `https://wa.me/${numero ?? CONSULTORIO.whatsapp}?text=${encodeURIComponent(
+    mensajePedido(lineas)
+  )}`;
+}
+
 export function linkProducto(datos: DatosProducto, numero?: string): string {
   return `https://wa.me/${numero ?? CONSULTORIO.whatsapp}?text=${encodeURIComponent(
     mensajeProducto(datos)

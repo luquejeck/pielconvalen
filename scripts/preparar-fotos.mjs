@@ -255,19 +255,76 @@ const aSlug = (texto) =>
     .replace(/^-|-$/g, "");
 
 /**
- * Las imagenes de marca: recorte al centro y nada mas.
+ * Las imagenes de marca, con la misma deteccion que las de producto.
  *
- * Al centro porque en las cinco el logo esta centrado, y tres de ellas
- * son banners apaisados (Medicube 2,05; AHC 1,78; d'Alba 2,18) que al
- * pasar a cuadrado pierden los costados. El logo se salva siempre; lo
- * que se va es fondo.
+ * Hay dos clases conviviendo y no se pueden tratar igual:
+ *
+ *   LOGOS sobre blanco (Medicube, Ariul, AHC). Van con `contain`: el
+ *   logo de Ariul es 2:1 y recortarlo a cuadrado le come las puntas de
+ *   la firma. Se rellena con el mismo blanco y no se nota que sobro
+ *   lugar. Ademas se achica al 70% del cuadro, porque un logo pegado
+ *   contra los cuatro bordes se lee como un recorte mal hecho: el aire
+ *   alrededor es parte de como se dibujo la marca.
+ *
+ *   FOTOS (la linea de Beauty of Joseon, el fondo de d'Alba). Van con
+ *   `cover`: traen fondo de sobra y el recorte al centro no pierde nada
+ *   importante.
+ *
+ * Cual es cual NO se decide por el brillo del borde, como en los
+ * productos: las cinco imagenes de marca son claras, incluida la foto de
+ * la linea de Beauty of Joseon, que esta sobre crema. Lo que las separa
+ * es cuanto de la imagen es casi blanco: un logo es casi todo fondo
+ * —Medicube 94%, Ariul 89%, AHC 90%— y una foto no —Beauty of Joseon 1%,
+ * d'Alba 19%. Entre 19 y 89 no hay nada, asi que el 60% del medio es un
+ * umbral comodo.
+ *
+ * Devuelve si es un logo, que es lo que el mosaico necesita saber para
+ * escribir el nombre en tinta o en crema.
  */
-async function prepararMarca(entrada, slug) {
-  await sharp(entrada)
+async function esLogo(entrada) {
+  const { data } = await sharp(entrada)
     .rotate()
-    .resize(MARCAS_LADO, MARCAS_LADO, { fit: "cover", position: "centre" })
-    .webp({ quality: 85 })
-    .toFile(path.join(MARCAS_DESTINO, `${slug}.webp`));
+    .resize(64, 64, { fit: "cover" })
+    .greyscale()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  let blancos = 0;
+  for (const v of data) if (v >= 235) blancos++;
+  return blancos / data.length >= 0.6;
+}
+
+async function prepararMarca(entrada, slug) {
+  const clara = await esLogo(entrada);
+  const L = MARCAS_LADO;
+
+  const base = sharp(entrada).rotate();
+
+  const imagen = clara
+    ? await base
+        .resize(Math.round(L * 0.7), Math.round(L * 0.7), {
+          fit: "inside",
+          withoutEnlargement: false,
+        })
+        .toBuffer()
+    : await base.resize(L, L, { fit: "cover", position: "centre" }).toBuffer();
+
+  const lienzo = clara
+    ? sharp({
+        create: {
+          width: L,
+          height: L,
+          channels: 3,
+          background: { r: 253, g: 251, b: 252 },
+        },
+      }).composite([{ input: imagen, gravity: "centre" }])
+    : sharp(imagen);
+
+  await lienzo.webp({ quality: 85 }).toFile(
+    path.join(MARCAS_DESTINO, `${slug}.webp`)
+  );
+
+  return clara;
 }
 
 /* ------------------------------------------------------------------ */
@@ -379,6 +436,7 @@ if (sueltos.length) {
 
 const archivosMarca = await readdir(MARCAS_ORIGENES);
 let marcasListas = 0;
+const marcasClaras = [];
 const marcasSinFoto = [];
 
 for (const m of marcas) {
@@ -392,9 +450,20 @@ for (const m of marcas) {
     marcasSinFoto.push(`${slug}.jpg   ${m}`);
     continue;
   }
-  await prepararMarca(path.join(MARCAS_ORIGENES, archivo), slug);
+  const clara = await prepararMarca(path.join(MARCAS_ORIGENES, archivo), slug);
+  if (clara) marcasClaras.push(slug);
   marcasListas++;
 }
+
+await writeFile(
+  path.join(MARCAS_DESTINO, "fondos.json"),
+  JSON.stringify(
+    Object.fromEntries(marcasClaras.map((s) => [s, "claro"])),
+    null,
+    2
+  ) + "\n",
+  "utf8"
+);
 
 console.log(
   `${marcasListas} de ${marcas.length} imagenes de marca listas en ${MARCAS_DESTINO}/`

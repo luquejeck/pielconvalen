@@ -43,11 +43,7 @@ export default function Productos({
         <div className="mt-8">
           <CarruselProductos etiqueta="Productos destacados">
             {destacados.map((p) => (
-              <FichaProducto
-                key={p.id}
-                producto={p}
-                whatsapp={CONSULTORIO.whatsapp}
-              />
+              <FichaProducto key={p.id} producto={p} />
             ))}
           </CarruselProductos>
         </div>

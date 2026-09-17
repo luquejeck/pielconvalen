@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import Image from "next/image";
 import Link from "next/link";
 import { marcasConFoto } from "@/lib/productos";
@@ -21,6 +21,26 @@ function imagenDe(marca: { slug: string; foto: string }) {
   const propia = `/imagenes/marcas/${marca.slug}.webp`;
   return existsSync(`public${propia}`) ? propia : marca.foto;
 }
+
+/**
+ * Que marcas tienen LOGO y no foto.
+ *
+ * Lo decide `npm run fotos` midiendo cuanto de la imagen es casi blanco:
+ * un logo es casi todo fondo y una foto no. Las dos cosas se dibujan
+ * distinto y por eso hace falta saberlo:
+ *
+ *   LOGO   fondo claro, la imagen entera sin recortar y con aire
+ *          alrededor, y el nombre debajo en tinta. Sin degrade: un velo
+ *          oscuro sobre un logo blanco es una mancha.
+ *   FOTO   ocupa todo el cuadro, degrade abajo y el nombre en crema.
+ */
+const LOGOS: Record<string, string> = (() => {
+  try {
+    return JSON.parse(readFileSync("public/imagenes/marcas/fondos.json", "utf8"));
+  } catch {
+    return {};
+  }
+})();
 
 /**
  * El mosaico de marcas: una grande y cuatro chicas.
@@ -78,44 +98,57 @@ function Tarjeta({
   marca: ReturnType<typeof marcasConFoto>[number];
   grande?: boolean;
 }) {
+  const esLogo = LOGOS[marca.slug] === "claro";
+
   return (
     <Link
       href={`/productos?marca=${marca.slug}`}
-      className="group relative block overflow-hidden rounded-chico bg-tinta"
+      className={`group relative block overflow-hidden rounded-chico ${
+        esLogo ? "border border-borde bg-papel" : "bg-tinta"
+      }`}
       aria-label={`Ver los ${marca.cuantos} productos de ${marca.nombre}`}
     >
       <Image
         src={imagenDe(marca)}
         alt=""
-        width={640}
-        height={640}
-        sizes={grande ? "(min-width: 1024px) 34rem, 92vw" : "(min-width: 1024px) 17rem, 45vw"}
-        className={`w-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-          grande ? "aspect-4/3 lg:aspect-square" : "aspect-square"
-        }`}
+        width={900}
+        height={900}
+        sizes={
+          grande
+            ? "(min-width: 1024px) 34rem, 92vw"
+            : "(min-width: 1024px) 17rem, 45vw"
+        }
+        className={`w-full transition-transform duration-500 group-hover:scale-105 ${
+          esLogo ? "object-contain" : "object-cover"
+        } ${grande ? "aspect-4/3 lg:aspect-square" : "aspect-square"}`}
       />
 
       {/*
-        El degrade va del transparente al tinta para que el nombre se lea
-        siempre. Sin el, el texto blanco caia sobre la caja clara de la
-        Dynasty Cream y desaparecia.
+        El degrade solo va sobre las fotos. Sobre un logo blanco, un velo
+        oscuro en el borde inferior se ve como una mancha, y el nombre en
+        tinta se lee solo sin ayuda.
       */}
-      <span
-        aria-hidden
-        className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-tinta to-transparent"
-      />
+      {!esLogo && (
+        <span
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-tinta to-transparent"
+        />
+      )}
 
       <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3 sm:p-4">
         <span
-          className={`font-display font-semibold tracking-[0.06em] text-crema uppercase ${
-            grande ? "text-lg sm:text-2xl" : "text-sm sm:text-base"
-          }`}
+          className={`font-display font-semibold tracking-[0.06em] uppercase ${
+            esLogo ? "text-tinta" : "text-crema"
+          } ${grande ? "text-lg sm:text-2xl" : "text-sm sm:text-base"}`}
         >
           {marca.nombre}
         </span>
 
         {/* La barrita del margen derecho, como en la referencia. */}
-        <span aria-hidden className="mb-1 h-5 w-1 shrink-0 bg-crema" />
+        <span
+          aria-hidden
+          className={`mb-1 h-5 w-1 shrink-0 ${esLogo ? "bg-vino" : "bg-crema"}`}
+        />
       </span>
     </Link>
   );

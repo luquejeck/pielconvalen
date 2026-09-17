@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
 import { SITIO_URL } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
+import Carrito from "@/components/Carrito";
+import { CarritoProvider } from "@/components/CarritoContext";
 import "./globals.css";
 
 /**
@@ -53,14 +55,34 @@ export const viewport: Viewport = {
   themeColor: "#faf6f2",
 };
 
-export default function RootLayout({
+/*
+  El pedido envuelve TODA la web, no solo la seccion de productos.
+
+  La clienta arma el pedido en el carrusel de la portada, entra al
+  catalogo a ver el resto, vuelve: si el estado viviera adentro de una
+  seccion, cada navegacion lo borraria. Aca arriba sobrevive a todo,
+  y el boton flotante aparece en cualquier pagina donde haya algo
+  cargado.
+
+  El layout es un componente de servidor y el proveedor es de cliente:
+  eso esta bien, el proveedor recibe a `children` ya renderizados y no
+  arrastra la pagina entera al navegador.
+*/
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const CONSULTORIO = await obtenerConfiguracion();
+
   return (
     <html lang="es-AR" className={montserrat.variable}>
-      <body>{children}</body>
+      <body>
+        <CarritoProvider>
+          {children}
+          <Carrito whatsapp={CONSULTORIO.whatsapp} />
+        </CarritoProvider>
+      </body>
     </html>
   );
 }

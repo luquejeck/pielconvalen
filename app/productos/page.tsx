@@ -107,11 +107,7 @@ export default async function Productos({ searchParams }: Busqueda) {
 
               <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                 {filtrados.map((p) => (
-                  <FichaProducto
-                    key={p.id}
-                    producto={p}
-                    whatsapp={CONSULTORIO.whatsapp}
-                  />
+                  <FichaProducto key={p.id} producto={p} />
                 ))}
               </ul>
             </>
@@ -157,11 +153,7 @@ export default async function Productos({ searchParams }: Busqueda) {
 
                   <ul className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                     {items.map((p) => (
-                      <FichaProducto
-                        key={p.id}
-                        producto={p}
-                        whatsapp={CONSULTORIO.whatsapp}
-                      />
+                      <FichaProducto key={p.id} producto={p} />
                     ))}
                   </ul>
                 </section>

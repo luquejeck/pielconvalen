@@ -7,8 +7,7 @@ import {
   type Producto,
 } from "@/lib/productos";
 import { formatearPrecio } from "@/lib/tratamientos";
-import { linkProducto } from "@/lib/whatsapp";
-import { IconoWhatsApp } from "./iconos";
+import ControlCarrito from "./ControlCarrito";
 
 /**
  * Una ficha de producto. La usan el carrusel de la portada y el catalogo.
@@ -23,12 +22,17 @@ import { IconoWhatsApp } from "./iconos";
  * compara cuando hay trece productos en pantalla. Con el nombre grande y
  * centrado, cada ficha empezaba a leerse por un texto distinto.
  *
- * TODA LA FICHA ES EL LINK, no solo el boton.
+ * LA FICHA YA NO ES UN LINK A WHATSAPP: suma al pedido.
  *
- * No hay pagina de detalle: la unica accion posible sobre un producto es
- * preguntar por el. El `aria-label` la resume en un renglon para quien la
- * escucha; sin el, el lector leia el descuento, la marca, el nombre y los
- * dos precios de corrido como si fueran el nombre del link.
+ * Antes cada ficha entera abria un chat con ese producto, asi que
+ * llevarse tres cosas eran tres conversaciones sueltas. Ahora el unico
+ * elemento que se toca es el control de unidades, y el mensaje se arma
+ * una sola vez con todo junto desde el carrito.
+ *
+ * Eso ademas destraba algo que antes no se podia hacer: con la ficha
+ * entera envuelta en un <a>, no se le podia meter adentro un boton de
+ * "+" y otro de "−", porque un boton adentro de un link no es HTML
+ * valido y los lectores de pantalla lo anuncian dos veces.
  */
 /**
  * Que productos tienen la foto sobre fondo claro.
@@ -57,31 +61,13 @@ const FONDOS: Record<string, string> = (() => {
   }
 })();
 
-export default function FichaProducto({
-  producto: p,
-  whatsapp,
-}: {
-  producto: Producto;
-  whatsapp: string;
-}) {
-  const href = linkProducto(
-    { marca: p.marca, nombre: p.nombre, medida: p.medida, precio: p.precio },
-    whatsapp
-  );
-
+export default function FichaProducto({ producto: p }: { producto: Producto }) {
   const descuento = descuentoDe(p);
   const claro = FONDOS[p.id] === "claro";
   const subtitulo = [p.medida, ...p.beneficios].filter(Boolean).join(" · ");
 
   return (
-    <li className="flex">
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`Consultar por WhatsApp: ${p.nombre}, de ${p.marca}`}
-        className="group flex w-full flex-col"
-      >
+    <li className="group flex flex-col">
         <div
           className={`relative overflow-hidden rounded-chico ${
             claro ? "bg-papel" : "bg-tinta"
@@ -155,24 +141,9 @@ export default function FichaProducto({
               </p>
             )}
 
-            {/*
-              Parece un boton y no lo es: el link es la ficha entera. Si
-              fuera un <a> propio quedaria un link adentro de otro, que no
-              es HTML valido y que los lectores de pantalla anuncian dos
-              veces.
-
-              Angosto y a la izquierda, como en la referencia. Antes iba
-              pegado al borde de la foto y ocupaba todo el ancho: se veia
-              mas, y tapaba el ultimo tramo del envase en las fotos donde
-              el producto llega abajo.
-            */}
-            <span className="mt-3 inline-flex min-h-10 items-center gap-1.5 rounded-full bg-tinta px-4 font-display text-sm font-medium text-crema transition-colors group-hover:bg-vino">
-              <IconoWhatsApp className="h-4 w-4" />
-              Lo quiero
-            </span>
+            <ControlCarrito id={p.id} nombre={p.nombre} />
           </div>
         </div>
-      </a>
     </li>
   );
 }
