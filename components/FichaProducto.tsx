@@ -4,31 +4,31 @@ import { linkProducto } from "@/lib/whatsapp";
 import { IconoWhatsApp } from "./iconos";
 
 /**
- * Una ficha de producto. La usan igual la portada y /productos.
+ * Una ficha de producto, armada como las de la tienda de Apple.
  *
- * SIN CONTENEDOR — la ficha no es una tarjeta.
+ * La foto manda y ocupa todo el ancho; debajo va una columna centrada y
+ * angosta —marca, nombre, para que sirve, precio, boton— con el texto
+ * chico. La ficha entera es blanca con esquinas grandes sobre un fondo
+ * gris apenas mas oscuro.
  *
- * No tiene fondo propio, ni borde, ni sombra: se apoya directo sobre el
- * fondo oscuro de la seccion, que es como arma las suyas la pagina que
- * tomamos de referencia. La foto ya viene fundida a ese mismo fondo
- * (scripts/preparar-fotos.mjs), asi que el envase aparece flotando y lo
- * unico que dibuja la grilla es el aire entre una columna y la otra.
+ * TRES DECISIONES QUE HACEN QUE ENTREN MAS PRODUCTOS
  *
- * Una tarjeta con fondo propio sumaba un rectangulo por producto: con
- * trece en pantalla, lo primero que se veia eran trece cajas y recien
- * despues lo que hay adentro de cada una.
+ * 1. La foto es cuadrada. En 4:5 entraban seis por pantalla de celular;
+ *    en cuadrado, ocho.
+ * 2. Los beneficios van en un renglon separado por puntos y no como
+ *    etiquetas sueltas. Tres etiquetas ocupaban dos renglones y 60px de
+ *    alto; el renglon ocupa uno y 18px, y dice lo mismo.
+ * 3. No hay descripcion larga en la ficha. Con trece productos, lo que
+ *    se necesita para elegir es marca, que hace y cuanto sale; el resto
+ *    se pregunta por WhatsApp, que es a donde lleva el boton.
  *
  * TODA LA FICHA ES EL LINK, no solo el boton.
  *
  * No hay pagina de detalle: la unica accion posible sobre un producto es
  * preguntar por el, asi que no hay nada que se pueda querer tocar aparte
- * de eso. Con el link solo en el boton, la mayor parte de la superficie
- * no hacia nada, y en celular —donde se toca con el pulgar en cualquier
- * parte— eso se siente como que la pagina no responde.
- *
- * Para quien la escucha en vez de verla, el `aria-label` la resume en un
- * renglon: sin el, el lector leia marca, nombre, medida, descripcion,
- * las etiquetas y el precio de corrido como si fueran el nombre del link.
+ * de eso. El `aria-label` la resume en un renglon para quien la escucha:
+ * sin el, el lector leia marca, nombre, beneficios y precio de corrido
+ * como si fueran el nombre del link.
  */
 export default function FichaProducto({
   producto: p,
@@ -42,6 +42,10 @@ export default function FichaProducto({
     whatsapp
   );
 
+  /* "Luminosidad · Manchas · Poros". La medida se cuela adelante cuando
+     esta cargada, que es el dato que mas se pregunta despues del precio. */
+  const subtitulo = [p.medida, ...p.beneficios].filter(Boolean).join(" · ");
+
   return (
     <li className="flex">
       <a
@@ -49,97 +53,69 @@ export default function FichaProducto({
         target="_blank"
         rel="noopener noreferrer"
         aria-label={`Consultar por WhatsApp: ${p.nombre}, de ${p.marca}`}
-        className="group flex w-full flex-col"
+        className="group flex w-full flex-col rounded-[1.25rem] bg-tienda-ficha p-2.5 transition-transform duration-200 hover:-translate-y-1 sm:p-3"
       >
+        {/*
+          La escena: el envase sobre su base oscura. La foto ya viene
+          fundida a ese mismo gris (scripts/preparar-fotos.mjs), asi que
+          no se ve donde termina el rectangulo — la base y la foto son
+          una sola pieza.
+        */}
         <Image
           src={fotoDe(p)}
           alt={`${p.nombre}, de ${p.marca}`}
           width={640}
-          height={800}
-          sizes="(min-width: 1024px) 20rem, (min-width: 640px) 30vw, 45vw"
-          className="aspect-4/5 w-full rounded-suave object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          height={640}
+          sizes="(min-width: 1024px) 16rem, (min-width: 640px) 30vw, 45vw"
+          className="aspect-square w-full rounded-[0.875rem] bg-tienda-escena object-cover"
         />
 
-        <div className="flex flex-1 flex-col pt-3">
-          {/*
-            La marca en pastilla delineada, como la etiqueta de un frasco
-            de laboratorio. Hace dos cosas a la vez: separa la marca del
-            nombre —que escritos uno al lado del otro se leian como un
-            titulo largo— y le da a la grilla un elemento repetido que
-            ordena la lectura cuando hay trece productos seguidos.
-          */}
-          {/*
-            En celular baja a 11px y afloja el tracking.
-
-            Con 12px y 0,12em de tracking, "BEAUTY OF JOSEON" —que son
-            dieciseis caracteres— no entraba en los 160px de una ficha a
-            dos columnas: partia en dos renglones, la pastilla quedaba
-            del doble de alto que la de al lado y la fila entera se veia
-            desalineada. El `whitespace-nowrap` es el seguro para la
-            proxima marca de nombre largo que cargue Valen.
-          */}
-          <span className="inline-flex w-fit items-center rounded-full border border-crema/40 px-2 py-0.5 font-display text-[0.6875rem] font-medium tracking-[0.08em] whitespace-nowrap text-crema-tenue uppercase sm:text-xs sm:tracking-[0.12em]">
+        <div className="flex flex-1 flex-col px-1 pt-3 text-center">
+          <p className="text-[0.6875rem] font-medium tracking-[0.08em] text-tienda-suave uppercase">
             {p.marca}
-          </span>
+          </p>
 
-          <h3 className="mt-2 font-display text-base leading-snug font-normal text-crema sm:text-lg">
+          {/*
+            El nombre a dos renglones y el subtitulo a uno.
+
+            Sin cortarlos, "PDRN Pink Collagen Capsule Cream" con sus
+            cuatro beneficios armaba una ficha de 390px y en el celular
+            entraban tres productos por pantalla: la mitad de lo que
+            entraba antes de pasar a dos columnas, o sea que la grilla no
+            servia para nada. Cortados, la ficha baja a ~330 y entran
+            seis. El nombre completo no se pierde: viaja en el
+            `aria-label` del link y en el mensaje de WhatsApp.
+          */}
+          <h3 className="mt-1 line-clamp-2 font-display text-[0.9375rem] leading-snug font-medium text-balance text-tienda-tinta sm:text-base">
             {p.nombre}
           </h3>
 
-          {p.medida && (
-            <p className="mt-0.5 text-sm text-crema-tenue">{p.medida}</p>
-          )}
-
-          {/*
-            La descripcion recien aparece en pantalla ancha.
-
-            En celular la grilla es de dos columnas: cada ficha mide unos
-            160px y tres renglones de texto de 16px ahi adentro no se leen,
-            se adivinan. Las etiquetas de abajo dicen lo mismo en dos
-            palabras y esas si entran, asi que el celular se queda con
-            esas y la descripcion larga espera a que haya lugar.
-          */}
-          {p.descripcion && (
-            <p className="mt-2 hidden text-base leading-snug text-crema-tenue sm:block">
-              {p.descripcion}
+          {subtitulo && (
+            <p className="mt-1 line-clamp-1 text-[0.8125rem] leading-snug text-tienda-suave">
+              {subtitulo}
             </p>
           )}
 
-          {p.beneficios.length > 0 && (
-            <ul className="mt-2 flex flex-wrap gap-1.5">
-              {p.beneficios.map((b) => (
-                <li
-                  key={b}
-                  className="rounded-full bg-crema/10 px-2.5 py-0.5 text-sm text-crema"
-                >
-                  {b}
-                </li>
-              ))}
-            </ul>
-          )}
+          {/*
+            `mt-auto` empuja el precio al piso. Sin eso, en una fila el
+            precio quedaba a distinta altura en cada columna —un nombre
+            entra en dos renglones y el de al lado en tres— y la grilla
+            se leia desprolija.
+          */}
+          <p className="mt-auto pt-2.5 font-display text-base font-semibold text-tienda-tinta tabular-nums">
+            {precioDe(p)}
+          </p>
 
           {/*
-            `mt-auto` empuja el precio al piso de la ficha. Sin eso, en
-            una fila el precio quedaba a distinta altura en cada columna
-            —un nombre entra en dos renglones y el de al lado en tres— y
-            la grilla se leia desprolija.
+            Parece un boton y no lo es: el link es la ficha entera. Si
+            fuera un <a> propio quedaria un link adentro de otro, que no
+            es HTML valido y que los lectores de pantalla anuncian dos
+            veces.
           */}
-          <div className="mt-auto pt-3">
-            <p className="font-display text-xl font-medium text-crema tabular-nums">
-              {precioDe(p)}
-            </p>
-
-            {/*
-              Parece un boton y no lo es: el link es la ficha entera. Si
-              fuera un <a> propio quedaria un link adentro de otro, que no
-              es HTML valido y que los lectores de pantalla anuncian dos
-              veces.
-            */}
-            <span className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full bg-crema px-4 font-display text-base font-medium text-vino transition-colors group-hover:bg-white">
-              <IconoWhatsApp className="h-4 w-4" />
-              Lo quiero
-            </span>
-          </div>
+          <span className="mt-2 inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-full bg-tienda-tinta px-3 text-sm font-medium text-white transition-opacity group-hover:opacity-85">
+            <IconoWhatsApp className="h-3.5 w-3.5" />
+            Lo quiero
+          </span>
         </div>
       </a>
     </li>

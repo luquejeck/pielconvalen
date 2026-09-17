@@ -59,31 +59,47 @@
   --color-tinta-suave: #6b525a;
 
   /*
-    LA BANDA OSCURA — productos
-    ------------------------------------------------------------------
-    Los productos son lo unico de la web que se muestra con foto, y las
-    fotos vinieron sacadas de noche contra una mesa oscura: el fondo de
-    todas cae entre rgb(23,16,15) y rgb(40,27,24). Sobre el crema
-    quedaban como parches negros pegados encima; sobre un fondo oscuro
-    desaparecen, y el envase parece salir de la nada.
+    LA TIENDA — una paleta aparte, sin vino
+    ==================================================================
+    Los productos no son de Valen: son de Medicube, Beauty of Joseon,
+    Ariul. Vestirlos de vino los volvia parte de la marca, que es
+    justo lo que no son, y encima los envases ya traen su propio color
+    —rosa, celeste, amarillo— que peleaba con el de la casa.
 
-    La seccion va en tinta, que es para lo que ya estaba declarada. La
-    ficha va MAS CLARA que la seccion —como cualquier tarjeta que recibe
-    luz— y es a ese valor al que funden las fotos, no al de la seccion:
-    la foto cierra exactamente en el color de la ficha que la contiene y
-    no se ve por donde termina.
+    Asi que la tienda es GRIS NEUTRO Y BLANCO, sin una gota de croma.
+    Es el sistema de Apple y el razonamiento es el mismo: si el marco
+    no tiene color, el unico color de la pantalla es el del producto.
+    El resto de la web sigue en vino, que es la marca de Valen.
 
-    El salto ficha/seccion es 1,22:1, el mismo que separa las secciones
-    claras entre si. Con menos —probe 1,05 y 1,11— la grilla se leia
-    como una sola mancha oscura y no se distinguia donde terminaba una
-    ficha y empezaba la de al lado.
+    El salto del fondo a la ficha blanca es 1,12:1. Quedo apretado
+    entre dos limites: abajo, el 1,11 que en esta web es donde un
+    cambio de superficie se empieza a ver; arriba, el 4,5:1 que el
+    gris secundario tiene que conservar sobre el fondo, y que se
+    pierde apenas el fondo se oscurece un paso mas (#efeff2 ya lo
+    baja a 4,42). De todos modos el que dibuja el borde de la ficha
+    no es este salto sino la escena oscura de la foto.
   */
-  --color-tinta-clara: #351f26;
+  --color-tienda-fondo: #f2f2f5;
+  --color-tienda-ficha: #ffffff;
 
-  /* Texto secundario sobre la ficha oscura: 6,5:1, bien arriba del 4,5
-     que pide WCAG. Es el mismo tono que la cuarta capa de Tratamientos,
-     asi que la banda oscura no trae un color nuevo a la paleta. */
-  --color-crema-tenue: #cf9ab3;
+  /*
+    La escena donde se apoya el envase.
+
+    Las fotos vinieron sacadas de noche contra una mesa oscura, y no se
+    pueden pasar a fondo claro: la mano con flash tiene el mismo brillo
+    que la caja, asi que recortar por luminancia deja la mano fantasma.
+    En vez de pelear con eso, cada producto va sobre su propia base
+    oscura, como la pieza de una vitrina. Las fotos funden exactamente a
+    este valor (scripts/preparar-fotos.mjs), asi que la escena y la foto
+    son una sola cosa.
+
+    Es gris neutro y no la tinta de la web: la tinta esta teñida de vino
+    (30 16 21) y al lado del blanco puro de la ficha ese tinte se ve.
+  */
+  --color-tienda-escena: #2b2b2e;
+
+  --color-tienda-tinta: #1d1d1f; /* texto y botones: 16,8:1 sobre blanco */
+  --color-tienda-suave: #6e6e73; /* secundario: 5,1:1 sobre blanco */
 
   /* La tipografia que ya trae cada aparato: San Francisco en iPhone y
      Mac, Segoe en Windows, Roboto en Android. Ninguna se descarga, y son

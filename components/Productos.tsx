@@ -5,25 +5,24 @@ import FichaProducto from "./FichaProducto";
 import { IconoFlecha } from "./iconos";
 
 /**
- * El adelanto de productos en la portada: tres fichas y la puerta al
+ * El adelanto de productos en la portada: cuatro fichas y la puerta al
  * catalogo.
  *
- * POR QUE TRES Y NO LOS DIECISEIS
+ * POR QUE CUATRO Y NO LOS TRECE
  * La portada ya tiene ocho secciones y esta armada para una sola cosa:
- * sacar turno. Dieciseis productos con foto entre Tratamientos y las
- * Preguntas empujaban el final de la pagina cuatro pantallas de celular
- * hacia abajo y le ponian una segunda decision encima a quien todavia no
- * habia reservado.
+ * sacar turno. Trece productos con foto entre Tratamientos y las
+ * Preguntas empujaban el final de la pagina varias pantallas hacia abajo
+ * y le ponian una segunda decision encima a quien todavia no reservo.
  *
- * Los tres estan elegidos para que se entienda de que se trata sin
- * leerlos: uno de cada cosa que la clienta ya sabe que necesita —un
- * serum, una crema y un protector— y no tres cremas parecidas.
+ * Cuatro porque es una fila entera en escritorio y un cuadrado de dos
+ * por dos en celular, sin huecos. Y estan elegidos uno por paso de la
+ * rutina —limpiar, tratar, hidratar, proteger— asi el adelanto muestra
+ * de que se trata la tienda y no cuatro cremas parecidas.
  *
- * POR QUE LA SECCION ES OSCURA
- * Es la unica de la portada que lo es, y marca el cambio de tema: hasta
- * aca se habla de lo que Valen hace, de aca en adelante de lo que vende.
- * Ademas es lo que hace que las fotos funcionen: vienen sacadas contra
- * una mesa oscura y sobre el crema quedaban como parches negros.
+ * POR QUE LA SECCION CAMBIA DE PALETA
+ * Es gris y blanca, sin vino, como toda la tienda. Los productos son de
+ * Medicube y Beauty of Joseon, no de Valen: vestirlos con el color de la
+ * casa los volvia parte de la marca, que es justo lo que no son.
  */
 export default function Productos({
   consultorio: CONSULTORIO,
@@ -39,26 +38,24 @@ export default function Productos({
   return (
     <section
       id="productos"
-      className="border-t border-borde bg-tinta py-14 md:py-16 xl:py-20"
+      className="border-t border-borde bg-tienda-fondo py-14 md:py-16 xl:py-20"
     >
       <div className="contenedor">
         {/*
-          No usa TituloSeccion: ese componente escribe el titulo en tinta
-          sobre crema, que aca seria tinta sobre tinta. La estructura es
-          la misma —titulo grande, bajada corta y angosta— con los
-          colores dados vuelta.
+          No usa TituloSeccion: ese componente escribe el titulo en tinta,
+          que esta teñida de vino, y aca la paleta no tiene vino. La
+          estructura es la misma —titulo grande, bajada corta y angosta—
+          con los colores de la tienda.
         */}
         <header className="mx-auto max-w-2xl text-center">
-          <h2 className="text-4xl text-crema sm:text-5xl">
-            Productos
-          </h2>
-          <p className="mt-2 text-xl leading-snug text-crema-tenue">
+          <h2 className="text-4xl text-tienda-tinta sm:text-5xl">Productos</h2>
+          <p className="mt-2 text-xl leading-snug text-tienda-suave">
             Cosmética coreana elegida por Valen. Se compra por WhatsApp y se
             retira en el consultorio.
           </p>
         </header>
 
-        <ul className="mx-auto mt-8 grid max-w-6xl grid-cols-2 gap-x-4 gap-y-9 lg:grid-cols-3">
+        <ul className="mx-auto mt-8 grid max-w-6xl grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {destacados.map((p) => (
             <FichaProducto
               key={p.id}
@@ -76,7 +73,7 @@ export default function Productos({
         <div className="mt-8 text-center">
           <Link
             href="/productos"
-            className="inline-flex min-h-12 items-center gap-2 rounded-full border border-crema/35 px-7 font-display text-lg font-medium text-crema transition-colors hover:bg-crema/10"
+            className="inline-flex min-h-12 items-center gap-2 rounded-full bg-tienda-tinta px-7 font-display text-base font-medium text-white transition-opacity hover:opacity-85"
           >
             Ver los {total} productos
             <IconoFlecha className="h-4 w-4" />

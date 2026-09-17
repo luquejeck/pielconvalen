@@ -37,11 +37,9 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * El catalogo completo.
  *
- * LA PAGINA ES OSCURA, como la banda de la portada de la que se llega.
- * Con la portada en crema, el salto de una a otra hacia sentir que eran
- * dos sitios distintos; y es ademas lo que hace que las fotos se vean,
- * porque estan sacadas contra una mesa oscura y funden a --color-tinta,
- * que es el fondo de esta misma pagina.
+ * LA PAGINA USA LA PALETA DE LA TIENDA —gris y blanco, sin vino—, la
+ * misma del adelanto de la portada del que se llega. Sin croma en el
+ * marco, el unico color de la pantalla es el de los envases.
  *
  * ORDENADOS POR RUTINA, no por precio ni alfabeticamente: primero se
  * limpia, despues se trata, despues se hidrata y al final se protege.
@@ -57,7 +55,7 @@ export default async function Productos() {
     <>
       <Header consultorio={CONSULTORIO} enPortada={false} />
 
-      <main className="bg-tinta">
+      <main className="bg-tienda-fondo">
         <div className="contenedor py-12 md:py-16 xl:py-20">
           {/*
             La miga de pan es un link solo, no la cadena entera: la web
@@ -66,17 +64,17 @@ export default async function Productos() {
           */}
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-base text-crema-tenue transition-colors hover:text-crema"
+            className="inline-flex items-center gap-1.5 text-base text-tienda-suave transition-colors hover:text-tienda-tinta"
           >
             <IconoFlecha className="h-4 w-4 rotate-180" />
             Volver al inicio
           </Link>
 
           <header className="mt-6 max-w-3xl">
-            <h1 className="text-4xl text-crema sm:text-5xl">
+            <h1 className="text-4xl text-tienda-tinta sm:text-5xl">
               Productos
             </h1>
-            <p className="mt-3 text-xl leading-snug text-crema-tenue">
+            <p className="mt-3 text-xl leading-snug text-tienda-suave">
               Cosmética coreana que Valen usa y recomienda. La venta es por
               WhatsApp: tocá el producto y se abre el chat con el mensaje
               escrito. Se retira en el consultorio.
@@ -97,10 +95,10 @@ export default async function Productos() {
                 <li key={categoria}>
                   <a
                     href={`#${anclaDe(categoria)}`}
-                    className="inline-flex min-h-10 items-center gap-2 rounded-full border border-crema/25 px-4 text-base text-crema transition-colors hover:bg-crema/10"
+                    className="group inline-flex min-h-10 items-center gap-2 rounded-full bg-tienda-ficha px-4 text-base text-tienda-tinta transition-colors hover:bg-tienda-tinta hover:text-white"
                   >
                     {categoria}
-                    <span className="text-crema-tenue tabular-nums">
+                    <span className="text-tienda-suave tabular-nums group-hover:text-inherit">
                       {items.length}
                     </span>
                   </a>
@@ -115,11 +113,11 @@ export default async function Productos() {
               id={anclaDe(categoria)}
               className="scroll-mt-24 pt-12"
             >
-              <h2 className="font-display text-2xl font-normal text-crema">
+              <h2 className="font-display text-2xl font-normal text-tienda-tinta">
                 {categoria}
               </h2>
 
-              <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-9 lg:grid-cols-3">
+              <ul className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                 {items.map((p) => (
                   <FichaProducto
                     key={p.id}
@@ -140,11 +138,11 @@ export default async function Productos() {
             cosas la respuesta honesta es verle la piel antes de venderle
             nada.
           */}
-          <aside className="mt-14 rounded-suave bg-tinta-clara px-6 py-8 text-center sm:px-10">
-            <h2 className="font-display text-2xl font-normal text-crema">
+          <aside className="mt-14 rounded-[1.25rem] bg-tienda-ficha px-6 py-10 text-center sm:px-10">
+            <h2 className="font-display text-2xl font-normal text-tienda-tinta">
               ¿No sabés cuál te sirve?
             </h2>
-            <p className="mx-auto mt-2 max-w-xl text-lg leading-snug text-crema-tenue">
+            <p className="mx-auto mt-2 max-w-xl text-lg leading-snug text-tienda-suave">
               Contame cómo tenés la piel y te digo cuál de los {total} te
               conviene. Sin compromiso.
             </p>
@@ -154,7 +152,7 @@ export default async function Productos() {
                 href={linkConsultaProductos(CONSULTORIO.whatsapp)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-crema px-7 font-display text-lg font-medium text-vino transition-colors hover:bg-white sm:w-auto"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-tienda-tinta px-7 font-display text-base font-medium text-white transition-opacity hover:opacity-85 sm:w-auto"
               >
                 <IconoWhatsApp className="h-5 w-5" />
                 Preguntarle a Valen
@@ -162,7 +160,7 @@ export default async function Productos() {
 
               <Link
                 href="/#reservar"
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-crema/35 px-7 font-display text-lg font-medium text-crema transition-colors hover:bg-crema/10 sm:w-auto"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-tienda-tinta/25 px-7 font-display text-base font-medium text-tienda-tinta transition-colors hover:bg-tienda-tinta/5 sm:w-auto"
               >
                 Reservar un turno
               </Link>

@@ -50,7 +50,7 @@ export type Producto = {
   descripcion: string;
   /** Para que sirve, en dos o tres palabras. Son las etiquetas de la ficha. */
   beneficios: string[];
-  /** Los tres que salen en la portada. */
+  /** Los cuatro que salen en la portada, uno por paso de la rutina. */
   destacado?: boolean;
   /** Se esconde sin borrarlo: falta confirmar precio o descripcion. */
   borrador?: boolean;
@@ -104,6 +104,7 @@ export const PRODUCTOS: Producto[] = [
     descripcion:
       "Espuma de todos los días para destapar poros. Saca el exceso de grasitud y las células muertas sin irritar.",
     beneficios: ["Poros", "Uso diario"],
+    destacado: true,
   },
 
   /* ---------------------------------------------------------------- 2. TRATAR */
@@ -266,7 +267,7 @@ export const PRODUCTOS: Producto[] = [
 /** Los que se publican. El borrador queda afuera de todo. */
 export const productosPublicados = () => PRODUCTOS.filter((p) => !p.borrador);
 
-/** Los tres de la portada, en el orden en que estan cargados. */
+/** Los de la portada, en el orden de la rutina en que estan cargados. */
 export const productosDestacados = () =>
   productosPublicados().filter((p) => p.destacado);
 

@@ -30,9 +30,18 @@ import { readdir, mkdir } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
-/** Ancho final. El doble del que ocupa la ficha en pantalla, para retina. */
+/**
+ * Ancho final. El doble del que ocupa la ficha en pantalla, para retina.
+ *
+ * CUADRADO, no 4:5. Con la ficha vertical entraban seis productos por
+ * pantalla de celular; en cuadrado la ficha pierde 128px de alto y
+ * entran ocho, que es lo que se le pide a una grilla de tienda: poder
+ * comparar sin scrollear. Los envases altos —los serums, el Reedle
+ * Shot— pierden un poco de aire arriba y abajo, y a cambio se ven al
+ * lado de los otros doce.
+ */
 const ANCHO = 640;
-const ALTO = 800; // 4:5
+const ALTO = 640;
 
 /** 0 = no tocar la luz. 1 = corregir a fondo. */
 const AJUSTE = 1;
@@ -40,13 +49,10 @@ const AJUSTE = 1;
 /**
  * El color al que se funden los bordes.
  *
- * TIENE QUE SER EXACTAMENTE --color-tinta de app/globals.css, que es el
- * fondo de la seccion de productos. Si los dos valores se separan
- * aparece un halo rectangular alrededor de cada producto.
- *
- * Es el color de la SECCION y no el de una tarjeta porque las fichas no
- * tienen contenedor: se apoyan directo sobre el fondo oscuro, asi que la
- * foto funde contra la seccion misma.
+ * TIENE QUE SER EXACTAMENTE --color-tienda-escena de app/globals.css,
+ * que es la base oscura sobre la que se apoya el envase en cada ficha.
+ * Si los dos valores se separan aparece un halo rectangular alrededor de
+ * cada producto.
  *
  * El fondo de estas fotos —sacadas de noche contra una mesa oscura— cae
  * entre rgb(23,16,15) y rgb(40,27,24), o sea a un paso de este valor.
@@ -57,7 +63,7 @@ const AJUSTE = 1;
  * alrededor (la Dynasty Cream llega a rgb(97,65,75) en las esquinas)
  * mostraban el corte, y ahora terminan todas igual.
  */
-const TINTA = "29,15,20";
+const ESCENA = "43,43,46";
 
 /*
   De que archivo sale cada producto.
@@ -114,9 +120,9 @@ const FUNDE = 0.16;
 
 const banda = (x, y, w, h, x1, y1, x2, y2, id) => `
   <linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">
-    <stop offset="0%"   stop-color="rgb(${TINTA})" stop-opacity="1"/>
-    <stop offset="55%"  stop-color="rgb(${TINTA})" stop-opacity="0.45"/>
-    <stop offset="100%" stop-color="rgb(${TINTA})" stop-opacity="0"/>
+    <stop offset="0%"   stop-color="rgb(${ESCENA})" stop-opacity="1"/>
+    <stop offset="55%"  stop-color="rgb(${ESCENA})" stop-opacity="0.45"/>
+    <stop offset="100%" stop-color="rgb(${ESCENA})" stop-opacity="0"/>
   </linearGradient>`;
 
 const bx = Math.round(ANCHO * FUNDE);
