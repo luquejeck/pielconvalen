@@ -45,6 +45,11 @@ type Carrito = {
   quitar: (id: string) => void;
   poner: (id: string, cantidad: number) => void;
   vaciar: () => void;
+  /* El panel se abre desde el encabezado y se cierra desde adentro, asi
+     que el estado no puede vivir en ninguno de los dos. */
+  abierto: boolean;
+  abrir: () => void;
+  cerrar: () => void;
   /** Ya se leyo lo guardado. Antes de esto no hay que dibujar numeros. */
   listo: boolean;
 };
@@ -54,6 +59,7 @@ const Contexto = createContext<Carrito | null>(null);
 export function CarritoProvider({ children }: { children: React.ReactNode }) {
   const [lineas, setLineas] = useState<Linea[]>([]);
   const [listo, setListo] = useState(false);
+  const [abierto, setAbierto] = useState(false);
 
   /*
     Se lee DESPUES del primer dibujo y no durante.
@@ -135,6 +141,8 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
   );
 
   const vaciar = useCallback(() => setLineas([]), []);
+  const abrir = useCallback(() => setAbierto(true), []);
+  const cerrar = useCallback(() => setAbierto(false), []);
 
   const valor = useMemo<Carrito>(() => {
     const detalle = lineas.flatMap((l) => {
@@ -160,8 +168,11 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
       poner,
       vaciar,
       listo,
+      abierto,
+      abrir,
+      cerrar,
     };
-  }, [lineas, agregar, quitar, poner, vaciar, listo]);
+  }, [lineas, agregar, quitar, poner, vaciar, listo, abierto, abrir, cerrar]);
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }

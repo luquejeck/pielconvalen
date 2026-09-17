@@ -22,6 +22,14 @@ import ControlCarrito from "./ControlCarrito";
  * compara cuando hay trece productos en pantalla. Con el nombre grande y
  * centrado, cada ficha empezaba a leerse por un texto distinto.
  *
+ * ES UNA TARJETA, con borde y fondo propio, como las de un marketplace.
+ *
+ * Estuvo un rato sin contenedor, apoyada sobre el fondo, que es lo que
+ * hace la tienda de Apple. Funciona cuando hay cuatro productos y todos
+ * fotografiados igual; con trece y con fotos de origenes distintos —unas
+ * sobre blanco y otras sobre fondo oscuro— no se veia donde terminaba una
+ * y empezaba la otra. El borde las vuelve a separar.
+ *
  * LA FICHA YA NO ES UN LINK A WHATSAPP: suma al pedido.
  *
  * Antes cada ficha entera abria un chat con ese producto, asi que
@@ -67,12 +75,8 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
   const subtitulo = [p.medida, ...p.beneficios].filter(Boolean).join(" · ");
 
   return (
-    <li className="group flex flex-col">
-        <div
-          className={`relative overflow-hidden rounded-chico ${
-            claro ? "bg-papel" : "bg-tinta"
-          }`}
-        >
+    <li className="group flex flex-col overflow-hidden rounded-chico border border-borde bg-papel">
+        <div className={`relative ${claro ? "bg-papel" : "bg-tinta"}`}>
           {/*
             La base se pinta del mismo color al que fundio la foto
             (scripts/preparar-fotos.mjs), asi que no se ve donde termina
@@ -97,7 +101,7 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
 
         </div>
 
-        <div className="flex flex-1 flex-col pt-3">
+        <div className="flex flex-1 flex-col px-3 pt-3 pb-4">
           {/*
             MARCA Y NOMBRE EN UN SOLO BLOQUE, en versalitas y en gris.
 
@@ -120,7 +124,7 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
               miden distinto y sin esto los precios quedaban a distinta
               altura en cada columna. */}
           <div className="mt-auto pt-2">
-            <p className="flex flex-wrap items-baseline gap-x-2 font-display text-xl font-semibold text-tinta tabular-nums">
+            <p className="flex flex-wrap items-baseline gap-x-2 font-display text-xl font-semibold text-vino tabular-nums">
               {precioDe(p)}
               {descuento !== null && (
                 <span className="text-sm font-semibold text-vino">

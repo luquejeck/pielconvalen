@@ -1,4 +1,5 @@
 import type { ConfiguracionWeb } from "@/lib/consultorio";
+import BotonCarrito from "./BotonCarrito";
 import { LogoMarca } from "./Logo";
 
 export default function Header({
@@ -31,10 +32,15 @@ export default function Header({
           </span>
         </a>
 
-        <a
-          href={reservar}
-          className="boton-principal compacto shrink-0 whitespace-nowrap"
-        >
+        {/* El pedido a la izquierda del turno: el turno sigue siendo la
+            accion principal de la web y no la pierde de lugar. */}
+        <div className="flex shrink-0 items-center gap-1">
+          <BotonCarrito />
+
+          <a
+            href={reservar}
+            className="boton-principal compacto shrink-0 whitespace-nowrap"
+          >
           {/*
             Siempre "Reservar turno", tambien en celular.
 
@@ -44,8 +50,9 @@ export default function Header({
             Para una clienta de cincuenta y pico eso no son sinonimos,
             son tres cosas distintas que hay que ir a entender.
           */}
-          Reservar turno
-        </a>
+            Reservar turno
+          </a>
+        </div>
       </div>
     </header>
   );

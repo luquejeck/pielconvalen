@@ -11,6 +11,11 @@ import { useCarrito } from "./CarritoContext";
  * entran, y el contador vacio ocupando lugar antes de que existiera el
  * producto en el pedido no le decia nada a nadie.
  *
+ * VAN EN VINO, como todo lo que se toca en esta web. Estuvieron un rato
+ * en negro, heredado de la tienda de Apple que se habia tomado de
+ * referencia, y desentonaban: eran el unico boton del sitio que no era
+ * del color de la marca.
+ *
  * Los botones miden 40px de alto. Es menos que los 44 que se recomiendan
  * para lo que se toca, pero estan al final de una ficha, aislados, sin
  * nada tocable alrededor a menos de 12px: el riesgo real de errarle es
@@ -40,7 +45,7 @@ export default function ControlCarrito({
       <button
         type="button"
         onClick={() => agregar(id)}
-        className="mt-3 inline-flex min-h-10 items-center gap-1.5 rounded-full bg-tinta px-4 font-display text-sm font-medium text-crema transition-colors hover:bg-vino"
+        className="mt-3 inline-flex min-h-10 items-center gap-1.5 rounded-full bg-vino px-4 font-display text-sm font-medium text-white transition-colors hover:bg-vino-oscuro"
       >
         <span aria-hidden>+</span>
         Agregar
@@ -50,12 +55,12 @@ export default function ControlCarrito({
   }
 
   return (
-    <div className="mt-3 inline-flex min-h-10 items-center rounded-full bg-tinta text-crema">
+    <div className="mt-3 inline-flex min-h-10 items-center rounded-full bg-vino text-white">
       <button
         type="button"
         onClick={() => quitar(id)}
         aria-label={`Quitar una unidad de ${nombre}`}
-        className="flex size-10 items-center justify-center rounded-full text-lg transition-colors hover:text-vino-suave"
+        className="flex size-10 items-center justify-center rounded-full text-lg transition-colors hover:bg-vino-oscuro"
       >
         <span aria-hidden>−</span>
       </button>
@@ -76,7 +81,7 @@ export default function ControlCarrito({
         type="button"
         onClick={() => agregar(id)}
         aria-label={`Agregar otra unidad de ${nombre}`}
-        className="flex size-10 items-center justify-center rounded-full text-lg transition-colors hover:text-vino-suave"
+        className="flex size-10 items-center justify-center rounded-full text-lg transition-colors hover:bg-vino-oscuro"
       >
         <span aria-hidden>+</span>
       </button>
