@@ -20,7 +20,7 @@ export default function TituloSeccion({
 
   return (
     <header className="mx-auto max-w-2xl text-center">
-      <Titulo className="text-4xl font-semibold text-tinta sm:text-5xl">
+      <Titulo className="text-4xl text-tinta sm:text-5xl">
         {titulo}
       </Titulo>
       {bajada && (

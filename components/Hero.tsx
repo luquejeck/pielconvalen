@@ -22,7 +22,7 @@ export default function Hero({
       />
 
       <div className="contenedor animar-entrada py-14 text-center md:py-16 xl:py-20">
-        <h1 className="text-5xl font-semibold text-tinta sm:text-6xl xl:text-7xl">
+        <h1 className="text-5xl text-tinta sm:text-6xl xl:text-7xl">
           {CONSULTORIO.profesional}
         </h1>
 

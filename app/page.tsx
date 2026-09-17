@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Preguntas from "@/components/Preguntas";
+import Productos from "@/components/Productos";
 import { ReservaProvider } from "@/components/ReservaContext";
 import Reservas from "@/components/Reservas";
 import Tratamientos from "@/components/Tratamientos";
@@ -119,6 +120,20 @@ export default async function Home() {
         <Beneficios consultorio={CONSULTORIO} />
         <Videos subidos={videos} />
         <Tratamientos />
+
+        {/*
+          Los productos van despues de los tratamientos y no antes: son
+          lo que se lleva a casa despues de la sesion, no un motivo para
+          venir. Puestos mas arriba le ponen una segunda decision encima
+          a quien todavia no reservo, que es lo unico que la pagina pide.
+
+          Es la unica seccion oscura de la portada. Marca el cambio de
+          tema —hasta aca lo que Valen hace, de aca lo que vende— y es
+          lo que hace que las fotos se vean: estan sacadas contra una
+          mesa oscura y sobre el crema quedaban como parches negros.
+        */}
+        <Productos consultorio={CONSULTORIO} />
+
         {/* Al final de todo: es una seccion de consulta, no parte del
             recorrido. Quien la necesita la busca. */}
         <Preguntas consultorio={CONSULTORIO} />

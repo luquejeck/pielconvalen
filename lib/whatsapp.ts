@@ -114,6 +114,65 @@ export const linkCancelarTurno = (numero?: string) =>
   );
 
 /* -------------------------------------------------------------------------
+ * PRODUCTOS
+ * La venta no pasa por la web: la ficha arma el mensaje y el chat hace
+ * el resto. Por eso el texto tiene que llegar con el producto ya
+ * nombrado — si dice solo "Hola, me interesa un producto", Valen tiene
+ * que preguntar cual y se pierden dos mensajes en cada consulta.
+ * ---------------------------------------------------------------------- */
+
+type DatosProducto = {
+  marca: string;
+  nombre: string;
+  medida?: string;
+  precio: number;
+};
+
+/** Arma el mensaje que va prellenado al tocar una ficha de producto. */
+export function mensajeProducto({
+  marca,
+  nombre,
+  medida,
+  precio,
+}: DatosProducto): string {
+  const lineas = [
+    `Hola Valen! Me interesa este producto 🌿`,
+    ``,
+    `• ${nombre}${medida ? ` (${medida})` : ""}`,
+    `• Marca: ${marca}`,
+  ];
+
+  /*
+    El precio va en el mensaje para que las dos esten mirando el mismo
+    numero: si cambio entre que se publico y que la clienta escribio,
+    Valen lo ve en el acto y lo corrige ahi mismo, en vez de enterarse al
+    cobrar. Cuando todavia no hay precio cargado, el mensaje lo pregunta
+    en lugar de mostrar un "$ 0" que no dice nada.
+  */
+  lineas.push(
+    precio > 0
+      ? `• Precio publicado: ${formatearPrecio(precio).replace(/ /g, " ")}`
+      : `• ¿Qué precio tiene?`
+  );
+
+  lineas.push(``, `¿Lo tenés disponible?`);
+  return lineas.join("\n");
+}
+
+export function linkProducto(datos: DatosProducto, numero?: string): string {
+  return `https://wa.me/${numero ?? CONSULTORIO.whatsapp}?text=${encodeURIComponent(
+    mensajeProducto(datos)
+  )}`;
+}
+
+/** Para quien mira el catalogo entero y no se decide por uno. */
+export const linkConsultaProductos = (numero?: string) =>
+  linkWhatsAppSimple(
+    "Hola Valen! Estuve viendo los productos de la web y quería que me recomiendes cuál me conviene 🌿",
+    numero
+  );
+
+/* -------------------------------------------------------------------------
  * MENSAJES DE VALEN A LA CLIENTA
  * Cierran el circuito: la clienta pide por WhatsApp y se entera por
  * WhatsApp si quedo o no. Sin esto, un turno rechazado la deja esperando

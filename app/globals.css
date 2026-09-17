@@ -58,6 +58,33 @@
   --color-tinta: #1d0f14;
   --color-tinta-suave: #6b525a;
 
+  /*
+    LA BANDA OSCURA — productos
+    ------------------------------------------------------------------
+    Los productos son lo unico de la web que se muestra con foto, y las
+    fotos vinieron sacadas de noche contra una mesa oscura: el fondo de
+    todas cae entre rgb(23,16,15) y rgb(40,27,24). Sobre el crema
+    quedaban como parches negros pegados encima; sobre un fondo oscuro
+    desaparecen, y el envase parece salir de la nada.
+
+    La seccion va en tinta, que es para lo que ya estaba declarada. La
+    ficha va MAS CLARA que la seccion —como cualquier tarjeta que recibe
+    luz— y es a ese valor al que funden las fotos, no al de la seccion:
+    la foto cierra exactamente en el color de la ficha que la contiene y
+    no se ve por donde termina.
+
+    El salto ficha/seccion es 1,22:1, el mismo que separa las secciones
+    claras entre si. Con menos —probe 1,05 y 1,11— la grilla se leia
+    como una sola mancha oscura y no se distinguia donde terminaba una
+    ficha y empezaba la de al lado.
+  */
+  --color-tinta-clara: #351f26;
+
+  /* Texto secundario sobre la ficha oscura: 6,5:1, bien arriba del 4,5
+     que pide WCAG. Es el mismo tono que la cuarta capa de Tratamientos,
+     asi que la banda oscura no trae un color nuevo a la paleta. */
+  --color-crema-tenue: #cf9ab3;
+
   /* La tipografia que ya trae cada aparato: San Francisco en iPhone y
      Mac, Segoe en Windows, Roboto en Android. Ninguna se descarga, y son
      las que mejor se leen en pantallas viejas. Antes la lista nombraba a
@@ -125,8 +152,24 @@
   h1,
   h2 {
     font-family: var(--font-display);
-    font-weight: 600;
-    letter-spacing: -0.022em;
+    /*
+      TITULOS EN PESO 350, NO 600.
+
+      Es el gesto que se tomo de la pagina de Seed. A 40 y 48px el peso
+      liviano se lee seguro sin levantar la voz: el titulo sigue pesando
+      mas que todo lo que lo rodea, pero por tamaño y por aire, no por
+      grosor. Un semibold a 48px en una web de cuidado de la piel grita.
+
+      Montserrat entra por next/font sin pedir pesos, o sea que viaja la
+      variable completa: el 350 existe de verdad y no es un 400 fingido
+      por el navegador.
+
+      El tracking se afloja de -0,022 a -0,015em. Las dos cosas van
+      juntas: el -0,022 estaba calculado para un trazo grueso, y sobre
+      trazo fino junta tanto las letras que el titulo se empasta.
+    */
+    font-weight: 350;
+    letter-spacing: -0.015em;
     /* Los titulos van en 1.0: un titulo de dos renglones tiene que
        leerse como un bloque, y con 1.06 la segunda linea se despegaba
        lo justo para parecer otra cosa. */

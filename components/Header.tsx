@@ -3,13 +3,24 @@ import { LogoMarca } from "./Logo";
 
 export default function Header({
   consultorio: CONSULTORIO,
+  /*
+    Desde que existe /productos el encabezado se dibuja en dos paginas, y
+    los anclajes de la portada no valen en las dos: "#reservar" desde
+    /productos no lleva a ningun lado, porque esa seccion no esta en esa
+    pagina. Estando afuera, los dos links salen con la ruta adelante.
+  */
+  enPortada = true,
 }: {
   consultorio: ConfiguracionWeb;
+  enPortada?: boolean;
 }) {
+  const inicio = enPortada ? "#inicio" : "/";
+  const reservar = enPortada ? "#reservar" : "/#reservar";
+
   return (
     <header className="sticky top-0 z-40 border-b border-borde bg-crema/90 backdrop-blur-md">
       <div className="contenedor flex h-16 items-center justify-between gap-3">
-        <a href="#inicio" className="flex min-w-0 items-center gap-2.5">
+        <a href={inicio} className="flex min-w-0 items-center gap-2.5">
           <LogoMarca alto={26} />
           {/*
             En celular el nombre lo aporta el propio logo: repetirlo partia el
@@ -21,7 +32,7 @@ export default function Header({
         </a>
 
         <a
-          href="#reservar"
+          href={reservar}
           className="boton-principal compacto shrink-0 whitespace-nowrap"
         >
           {/*
