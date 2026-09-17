@@ -62,36 +62,56 @@ export default function Tratamientos() {
           que suma, y cuanto. Una fila por tratamiento, separadas por
           una linea fina. El unico color es el del precio.
         */}
-        <ul className="mx-auto mt-8 max-w-3xl divide-y divide-borde border-y border-borde">
-          {porPrecio.map((t) => (
-            <li
-              key={t.id}
-              className="flex items-baseline justify-between gap-4 py-4"
-            >
-              <div className="min-w-0">
-                <h3 className="font-display text-lg leading-snug font-medium text-tinta">
-                  {t.nombre}
-                </h3>
+        {/*
+          LA LISTA VA ADENTRO DE UNA TARJETA.
 
-                {t.extras.length > 0 && (
-                  <p className="mt-0.5 text-base leading-snug text-tinta-suave">
-                    {/* Para quien escucha la pagina, "+" no se lee: la
-                        palabra va escondida y el signo queda de adorno. */}
-                    <span aria-hidden>+ </span>
-                    <span className="sr-only">Suma </span>
-                    {ordenar(t.extras).join(" · ")}
-                  </p>
-                )}
-              </div>
+          Suelta sobre el fondo se veia sin terminar: dos lineas finas al
+          aire en medio de una seccion que por lo demas esta vacia. La
+          tarjeta blanca es el mismo recurso que usa el resto de la web
+          para contener cosas, asi que la seccion deja de ser la excepcion.
 
-              {/* Tabular: los precios quedan alineados entre si aunque
-                  los nombres midan distinto. */}
-              <p className="shrink-0 font-display text-lg font-semibold text-vino tabular-nums">
-                {formatearPrecio(t.precio)}
-              </p>
-            </li>
-          ))}
-        </ul>
+          El nombre y el precio comparten renglon y estan alineados por la
+          base, con el precio en tabular: leidos en columna, los numeros
+          se comparan sin que el ojo tenga que buscarlos.
+        */}
+        <div className="mx-auto mt-8 max-w-2xl rounded-suave bg-papel p-5 shadow-suave sm:p-7">
+          <ul className="divide-y divide-borde">
+            {porPrecio.map((t) => (
+              <li
+                key={t.id}
+                className="flex items-baseline justify-between gap-4 py-4 first:pt-0 last:pb-0"
+              >
+                <div className="min-w-0">
+                  <h3 className="font-display text-lg leading-snug font-medium text-tinta">
+                    {t.nombre}
+                  </h3>
+
+                  {t.extras.length > 0 && (
+                    <p className="mt-1 text-base leading-snug text-tinta-suave">
+                      {/* Para quien escucha la pagina, "+" no se lee: la
+                          palabra va escondida y el signo queda de adorno. */}
+                      <span aria-hidden>+ </span>
+                      <span className="sr-only">Suma </span>
+                      {ordenar(t.extras).join(" · ")}
+                    </p>
+                  )}
+                </div>
+
+                <p className="shrink-0 font-display text-lg font-semibold text-vino tabular-nums">
+                  {formatearPrecio(t.precio)}
+                </p>
+              </li>
+            ))}
+          </ul>
+
+          {/* La duracion y el pago, adentro de la tarjeta y separados por
+              una linea: son condiciones de todos los renglones de arriba,
+              no un dato suelto de la seccion. */}
+          <p className="mt-5 border-t border-borde pt-4 text-center text-base leading-snug text-balance text-tinta-suave">
+            {duracionComun && <>{duracionComun} por sesión · </>}
+            {consultorio.mediosDePago}
+          </p>
+        </div>
 
         {/*
           EL CIERRE, EN TRES RENGLONES.
@@ -121,10 +141,6 @@ export default function Tratamientos() {
             Reservar turno
           </button>
 
-          <p className="mt-4 text-base leading-snug text-balance text-tinta-suave">
-            {duracionComun && <>{duracionComun} por sesión · </>}
-            {consultorio.mediosDePago}
-          </p>
         </div>
       </div>
     </section>
