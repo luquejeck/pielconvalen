@@ -35,6 +35,20 @@ const ORIGENES = "fotos-productos";
 const DESTINO = "public/imagenes/productos";
 const CATALOGO = "lib/productos.ts";
 
+/*
+  Las imagenes de marca son otra cosa que las de producto y por eso van
+  aparte: no son envases sobre una base oscura, son las piezas de marca
+  que publica cada casa —el banner de Medicube, la linea completa de
+  Beauty of Joseon—. Vienen bien iluminadas y con su propio fondo, asi
+  que no se aclaran ni se funden los bordes: se recortan y se achican.
+
+  El nombre del archivo es el slug de la marca, el mismo que arma
+  `aSlug()` en lib/productos.ts y el que viaja en /productos?marca=.
+*/
+const MARCAS_ORIGENES = "fotos-marcas";
+const MARCAS_DESTINO = "public/imagenes/marcas";
+const MARCAS_LADO = 900;
+
 /** Lado final. El doble del que ocupa la ficha en pantalla, para retina. */
 const LADO = 640;
 
@@ -155,9 +169,38 @@ async function preparar(entrada, id) {
     .toFile(path.join(DESTINO, `${id}.webp`));
 }
 
+/**
+ * El slug de una marca. Tiene que dar EXACTAMENTE lo mismo que `aSlug()`
+ * de lib/productos.ts, que es lo que la web usa para pedir el archivo.
+ */
+const aSlug = (texto) =>
+  texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+/**
+ * Las imagenes de marca: recorte al centro y nada mas.
+ *
+ * Al centro porque en las cinco el logo esta centrado, y tres de ellas
+ * son banners apaisados (Medicube 2,05; AHC 1,78; d'Alba 2,18) que al
+ * pasar a cuadrado pierden los costados. El logo se salva siempre; lo
+ * que se va es fondo.
+ */
+async function prepararMarca(entrada, slug) {
+  await sharp(entrada)
+    .rotate()
+    .resize(MARCAS_LADO, MARCAS_LADO, { fit: "cover", position: "centre" })
+    .webp({ quality: 85 })
+    .toFile(path.join(MARCAS_DESTINO, `${slug}.webp`));
+}
+
 /* ------------------------------------------------------------------ */
 
 const productos = await leerCatalogo();
+const marcas = [...new Set(productos.map((p) => p.marca))];
 
 if (process.argv[2] === "lista") {
   console.log(`\nAsi se tiene que llamar cada archivo en ${ORIGENES}/`);
@@ -166,12 +209,22 @@ if (process.argv[2] === "lista") {
   for (const p of productos) {
     console.log(`  ${p.id.padEnd(ancho)}.jpg   ${p.marca} — ${p.nombre}`);
   }
+
+  console.log(`
+Y asi en ${MARCAS_ORIGENES}/ (una por marca)
+`);
+  const anchoM = Math.max(...marcas.map((m) => aSlug(m).length));
+  for (const m of marcas) {
+    console.log(`  ${aSlug(m).padEnd(anchoM)}.jpg   ${m}`);
+  }
   console.log("");
   process.exit(0);
 }
 
 await mkdir(DESTINO, { recursive: true });
 await mkdir(ORIGENES, { recursive: true });
+await mkdir(MARCAS_DESTINO, { recursive: true });
+await mkdir(MARCAS_ORIGENES, { recursive: true });
 
 const archivos = await readdir(ORIGENES);
 const porId = new Map();
@@ -211,6 +264,39 @@ if (sueltos.length) {
   console.log(`\nEstos archivos no coinciden con ningun producto:`);
   for (const a of sueltos) console.log(`  ${a}`);
   console.log(`\n  Corre "npm run fotos:lista" para ver los nombres validos.`);
+}
+
+/* --- marcas --------------------------------------------------------- */
+
+const archivosMarca = await readdir(MARCAS_ORIGENES);
+let marcasListas = 0;
+const marcasSinFoto = [];
+
+for (const m of marcas) {
+  const slug = aSlug(m);
+  const archivo = archivosMarca.find(
+    (a) =>
+      path.basename(a, path.extname(a)) === slug &&
+      EXTENSIONES.includes(path.extname(a).toLowerCase())
+  );
+  if (!archivo) {
+    marcasSinFoto.push(`${slug}.jpg   ${m}`);
+    continue;
+  }
+  await prepararMarca(path.join(MARCAS_ORIGENES, archivo), slug);
+  marcasListas++;
+}
+
+console.log(
+  `${marcasListas} de ${marcas.length} imagenes de marca listas en ${MARCAS_DESTINO}/`
+);
+
+/* La marca sin imagen no rompe nada: el mosaico cae en la foto del
+   producto mas caro de esa marca, que es como venia funcionando. */
+if (marcasSinFoto.length) {
+  console.log(`
+Marcas sin imagen propia (${marcasSinFoto.length}):`);
+  for (const m of marcasSinFoto) console.log(`  ${m}`);
 }
 
 console.log("");

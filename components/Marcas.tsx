@@ -1,7 +1,26 @@
+import { existsSync } from "node:fs";
 import Image from "next/image";
 import Link from "next/link";
 import { marcasConFoto } from "@/lib/productos";
 import TituloTienda from "./TituloTienda";
+
+/**
+ * La imagen de la marca, con la foto de producto como respaldo.
+ *
+ * Las piezas de marca —el banner de Medicube, la linea completa de
+ * Beauty of Joseon— las prepara `npm run fotos` desde fotos-marcas/. Si
+ * una marca todavia no tiene la suya, el mosaico cae en la foto del
+ * producto mas caro de esa marca y se ve bien igual: nunca queda un
+ * hueco esperando que alguien suba un archivo.
+ *
+ * Se mira el disco y no una lista escrita a mano porque esto es un
+ * componente de servidor y el archivo esta ahi: cualquier lista seria
+ * una segunda cosa que mantener y que se puede desincronizar.
+ */
+function imagenDe(marca: { slug: string; foto: string }) {
+  const propia = `/imagenes/marcas/${marca.slug}.webp`;
+  return existsSync(`public${propia}`) ? propia : marca.foto;
+}
 
 /**
  * El mosaico de marcas: una grande y cuatro chicas.
@@ -66,7 +85,7 @@ function Tarjeta({
       aria-label={`Ver los ${marca.cuantos} productos de ${marca.nombre}`}
     >
       <Image
-        src={marca.foto}
+        src={imagenDe(marca)}
         alt=""
         width={640}
         height={640}

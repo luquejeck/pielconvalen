@@ -44,6 +44,23 @@ encuentre y no toca el resto.
 
 ---
 
+## Las imágenes de marca van en otra carpeta
+
+En `fotos-marcas/` (al lado de esta) van las piezas de marca que usa el
+mosaico de la portada: el banner de Medicube, la línea completa de Beauty
+of Joseon, el logo de AHC. Son otra cosa que las fotos de producto —traen
+su propio fondo y su propia luz— así que el comando no las aclara ni les
+funde los bordes: solo las recorta a cuadrado y las achica.
+
+El nombre del archivo es la marca en minúscula y con guiones:
+`beauty-of-joseon.jpg`, `d-alba.jpg`, `medicube.jpg`. El mismo
+`npm run fotos:lista` te imprime la lista al final.
+
+Si una marca no tiene imagen propia, el mosaico usa la foto de su
+producto más caro y se ve bien igual: nunca queda un hueco.
+
+---
+
 ## Ojo con Windows
 
 El explorador a veces esconde la extensión, así que un archivo que se ve

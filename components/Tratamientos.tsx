@@ -102,7 +102,7 @@ export default function Tratamientos() {
       <div className="contenedor">
         <TituloSeccion
           titulo="Tratamientos"
-          bajada="Todos parten de la misma limpieza profunda. La diferencia es lo que se le suma."
+          bajada="Todos parten de la misma limpieza. La diferencia es lo que se suma."
         />
 
         {/*
@@ -185,32 +185,25 @@ export default function Tratamientos() {
         </ul>
 
         {/*
-          Lo que falta saber antes de decidir, en un renglon y sin caja:
-          cuanto dura y como se paga. La duracion estuvo mucho tiempo sin
-          aparecer en ningun lado, y quien reservaba a las 18:00 no tenia
-          como saber que salia a las 20:00.
-        */}
-        <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-snug text-balance text-tinta-suave">
-          {duracionComun && <>Cada sesión dura {duracionComun}. </>}
-          Se puede pagar con{" "}
-          <span className="font-medium text-tinta">
-            {consultorio.mediosDePago}
-          </span>
-          .
-        </p>
+          EL CIERRE, EN TRES RENGLONES.
 
-        {/*
-          La unica puerta de entrada. Suelta y centrada, sin tarjeta: las
-          capas ya son lo bastante vistosas, y una caja mas abajo competia
-          con ellas.
+          Antes eran cinco bloques: un parrafo con la duracion y los
+          medios de pago, un titulo "¿Cuál te corresponde?", otro parrafo
+          que lo contestaba, y recien ahi el boton. Cuatro textos para
+          decir una cosa —el tratamiento se elige en el consultorio— y
+          para ofrecer un boton que ya estaba arriba en el encabezado.
+
+          Queda la frase que importa, el boton, y debajo en chico los dos
+          datos que hacen falta para animarse a reservar: cuanto dura y
+          como se paga. La duracion solo aparece si TODOS duran lo mismo:
+          el dia que Valen cargue uno de media hora, la linea dejaria de
+          ser cierta y directamente no se muestra.
         */}
-        <div className="mx-auto mt-10 max-w-xl text-center">
-          <h3 className="font-display text-2xl font-semibold text-tinta">
-            ¿Cuál te corresponde?
-          </h3>
-          <p className="mt-1.5 text-lg leading-snug text-tinta-suave">
-            Lo deciden juntas al llegar, mirando tu piel.
+        <div className="mx-auto mt-9 max-w-xl text-center">
+          <p className="text-lg leading-snug text-balance text-tinta-suave">
+            Cuál te corresponde lo deciden al llegar, mirando tu piel.
           </p>
+
           <button
             type="button"
             onClick={irAReservar}
@@ -218,6 +211,11 @@ export default function Tratamientos() {
           >
             Reservar turno
           </button>
+
+          <p className="mt-4 text-base leading-snug text-balance text-tinta-suave">
+            {duracionComun && <>{duracionComun} por sesión · </>}
+            {consultorio.mediosDePago}
+          </p>
         </div>
       </div>
     </section>

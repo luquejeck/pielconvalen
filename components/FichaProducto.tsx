@@ -12,16 +12,17 @@ import { IconoWhatsApp } from "./iconos";
 /**
  * Una ficha de producto. La usan el carrusel de la portada y el catalogo.
  *
- * EL BOTON VA PEGADO AL BORDE DE LA FOTO, no debajo del texto.
+ * LA DISTRIBUCION ES LA DE LA TIENDA QUE PASO LUCAS DE REFERENCIA:
+ * todo alineado a la izquierda, marca y nombre juntos en versalitas y en
+ * gris, el precio grande abajo con el descuento al lado, y un boton
+ * angosto al final.
  *
- * Es lo que hace la tienda que Lucas paso de referencia y es la decision
- * que mas rinde: la barra se apoya sobre el ultimo tramo de la foto, que
- * es fondo y no producto, asi que la accion esta siempre visible y no
- * gasta una fila propia. Debajo quedan solo tres renglones de texto
- * —marca, nombre, precio— y la ficha entra entera en media pantalla de
- * celular.
+ * El orden de lectura que arma es mejor que el de antes: con el nombre
+ * chico y parejo, lo que salta a la vista es el precio, que es lo que se
+ * compara cuando hay trece productos en pantalla. Con el nombre grande y
+ * centrado, cada ficha empezaba a leerse por un texto distinto.
  *
- * TODA LA FICHA ES EL LINK, no solo la barra.
+ * TODA LA FICHA ES EL LINK, no solo el boton.
  *
  * No hay pagina de detalle: la unica accion posible sobre un producto es
  * preguntar por el. El `aria-label` la resume en un renglon para quien la
@@ -74,63 +75,68 @@ export default function FichaProducto({
             </span>
           )}
 
-          {/*
-            Parece un boton y no lo es: el link es la ficha entera. Si
-            fuera un <a> propio quedaria un link adentro de otro, que no
-            es HTML valido y que los lectores de pantalla anuncian dos
-            veces.
-          */}
-          <span className="absolute inset-x-0 bottom-0 flex min-h-11 items-center justify-center gap-1.5 bg-tinta/90 px-3 font-display text-sm font-medium text-crema backdrop-blur-sm transition-colors group-hover:bg-vino">
-            <IconoWhatsApp className="h-4 w-4" />
-            Lo quiero
-          </span>
         </div>
 
-        <div className="flex flex-1 flex-col pt-3 text-center">
+        <div className="flex flex-1 flex-col pt-3">
           {/*
-            La marca en un solo renglon.
+            MARCA Y NOMBRE EN UN SOLO BLOQUE, en versalitas y en gris.
 
-            "BEAUTY OF JOSEON" son dieciseis caracteres y con 0,1em de
-            tracking no entra en los 165px de una ficha a dos columnas:
-            partia en dos, y entonces el nombre del producto arrancaba
-            mas abajo que el de la ficha de al lado. Con 0,06em entra, y
-            el `truncate` es el seguro para la proxima marca larga que
-            cargue Valen.
-          */}
-          <p className="truncate font-display text-[0.6875rem] font-semibold tracking-[0.06em] text-tinta uppercase sm:tracking-[0.1em]">
-            {p.marca}
-          </p>
+            Es la distribucion de la tienda que paso Lucas de referencia,
+            y el orden de lectura que arma es mejor que el anterior: el
+            nombre deja de competir con el precio —queda chico, gris y
+            parejo— y lo que salta a la vista es el numero, que es lo que
+            se compara cuando hay trece productos en pantalla.
 
-          {/*
-            Nombre a dos renglones y subtitulo a uno. Sin cortarlos,
-            "PDRN Pink Collagen Capsule Cream" con sus beneficios armaba
-            una ficha mucho mas alta que la de al lado y la fila quedaba
-            despareja. El nombre completo no se pierde: viaja en el
-            `aria-label` y en el mensaje de WhatsApp.
+            La marca va adentro del mismo bloque pero en negrita: asi se
+            reconoce de un vistazo sin gastar un renglon propio, que era
+            lo que hacia antes.
           */}
-          <h3 className="mt-1 line-clamp-2 text-[0.9375rem] leading-snug font-normal text-balance text-tinta sm:text-base">
+          <h3 className="line-clamp-2 text-[0.8125rem] leading-snug tracking-[0.02em] text-tinta-suave uppercase">
+            <span className="font-semibold text-tinta">{p.marca}</span>{" "}
             {p.nombre}
           </h3>
-
-          {subtitulo && (
-            <p className="mt-1 line-clamp-1 text-[0.8125rem] leading-snug text-tinta-suave">
-              {subtitulo}
-            </p>
-          )}
 
           {/* `mt-auto` empuja el precio al piso: en una fila los nombres
               miden distinto y sin esto los precios quedaban a distinta
               altura en cada columna. */}
-          <p className="mt-auto flex items-baseline justify-center gap-2 pt-2.5 font-display text-base font-semibold tabular-nums">
-            {p.precioAnterior && descuento !== null && (
-              <span className="text-sm font-normal text-tinta-suave line-through">
-                {formatearPrecio(p.precioAnterior)}
-              </span>
-            )}
-            <span className={descuento !== null ? "text-vino" : "text-tinta"}>
+          <div className="mt-auto pt-2">
+            <p className="flex flex-wrap items-baseline gap-x-2 font-display text-xl font-semibold text-tinta tabular-nums">
               {precioDe(p)}
+              {descuento !== null && (
+                <span className="text-sm font-semibold text-vino">
+                  −{descuento}% OFF
+                </span>
+              )}
+            </p>
+
+            {p.precioAnterior && descuento !== null && (
+              <p className="mt-0.5 text-sm text-tinta-suave line-through tabular-nums">
+                {formatearPrecio(p.precioAnterior)}
+              </p>
+            )}
+
+            {subtitulo && (
+              <p className="mt-1 line-clamp-1 text-[0.8125rem] leading-snug text-tinta-suave">
+                {subtitulo}
+              </p>
+            )}
+
+            {/*
+              Parece un boton y no lo es: el link es la ficha entera. Si
+              fuera un <a> propio quedaria un link adentro de otro, que no
+              es HTML valido y que los lectores de pantalla anuncian dos
+              veces.
+
+              Angosto y a la izquierda, como en la referencia. Antes iba
+              pegado al borde de la foto y ocupaba todo el ancho: se veia
+              mas, y tapaba el ultimo tramo del envase en las fotos donde
+              el producto llega abajo.
+            */}
+            <span className="mt-3 inline-flex min-h-10 items-center gap-1.5 rounded-full bg-tinta px-4 font-display text-sm font-medium text-crema transition-colors group-hover:bg-vino">
+              <IconoWhatsApp className="h-4 w-4" />
+              Lo quiero
             </span>
-          </p>
+          </div>
         </div>
       </a>
     </li>

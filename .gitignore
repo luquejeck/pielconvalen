@@ -20,3 +20,5 @@ __pycache__/
 # repo. El LEEME se guarda porque explica como reemplazarlas.
 fotos-productos/*
 !fotos-productos/LEEME.md
+fotos-marcas/*
+!fotos-marcas/LEEME.md
