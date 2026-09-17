@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "fotos": "node scripts/preparar-fotos.mjs",
+    "fotos:lista": "node scripts/preparar-fotos.mjs lista"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

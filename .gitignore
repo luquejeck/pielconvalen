@@ -14,3 +14,9 @@ next-env.d.ts
 
 # Cache de Python (los scripts del skill ui-ux-pro-max)
 __pycache__/
+
+# Originales de las fotos de producto: son pesados y no los usa la web.
+# Lo que se publica es el .webp que genera "npm run fotos", que si va al
+# repo. El LEEME se guarda porque explica como reemplazarlas.
+fotos-productos/*
+!fotos-productos/LEEME.md

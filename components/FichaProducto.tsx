@@ -87,7 +87,17 @@ export default function FichaProducto({
         </div>
 
         <div className="flex flex-1 flex-col pt-3 text-center">
-          <p className="font-display text-[0.6875rem] font-semibold tracking-[0.1em] text-tinta uppercase">
+          {/*
+            La marca en un solo renglon.
+
+            "BEAUTY OF JOSEON" son dieciseis caracteres y con 0,1em de
+            tracking no entra en los 165px de una ficha a dos columnas:
+            partia en dos, y entonces el nombre del producto arrancaba
+            mas abajo que el de la ficha de al lado. Con 0,06em entra, y
+            el `truncate` es el seguro para la proxima marca larga que
+            cargue Valen.
+          */}
+          <p className="truncate font-display text-[0.6875rem] font-semibold tracking-[0.06em] text-tinta uppercase sm:tracking-[0.1em]">
             {p.marca}
           </p>
 

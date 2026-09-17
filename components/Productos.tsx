@@ -51,11 +51,6 @@ export default function Productos({
             ))}
           </CarruselProductos>
         </div>
-
-        <p className="mx-auto mt-8 max-w-2xl text-center text-lg leading-snug text-balance text-tinta-suave">
-          Cosmética coreana elegida por {CONSULTORIO.profesional}. Se compra por
-          WhatsApp y se retira en el consultorio.
-        </p>
       </div>
     </section>
   );
