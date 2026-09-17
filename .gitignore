@@ -8,4 +8,9 @@ out
 next-env.d.ts
 
 # Config local de Claude Code (rutas absolutas de esta maquina)
-.claude/
+.claude/*
+# ...menos los skills, que sirven igual en cualquier maquina
+!.claude/skills/
+
+# Cache de Python (los scripts del skill ui-ux-pro-max)
+__pycache__/
