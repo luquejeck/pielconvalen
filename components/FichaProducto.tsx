@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import Image from "next/image";
 import {
   descuentoDe,
@@ -29,6 +30,33 @@ import { IconoWhatsApp } from "./iconos";
  * escucha; sin el, el lector leia el descuento, la marca, el nombre y los
  * dos precios de corrido como si fueran el nombre del link.
  */
+/**
+ * Que productos tienen la foto sobre fondo claro.
+ *
+ * Lo escribe `npm run fotos` mirando el original de cada uno: las fotos
+ * de catalogo de las marcas vienen recortadas sobre blanco y las que
+ * mando Valen por WhatsApp estan sacadas de noche sobre una mesa oscura.
+ * La web no puede distinguirlo sola porque solo ve el .webp ya fundido.
+ *
+ * Esto es lo que deja convivir las dos cosas mientras se consiguen las
+ * fotos que faltan: cada ficha pinta su base del color al que fundio su
+ * foto, asi que ninguna se ve como un parche. El dia que entre la ultima
+ * foto de catalogo, la grilla queda blanca entera sola.
+ *
+ * Se lee una vez por proceso, no una por ficha. Si el archivo no existe
+ * —nadie corrio el comando todavia— quedan todas oscuras, que es como
+ * venia funcionando.
+ */
+const FONDOS: Record<string, string> = (() => {
+  try {
+    return JSON.parse(
+      readFileSync("public/imagenes/productos/fondos.json", "utf8")
+    );
+  } catch {
+    return {};
+  }
+})();
+
 export default function FichaProducto({
   producto: p,
   whatsapp,
@@ -42,6 +70,7 @@ export default function FichaProducto({
   );
 
   const descuento = descuentoDe(p);
+  const claro = FONDOS[p.id] === "claro";
   const subtitulo = [p.medida, ...p.beneficios].filter(Boolean).join(" · ");
 
   return (
@@ -53,11 +82,16 @@ export default function FichaProducto({
         aria-label={`Consultar por WhatsApp: ${p.nombre}, de ${p.marca}`}
         className="group flex w-full flex-col"
       >
-        <div className="relative overflow-hidden rounded-chico">
+        <div
+          className={`relative overflow-hidden rounded-chico ${
+            claro ? "bg-papel" : "bg-tinta"
+          }`}
+        >
           {/*
-            La base oscura donde se apoya el envase. Las fotos funden
-            exactamente a --color-tinta (scripts/preparar-fotos.mjs), asi
-            que no se ve donde termina el rectangulo.
+            La base se pinta del mismo color al que fundio la foto
+            (scripts/preparar-fotos.mjs), asi que no se ve donde termina
+            el rectangulo. Claro para las fotos de catalogo, oscuro para
+            las que sacamos con el celular.
           */}
           <Image
             src={fotoDe(p)}
@@ -65,7 +99,7 @@ export default function FichaProducto({
             width={640}
             height={640}
             sizes="(min-width: 1024px) 18rem, (min-width: 640px) 30vw, 45vw"
-            className="aspect-square w-full bg-tinta object-cover transition-transform duration-300 group-hover:scale-105"
+            className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
 
           {/* Solo cuando hay precio anterior cargado. Hoy no hay ninguno. */}

@@ -27,7 +27,7 @@
  * dia conviene bajar AJUSTE a 0 y que pasen sin tocar.
  */
 
-import { readdir, mkdir, readFile } from "node:fs/promises";
+import { readdir, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
@@ -52,8 +52,21 @@ const MARCAS_LADO = 900;
 /** Lado final. El doble del que ocupa la ficha en pantalla, para retina. */
 const LADO = 640;
 
-/** 0 = no tocar la luz. 1 = corregir a fondo. */
+/**
+ * Cuanto se corrige la luz de una foto OSCURA. Las claras no se tocan.
+ * 0 = nada, 1 = a fondo.
+ */
 const AJUSTE = 1;
+
+/**
+ * Debajo de este brillo medio de borde, la foto se considera oscura.
+ *
+ * 140 sobre 255 separa con holgura los dos casos que hay: las fotos de
+ * catalogo de las marcas cierran arriba de 240 —fondo blanco— y las que
+ * mando Valen por WhatsApp, sacadas de noche, no pasan de 60. No hay
+ * nada en el medio, asi que el umbral no es delicado.
+ */
+const UMBRAL_CLARO = 140;
 
 /** Lo que puede salir de un celular o una camara. */
 const EXTENSIONES = [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"];
@@ -68,6 +81,46 @@ const EXTENSIONES = [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"];
  * aparece un halo rectangular alrededor de cada producto.
  */
 const TINTA = "29,15,20";
+
+/** --color-papel: el blanco roto de las tarjetas de la web. */
+const PAPEL = "253,251,252";
+
+/**
+ * Si la foto es clara o es oscura, mirando el borde.
+ *
+ * La foto de catalogo de una marca viene recortada sobre blanco y la de
+ * Valen sobre una mesa de noche, asi que el borde alcanza y sobra para
+ * distinguirlas. Se mide despues de achicar a 32x32, que promedia el
+ * ruido y cuesta nada.
+ *
+ * Esto es lo que permite tener las dos cosas conviviendo mientras se
+ * consiguen las fotos que faltan: cada producto se funde al color que le
+ * corresponde, y la ficha se pinta de ese mismo color. El dia que entre
+ * la ultima foto de catalogo, la grilla queda blanca entera sola, sin
+ * tocar una linea de codigo.
+ */
+async function esClara(entrada) {
+  const { data, info } = await sharp(entrada)
+    .rotate()
+    .resize(32, 32, { fit: "cover" })
+    .greyscale()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  const { width: w, height: h } = info;
+  let suma = 0;
+  let n = 0;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const enBorde = x < 2 || y < 2 || x >= w - 2 || y >= h - 2;
+      if (enBorde) {
+        suma += data[y * w + x];
+        n++;
+      }
+    }
+  }
+  return suma / n >= UMBRAL_CLARO;
+}
 
 /**
  * La mascara que funde los bordes con la base de la ficha.
@@ -93,29 +146,30 @@ const TINTA = "29,15,20";
  */
 const FUNDE = 0.16;
 
-const banda = (id, x1, y1, x2, y2) => `
+const banda = (id, x1, y1, x2, y2, color) => `
   <linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">
-    <stop offset="0%"   stop-color="rgb(${TINTA})" stop-opacity="1"/>
-    <stop offset="55%"  stop-color="rgb(${TINTA})" stop-opacity="0.45"/>
-    <stop offset="100%" stop-color="rgb(${TINTA})" stop-opacity="0"/>
+    <stop offset="0%"   stop-color="rgb(${color})" stop-opacity="1"/>
+    <stop offset="55%"  stop-color="rgb(${color})" stop-opacity="0.45"/>
+    <stop offset="100%" stop-color="rgb(${color})" stop-opacity="0"/>
   </linearGradient>`;
 
 const b = Math.round(LADO * FUNDE);
 
-const mascara = Buffer.from(
-  `<svg width="${LADO}" height="${LADO}" xmlns="http://www.w3.org/2000/svg">
+const mascaraDe = (color) =>
+  Buffer.from(
+    `<svg width="${LADO}" height="${LADO}" xmlns="http://www.w3.org/2000/svg">
      <defs>
-       ${banda("arriba", "0", "0", "0", "1")}
-       ${banda("abajo", "0", "1", "0", "0")}
-       ${banda("izq", "0", "0", "1", "0")}
-       ${banda("der", "1", "0", "0", "0")}
+       ${banda("arriba", "0", "0", "0", "1", color)}
+       ${banda("abajo", "0", "1", "0", "0", color)}
+       ${banda("izq", "0", "0", "1", "0", color)}
+       ${banda("der", "1", "0", "0", "0", color)}
      </defs>
      <rect x="0" y="0" width="${LADO}" height="${b}" fill="url(#arriba)"/>
      <rect x="0" y="${LADO - b}" width="${LADO}" height="${b}" fill="url(#abajo)"/>
      <rect x="0" y="0" width="${b}" height="${LADO}" fill="url(#izq)"/>
      <rect x="${LADO - b}" y="0" width="${b}" height="${LADO}" fill="url(#der)"/>
    </svg>`
-);
+  );
 
 /**
  * Los productos, leidos de lib/productos.ts.
@@ -147,9 +201,13 @@ async function leerCatalogo() {
 }
 
 async function preparar(entrada, id) {
+  const clara = await esClara(entrada);
   let img = sharp(entrada).rotate(); // respeta la orientacion del celular
 
-  if (AJUSTE > 0) {
+  /* La correccion de luz es solo para las fotos de Valen. Una foto de
+     catalogo ya viene medida; `normalise` sobre fondo blanco le comeria
+     los grises claros del envase. */
+  if (!clara && AJUSTE > 0) {
     img = img.normalise().modulate({ brightness: 1 + 0.08 * AJUSTE });
   }
 
@@ -162,11 +220,26 @@ async function preparar(entrada, id) {
     centrados en el encuadre, asi que el centro acierta siempre y, sobre
     todo, acierta de forma predecible.
   */
+  /* `contain` para las claras y `cover` para las oscuras.
+
+     Una foto de catalogo trae el envase entero y centrado sobre blanco:
+     recortarla a cuadrado le corta la tapa o la base. `contain` la mete
+     completa y rellena con el mismo blanco del fondo, asi que no se nota
+     que sobro lugar. Las de Valen, en cambio, son verticales y con mesa
+     alrededor: ahi conviene recortar. */
   await img
-    .resize(LADO, LADO, { fit: "cover", position: "centre" })
-    .composite([{ input: mascara, blend: "over" }])
+    .resize(LADO, LADO, {
+      fit: clara ? "contain" : "cover",
+      position: "centre",
+      background: clara
+        ? { r: 253, g: 251, b: 252 }
+        : { r: 29, g: 15, b: 20 },
+    })
+    .composite([{ input: mascaraDe(clara ? PAPEL : TINTA), blend: "over" }])
     .webp({ quality: 82 })
     .toFile(path.join(DESTINO, `${id}.webp`));
+
+  return clara;
 }
 
 /**
@@ -240,12 +313,48 @@ for (const archivo of archivos) {
 }
 
 let listas = 0;
+const claras = [];
+const oscuras = [];
+
 for (const [id, archivo] of porId) {
-  await preparar(path.join(ORIGENES, archivo), id);
+  const clara = await preparar(path.join(ORIGENES, archivo), id);
+  (clara ? claras : oscuras).push(id);
   listas++;
 }
 
+/*
+  El manifiesto que lee la ficha para saber de que color pintar la base.
+
+  Se escribe desde aca y no se calcula en la web porque la web no ve los
+  originales: solo ve el .webp ya fundido, donde el fondo de origen ya no
+  se puede distinguir. Y se guarda como archivo y no a mano en
+  lib/productos.ts para que nadie tenga que acordarse de actualizarlo
+  cuando cambie una foto: sale del mismo comando que genera la imagen.
+*/
+await writeFile(
+  path.join(DESTINO, "fondos.json"),
+  JSON.stringify(
+    Object.fromEntries(claras.map((id) => [id, "claro"])),
+    null,
+    2
+  ) + "\n",
+  "utf8"
+);
+
 console.log(`\n${listas} de ${productos.length} fotos listas en ${DESTINO}/`);
+console.log(
+  `  ${claras.length} sobre fondo claro, ${oscuras.length} sobre fondo oscuro`
+);
+
+/* Las oscuras son las que todavia tienen la foto de WhatsApp: son justo
+   las que hay que ir a reemplazar, asi que se nombran. */
+if (oscuras.length) {
+  console.log(`\nTodavia con foto oscura (${oscuras.length}):`);
+  for (const id of oscuras) {
+    const pr = productos.find((x) => x.id === id);
+    console.log(`  ${id}   ${pr.marca} — ${pr.nombre}`);
+  }
+}
 
 const faltan = productos.filter((p) => !porId.has(p.id));
 if (faltan.length) {

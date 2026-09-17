@@ -64,7 +64,6 @@ export default async function Productos({ searchParams }: Busqueda) {
   const filtrados = marcaElegida ? productosDeMarca(marcaElegida.slug) : [];
 
   const grupos = porCategoria();
-  const total = productosPublicados().length;
 
   return (
     <>
@@ -84,23 +83,16 @@ export default async function Productos({ searchParams }: Busqueda) {
             <h1 className="text-4xl text-tinta sm:text-5xl">
               {marcaElegida ? marcaElegida.nombre : "Productos"}
             </h1>
-            <p className="mt-3 text-xl leading-snug text-tinta-suave">
-              {marcaElegida ? (
-                <>
-                  {filtrados.length}{" "}
-                  {filtrados.length === 1 ? "producto" : "productos"} de esta
-                  marca. La venta es por WhatsApp: tocá el producto y se abre el
-                  chat con el mensaje escrito.
-                </>
-              ) : (
-                <>
-                  Cosmética coreana que {CONSULTORIO.profesional} usa y
-                  recomienda. La venta es por WhatsApp: tocá el producto y se
-                  abre el chat con el mensaje escrito. Se retira en el
-                  consultorio.
-                </>
-              )}
-            </p>
+            {/* Con marca elegida queda el conteo, que es informacion:
+                dice cuantos hay sin tener que contarlos. Sin marca no va
+                nada: el titulo "Productos" ya lo dice todo. */}
+            {marcaElegida && (
+              <p className="mt-3 text-xl leading-snug text-tinta-suave">
+                {filtrados.length}{" "}
+                {filtrados.length === 1 ? "producto" : "productos"} de esta
+                marca.
+              </p>
+            )}
           </header>
 
           {marcaElegida ? (
@@ -191,8 +183,7 @@ export default async function Productos({ searchParams }: Busqueda) {
               ¿No sabés cuál te sirve?
             </h2>
             <p className="mx-auto mt-2 max-w-xl text-lg leading-snug text-tinta-suave">
-              Contame cómo tenés la piel y te digo cuál de los {total} te
-              conviene. Sin compromiso.
+              Escribime y te recomiendo según tu tipo de piel.
             </p>
 
             <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
