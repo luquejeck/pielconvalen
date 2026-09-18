@@ -1,5 +1,11 @@
 "use client";
 
+import Link from "next/link";
+import {
+  aSlug,
+  motivoRecomendacion,
+  recomendadoPara,
+} from "@/lib/productos";
 import { esConsulta, formatearPrecio } from "@/lib/tratamientos";
 import { useReserva } from "./ReservaContext";
 import TituloSeccion from "./TituloSeccion";
@@ -116,6 +122,38 @@ export default function Tratamientos() {
                       {ordenar(t.extras).join(" · ")}
                     </p>
                   )}
+
+                  {/*
+                    EL CUIDADO EN CASA, en un renglon chico y sin boton.
+
+                    Es el momento de mayor intencion: la clienta esta
+                    mirando el tratamiento que le resuelve el problema.
+                    Pero va discreto a proposito —texto chico, subrayado
+                    fino, sin precio ni foto— porque esta seccion es para
+                    decidir el turno, no para vender una crema. Un boton
+                    de "Agregar" aca competiria con "Reservar", que es lo
+                    unico que la pagina pide en este tramo.
+
+                    Lo que se recomienda sale de los extras y no de una
+                    tabla por nombre: los nombres los edita Valen desde el
+                    panel y cambian.
+                  */}
+                  {(() => {
+                    const sugerido = recomendadoPara(t.extras);
+                    if (!sugerido) return null;
+
+                    return (
+                      <p className="mt-2 text-sm leading-snug text-tinta-suave">
+                        {motivoRecomendacion(t.extras)}:{" "}
+                        <Link
+                          href={`/productos#${aSlug(sugerido.categoria)}`}
+                          className="underline decoration-vino/40 underline-offset-4 transition-colors hover:text-vino hover:decoration-vino"
+                        >
+                          {sugerido.nombre} de {sugerido.marca}
+                        </Link>
+                      </p>
+                    );
+                  })()}
                 </div>
 
                 <p className="shrink-0 font-display text-lg font-semibold text-vino tabular-nums">

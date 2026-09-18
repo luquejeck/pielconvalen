@@ -101,31 +101,32 @@ export default async function Home() {
         <Hero consultorio={CONSULTORIO} />
 
         {/*
-          EL ORDEN SIGUE EL RECORRIDO DE UNA DECISION, no el del folleto.
+          PRIMERO LO QUE SE VENDE, DESPUES LO QUE LO EXPLICA.
 
-          1. Quien te atiende  — la cara y la credencial: sin eso, nada de
+          1. Quien te atiende — la cara y la credencial. Sin eso, nada de
              lo que sigue importa.
-          2. Que cuesta        — los precios ANTES del calendario. Antes el
-             modulo de reserva venia tercero y le pedia a la clienta que
-             eligiera un horario sin haber visto un solo numero; quien
-             queria saber cuanto salia tenia que pasarlo de largo, bajar
-             cinco secciones y despues volver.
-          3. Como se trabaja   — metodo, lo que va a notar, y el lugar.
-          4. El turno          — recien aca, con todo resuelto.
-          5. Los productos     — lo que se lleva a casa despues.
+          2. Tratamientos      — los precios ANTES del calendario: pedir un
+             horario sin haber mostrado un numero es pedir a ciegas.
+          3. El turno          — con el precio ya visto.
+          4. Productos y marcas — lo que se lleva a casa.
+          5. Recien ahi: como se trabaja, que va a notar y el consultorio
+             por dentro. Es material para quien todavia esta decidiendo, y
+             no tiene por que estar arriba del boton.
 
-          Quien entra decidido no tiene que recorrer nada: el boton del
-          encabezado lo lleva al turno desde cualquier punto, y esta
-          siempre a la vista porque el encabezado es sticky.
+          Antes la reserva caia septima de diez y los productos octavos:
+          quien entraba a sacar turno o a comprar tenia que recorrer medio
+          sitio. El encabezado ya llevaba al turno desde cualquier punto,
+          pero eso resuelve al que sabe que el boton esta ahi, no al que
+          baja leyendo.
         */}
         <Consultorio consultorio={CONSULTORIO} />
         <Tratamientos />
-        <ComoTrabajo agenda={agenda} />
-        <Beneficios consultorio={CONSULTORIO} />
-        <Videos subidos={videos} />
         <Reservas />
         <Productos consultorio={CONSULTORIO} />
         <Marcas />
+        <ComoTrabajo agenda={agenda} />
+        <Beneficios consultorio={CONSULTORIO} />
+        <Videos subidos={videos} />
 
         {/* Al final de todo: es una seccion de consulta, no parte del
             recorrido. Quien la necesita la busca. */}
