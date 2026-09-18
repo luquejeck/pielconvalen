@@ -254,14 +254,29 @@ export const PRODUCTOS: Producto[] = [
   },
   {
     id: "vt-cica-reedle-shot",
-    marca: "VT",
+    /*
+      La marca es CICA x HYALON y no VT.
+
+      Tecnicamente es la linea de VT Cosmetics, no la casa. Se publica
+      con el nombre de la linea porque es lo que dice el frente del
+      envase en letra grande y lo que busca quien ya la conoce; "VT"
+      aparece chiquito en un costado. Si algun dia entra otro producto de
+      VT que no sea de esta linea, ahi si conviene separarlas.
+
+      El `id` queda como estaba: es el nombre del archivo de la foto y la
+      clave del pedido guardado en el telefono de cada clienta. Cambiarlo
+      romperia los dos por un tema de rotulo.
+    */
+    marca: "CICA × HYALON",
     nombre: "Cica Reedle Shot 100",
     medida: "50 ml",
     categoria: "Sérums",
+    /* Sin precio: muestra "Consultar" y el mensaje de WhatsApp lo pide.
+       Es lo unico honesto mientras no este el precio de venta de Valen. */
     precio: 0,
-    descripcion: "",
-    beneficios: [],
-    borrador: true,
+    descripcion:
+      "Sérum de primer paso con 95.000 micropartículas. Renueva la piel áspera y las células muertas para dejarla lisa. El 100 es el nivel más suave de la línea.",
+    beneficios: ["Textura", "Renovación", "Primer paso"],
   },
   {
     id: "joseon-revive-eye-serum",

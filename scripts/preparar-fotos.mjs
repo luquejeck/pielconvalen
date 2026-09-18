@@ -69,7 +69,15 @@ const AJUSTE = 1;
 const UMBRAL_CLARO = 140;
 
 /** Lo que puede salir de un celular o una camara. */
-const EXTENSIONES = [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"];
+const EXTENSIONES = [
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+  ".avif",
+  ".heic",
+  ".heif",
+];
 
 /**
  * El color al que se funden los bordes.
@@ -184,11 +192,30 @@ async function leerCatalogo() {
   const fuente = await readFile(CATALOGO, "utf8");
   const productos = [];
 
-  const bloques = fuente.matchAll(
-    /id:\s*"([^"]+)",\s*\n\s*marca:\s*"([^"]+)",\s*\n\s*nombre:\s*"([^"]+)"/g
-  );
-  for (const [, id, marca, nombre] of bloques) {
-    productos.push({ id, marca, nombre });
+  /*
+    Se parte el archivo en bloques, uno por producto, y recien ahi se
+    leen los campos.
+
+    Antes era una sola expresion que pedia `id`, `marca` y `nombre` en
+    renglones seguidos. Alcanzaba hasta que a un producto se le puso un
+    comentario entre el `id` y la `marca` para explicar por que se
+    publica con el nombre de la linea: ese producto desaparecio de la
+    lista sin que nada avisara, y con el su marca, asi que ni la foto ni
+    la tarjeta de marca se generaron. Partir por bloques deja meter
+    comentarios donde haga falta.
+  */
+  const ids = [...fuente.matchAll(/\n\s*id:\s*"([^"]+)"/g)];
+
+  for (let i = 0; i < ids.length; i++) {
+    const desde = ids[i].index;
+    const hasta = i + 1 < ids.length ? ids[i + 1].index : fuente.length;
+    const bloque = fuente.slice(desde, hasta);
+
+    const marca = bloque.match(/\n\s*marca:\s*"([^"]+)"/);
+    const nombre = bloque.match(/\n\s*nombre:\s*"([^"]+)"/);
+    if (marca && nombre) {
+      productos.push({ id: ids[i][1], marca: marca[1], nombre: nombre[1] });
+    }
   }
 
   if (productos.length === 0) {

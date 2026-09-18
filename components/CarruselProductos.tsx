@@ -49,11 +49,23 @@ export default function CarruselProductos({
       daba 3 puntos para dos pantallas, con el tercero imposible de
       alcanzar.
     */
-    const sobra = el.scrollWidth - el.clientWidth;
+    /*
+      Si todavia no tiene ancho, no se calcula nada.
+
+      `clientWidth` da 0 mientras el elemento no esta maquetado, y
+      dividir por cero da Infinity: `Array.from({ length: Infinity })`
+      tira "Invalid array length" y se cae la pagina entera, no solo el
+      carrusel. Pasa de verdad —el ResizeObserver dispara una primera vez
+      antes del layout— y se llevo puesta la portada.
+    */
+    const ancho = el.clientWidth;
+    if (ancho <= 0) return;
+
+    const sobra = el.scrollWidth - ancho;
     setPaginas(
-      sobra > 4 ? Math.max(2, Math.round(el.scrollWidth / el.clientWidth)) : 1
+      sobra > 4 ? Math.min(20, Math.max(2, Math.round(el.scrollWidth / ancho))) : 1
     );
-    setPagina(Math.round(el.scrollLeft / el.clientWidth));
+    setPagina(Math.round(el.scrollLeft / ancho));
   }, []);
 
   useEffect(() => {
