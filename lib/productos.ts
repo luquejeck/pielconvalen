@@ -338,66 +338,6 @@ export const marcas = () =>
 
 export const fotoDe = (p: Producto) => `/imagenes/productos/${p.id}.webp`;
 
-/**
- * Que producto conviene tener en casa despues de cada tratamiento.
- *
- * SE DECIDE POR LOS EXTRAS, NO POR EL NOMBRE. Los nombres los edita Valen
- * desde el panel y cambian; los extras son etiquetas cortas y estables,
- * asi que una tabla por nombre se desincronizaria sola la primera vez que
- * renombre algo.
- *
- * CADA EXTRA LLEVA A UN PRODUCTO DISTINTO, a proposito. Con una sola
- * regla —"lleva acidos, entonces protector"— cinco de los seis
- * tratamientos mostraban el mismo renglon, y repetido cinco veces deja
- * de leerse como un consejo y pasa a leerse como un aviso publicitario.
- *
- * Y NINGUNA ES UNA VENTA INVENTADA: despues de microneedling lo que hace
- * falta es reparar la barrera, despues de acidos o dermaplaning la piel
- * queda mas sensible al sol, y la radiofrecuencia trabaja sobre firmeza.
- * Son las tres cosas que corresponde decir, y ademas son cosas que Valen
- * vende.
- *
- * El orden de los `if` importa: va de lo mas especifico a lo mas general,
- * porque un tratamiento suele traer varios extras a la vez.
- */
-const tiene = (extras: string[], patron: RegExp) =>
-  extras.some((e) => patron.test(e));
-
-function cuidadoPara(extras: string[]) {
-  if (tiene(extras, /microneedling|needl/i)) {
-    return {
-      id: "joseon-revive-serum",
-      motivo: "Después conviene reparar la barrera",
-    };
-  }
-  if (tiene(extras, /ácido|acido|dermaplaning|peeling/i)) {
-    return {
-      id: "joseon-relief-sun-probiotics",
-      motivo: "Después queda más sensible al sol",
-    };
-  }
-  if (tiene(extras, /radiofrecuencia|lifting|tensad/i)) {
-    return {
-      id: "medicube-triple-collagen",
-      motivo: "Para acompañar la firmeza en casa",
-    };
-  }
-  return { id: "joseon-glow-serum", motivo: "Para sostener el resultado" };
-}
-
-/**
- * El producto sugerido, o null si no esta publicado: asi la linea no
- * aparece en vez de apuntar a algo que no existe.
- */
-export function recomendadoPara(extras: string[]): Producto | null {
-  const { id } = cuidadoPara(extras);
-  return productosPublicados().find((p) => p.id === id) ?? null;
-}
-
-/** El motivo, para que la recomendacion se lea como consejo y no como aviso. */
-export const motivoRecomendacion = (extras: string[]) =>
-  cuidadoPara(extras).motivo;
-
 /** El porcentaje de descuento, o null si el producto no esta en oferta. */
 export function descuentoDe(p: Producto): number | null {
   if (!p.precioAnterior || p.precioAnterior <= p.precio) return null;

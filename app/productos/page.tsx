@@ -8,15 +8,17 @@ import { SITIO_URL } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
 import {
   aSlug,
+  CATEGORIAS,
   marcas,
   marcasConFoto,
   porCategoria,
-  productosDeMarca,
   productosPublicados,
 } from "@/lib/productos";
 import { linkConsultaProductos } from "@/lib/whatsapp";
 
-type Busqueda = { searchParams: Promise<{ marca?: string }> };
+type Busqueda = {
+  searchParams: Promise<{ marca?: string; categoria?: string }>;
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const CONSULTORIO = await obtenerConfiguracion();
@@ -56,14 +58,37 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function Productos({ searchParams }: Busqueda) {
   const CONSULTORIO = await obtenerConfiguracion();
-  const { marca: marcaPedida } = await searchParams;
+  const { marca: marcaPedida, categoria: categoriaPedida } =
+    await searchParams;
 
-  /* Se valida contra las marcas que existen: un ?marca=cualquier-cosa
-     tiene que caer en el catalogo entero y no en una pagina vacia. */
+  /* Los dos filtros se validan contra lo que existe: un ?marca= o
+     ?categoria= con cualquier cosa tiene que caer en el catalogo entero
+     y no en una pagina vacia. */
   const marcaElegida = marcasConFoto().find((m) => m.slug === marcaPedida);
-  const filtrados = marcaElegida ? productosDeMarca(marcaElegida.slug) : [];
+  const categoriaElegida = CATEGORIAS.find(
+    (c) => aSlug(c) === categoriaPedida
+  );
 
   const grupos = porCategoria();
+
+  /*
+    EL FILTRO VIVE EN LA DIRECCION Y NO EN EL ESTADO DEL NAVEGADOR.
+
+    Asi funciona sin javascript, el boton de atras hace lo que se espera,
+    y el link se puede pasar por WhatsApp: "mirá los protectores" es
+    /productos?categoria=protector-solar. Con estado en el cliente, ese
+    link no existe.
+
+    Los dos filtros se combinan: entrar por la marca desde el mosaico y
+    despues acotar por categoria tiene que seguir funcionando.
+  */
+  const filtrados = productosPublicados().filter(
+    (p) =>
+      (!marcaElegida || aSlug(p.marca) === marcaElegida.slug) &&
+      (!categoriaElegida || p.categoria === categoriaElegida)
+  );
+
+  const hayFiltro = Boolean(marcaElegida || categoriaElegida);
 
   return (
     <>
@@ -95,70 +120,123 @@ export default async function Productos({ searchParams }: Busqueda) {
             )}
           </header>
 
-          {marcaElegida ? (
-            <>
-              <Link
-                href="/productos"
-                className="mt-7 inline-flex min-h-10 items-center gap-2 rounded-full border border-borde bg-papel px-4 text-base text-tinta transition-colors hover:border-vino hover:text-vino"
-              >
-                <IconoFlecha className="h-4 w-4 rotate-180" />
-                Ver las {marcas().length} marcas
-              </Link>
+          {/*
+            LOS FILTROS, EN PASTILLAS.
 
+            Son filtros de verdad y no anclas. Con el ancla, tocar
+            "Cremas" bajaba hasta las cremas pero dejaba las otras diez
+            fichas en el medio: la clienta que solo quiere ver cremas
+            tenia que ignorarlas sola. Ahora las esconde, y "Todos"
+            vuelve.
+
+            Cada pastilla dice cuantos hay. Sin el numero, tocar un filtro
+            es una apuesta: puede traer uno o doce.
+
+            La fila se desliza al costado en celular en vez de envolverse
+            en tres renglones, asi los productos quedan a la vista sin
+            scrollear.
+          */}
+          <nav aria-label="Filtrar productos" className="mt-7">
+            <ul className="sin-barra -mx-5 flex gap-2 overflow-x-auto px-5">
+              <li className="shrink-0">
+                <Pastilla
+                  href={marcaElegida ? `/productos?marca=${marcaElegida.slug}` : "/productos"}
+                  activa={!categoriaElegida}
+                  texto="Todos"
+                  cuantos={
+                    marcaElegida
+                      ? productosPublicados().filter(
+                          (p) => aSlug(p.marca) === marcaElegida.slug
+                        ).length
+                      : productosPublicados().length
+                  }
+                />
+              </li>
+
+              {grupos.map(({ categoria }) => {
+                /* El conteo respeta la marca elegida: dentro de Beauty of
+                   Joseon, "Cremas" tiene que decir 1 y no 4. Las
+                   categorias que quedan en cero no se dibujan. */
+                const cuantos = productosPublicados().filter(
+                  (p) =>
+                    p.categoria === categoria &&
+                    (!marcaElegida || aSlug(p.marca) === marcaElegida.slug)
+                ).length;
+                if (cuantos === 0) return null;
+
+                const params = new URLSearchParams();
+                if (marcaElegida) params.set("marca", marcaElegida.slug);
+                params.set("categoria", aSlug(categoria));
+
+                return (
+                  <li key={categoria} className="shrink-0">
+                    <Pastilla
+                      href={`/productos?${params}`}
+                      activa={categoriaElegida === categoria}
+                      texto={categoria}
+                      cuantos={cuantos}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+
+          {marcaElegida && (
+            <Link
+              href={
+                categoriaElegida
+                  ? `/productos?categoria=${aSlug(categoriaElegida)}`
+                  : "/productos"
+              }
+              className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-full border border-borde bg-papel px-4 text-base text-tinta transition-colors hover:border-vino hover:text-vino"
+            >
+              <IconoFlecha className="h-4 w-4 rotate-180" />
+              Ver las {marcas().length} marcas
+            </Link>
+          )}
+
+          {/*
+            Sin filtro se recorre por categorias, con su titulo: es el
+            orden de la rutina y sirve para mirar. Con filtro va una
+            grilla sola, porque el titulo repetiria lo que ya dice la
+            pastilla encendida.
+          */}
+          {hayFiltro ? (
+            filtrados.length > 0 ? (
               <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                 {filtrados.map((p) => (
                   <FichaProducto key={p.id} producto={p} />
                 ))}
               </ul>
-            </>
+            ) : (
+              /* No deberia pasar —las pastillas en cero no se dibujan—
+                 pero una direccion escrita a mano puede llegar aca. */
+              <p className="mt-8 rounded-chico border border-borde bg-papel px-5 py-6 text-center text-lg text-tinta-suave">
+                No hay productos con esa combinación.{" "}
+                <Link href="/productos" className="text-vino underline">
+                  Ver todos
+                </Link>
+              </p>
+            )
           ) : (
-            <>
-              {/*
-                Indice de categorias: son anclas y no filtros. El filtro
-                esconde y obliga a volver atras para ver el resto, y con
-                trece productos no hay nada que esconder. La marca si
-                filtra, porque ahi la clienta ya decidio.
+            grupos.map(({ categoria, items }) => (
+              <section
+                key={categoria}
+                id={aSlug(categoria)}
+                className="scroll-mt-24 pt-12"
+              >
+                <h2 className="font-display text-xl font-semibold tracking-[0.1em] text-tinta uppercase">
+                  {categoria}
+                </h2>
 
-                La fila se desliza al costado en celular en vez de
-                envolverse en tres renglones: asi el titulo de la primera
-                categoria queda a la vista sin scrollear.
-              */}
-              <nav aria-label="Categorías" className="mt-7">
-                <ul className="sin-barra -mx-5 flex gap-2 overflow-x-auto px-5">
-                  {grupos.map(({ categoria, items }) => (
-                    <li key={categoria} className="shrink-0">
-                      <a
-                        href={`#${aSlug(categoria)}`}
-                        className="inline-flex min-h-10 items-center gap-2 rounded-full border border-borde bg-papel px-4 text-base whitespace-nowrap text-tinta transition-colors hover:border-vino hover:text-vino"
-                      >
-                        {categoria}
-                        <span className="text-tinta-suave tabular-nums">
-                          {items.length}
-                        </span>
-                      </a>
-                    </li>
+                <ul className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+                  {items.map((p) => (
+                    <FichaProducto key={p.id} producto={p} />
                   ))}
                 </ul>
-              </nav>
-
-              {grupos.map(({ categoria, items }) => (
-                <section
-                  key={categoria}
-                  id={aSlug(categoria)}
-                  className="scroll-mt-24 pt-12"
-                >
-                  <h2 className="font-display text-xl font-semibold tracking-[0.1em] text-tinta uppercase">
-                    {categoria}
-                  </h2>
-
-                  <ul className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-                    {items.map((p) => (
-                      <FichaProducto key={p.id} producto={p} />
-                    ))}
-                  </ul>
-                </section>
-              ))}
-            </>
+              </section>
+            ))
           )}
 
           {/*
@@ -202,5 +280,45 @@ export default async function Productos({ searchParams }: Busqueda) {
 
       <Footer consultorio={CONSULTORIO} />
     </>
+  );
+}
+
+/**
+ * Una pastilla de filtro.
+ *
+ * La encendida se pinta en vino y lleva `aria-current`: el color solo no
+ * alcanza para quien no distingue el vino del blanco, y sin el atributo
+ * un lector de pantalla lee seis links iguales sin decir en cual esta.
+ *
+ * Sigue siendo un link y no un boton aunque cambie lo que se ve: lo que
+ * hace es ir a otra direccion, y eso tiene que poder abrirse en otra
+ * pestaña y guardarse en favoritos.
+ */
+function Pastilla({
+  href,
+  activa,
+  texto,
+  cuantos,
+}: {
+  href: string;
+  activa: boolean;
+  texto: string;
+  cuantos: number;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={activa ? "true" : undefined}
+      className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-base whitespace-nowrap transition-colors ${
+        activa
+          ? "border-vino bg-vino text-white"
+          : "border-borde bg-papel text-tinta hover:border-vino hover:text-vino"
+      }`}
+    >
+      {texto}
+      <span className={activa ? "text-white/70" : "text-tinta-suave"}>
+        <span className="tabular-nums">{cuantos}</span>
+      </span>
+    </Link>
   );
 }
