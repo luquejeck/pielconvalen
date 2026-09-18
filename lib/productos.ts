@@ -271,10 +271,11 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Heartleaf 80 Moisture Soothing Ampoule",
     medida: "30 ml",
     categoria: "Sérums",
+    /* Sin precio argentino en el relevamiento: muestra "Consultar". */
     precio: 0,
-    descripcion: "",
-    beneficios: [],
-    borrador: true,
+    descripcion:
+      "80% de extracto de heartleaf y pantenol. Calma la piel irritada o reactiva y la hidrata sin dejar sensación pegajosa.",
+    beneficios: ["Calma", "Piel reactiva", "Hidratación"],
   },
   {
     id: "vt-cica-reedle-shot",

@@ -1,5 +1,5 @@
 import type { ConfiguracionWeb } from "@/lib/consultorio";
-import { productosDestacados, productosPublicados } from "@/lib/productos";
+import { productosDestacados } from "@/lib/productos";
 import CarruselProductos from "./CarruselProductos";
 import FichaProducto from "./FichaProducto";
 import TituloTienda from "./TituloTienda";
@@ -24,7 +24,6 @@ export default function Productos({
   consultorio: ConfiguracionWeb;
 }) {
   const destacados = productosDestacados();
-  const total = productosPublicados().length;
 
   // Sin productos cargados la seccion no existe, en vez de quedar vacia.
   if (destacados.length === 0) return null;
@@ -37,7 +36,7 @@ export default function Productos({
       <div className="contenedor">
         <TituloTienda
           titulo="Productos"
-          verTodo={{ href: "/productos", texto: `Ver los ${total} productos` }}
+          verTodo={{ href: "/productos", texto: "Ver todos" }}
         />
 
         <div className="mt-8">
