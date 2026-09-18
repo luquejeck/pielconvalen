@@ -86,7 +86,20 @@ export default function CarruselProductos({
   const hayCarrusel = paginas > 1;
 
   return (
-    <div className="relative">
+    /*
+      `overflow-x: clip` NO es decoracion: sin esto la pagina entera se
+      mueve para los costados en el celular.
+
+      La fila de adentro tiene `overflow-x-auto` y se recorta sola, pero
+      el envoltorio igual reportaba 550px de ancho de contenido dentro de
+      un hueco de 335, y eso se propagaba hasta el documento: 570px de
+      pagina en una pantalla de 375. Medido antes y despues.
+
+      Va `clip` y no `hidden` a proposito: `hidden` crea un contenedor de
+      scroll y eso rompe el `position: sticky` del encabezado y los
+      saltos a los anclajes. `clip` solo recorta.
+    */
+    <div className="relative overflow-x-clip">
       <ul
         ref={pista}
         onScroll={medir}
@@ -103,12 +116,15 @@ export default function CarruselProductos({
         En celular se desliza con el dedo y una flecha de 44px encima de
         la foto tapa producto sin agregar nada.
 
-        Van por fuera de la fila, apoyadas en el margen: adentro tapaban
-        justo la esquina de la primera y la ultima ficha, que es donde cae
-        la etiqueta de descuento.
+        Van apoyadas contra el borde de la fila y no por fuera. Antes
+        salian 8px para afuera con `-inset-x-2`, y con el recorte del
+        envoltorio quedaban cortadas a la mitad. Pisar un pedacito de la
+        primera y la ultima ficha es lo que hace cualquier carrusel de
+        tienda, y la etiqueta de descuento —que era el motivo de sacarlas
+        afuera— no se tapa porque va arriba a la izquierda, no al medio.
       */}
       {hayCarrusel && (
-        <div className="pointer-events-none absolute inset-y-0 -inset-x-2 hidden items-center justify-between lg:flex xl:-inset-x-5">
+        <div className="pointer-events-none absolute inset-0 hidden items-center justify-between lg:flex">
           {(
             [
               ["Anterior", -1, pagina === 0, "rotate-180"],
