@@ -238,11 +238,25 @@ export const PRODUCTOS: Producto[] = [
   {
     id: "joseon-relief-sun-probiotics",
     marca: "Beauty of Joseon",
-    nombre: "Relief Sun Rice + Probiotics",
+    /*
+      SE LLAMA "RICE + NIACINAMIDE" Y NO "RICE + PROBIOTICS".
+
+      Beauty of Joseon reformulo y renombro el producto. El envase que
+      habia fotografiado Valen decia "Probiotics" —la formula anterior— y
+      la foto de catalogo que entro dice "Niacinamide". El nombre sigue a
+      la foto: que la ficha diga una cosa y la imagen otra es lo peor de
+      los dos mundos, porque la clienta recibe algo distinto de lo que
+      creyo pedir.
+
+      El `id` no se toca: es el nombre del archivo de la foto y la clave
+      del pedido guardado en el telefono de cada clienta. Cambiarlo
+      romperia las dos cosas por un tema de rotulo.
+    */
+    nombre: "Relief Sun Rice + Niacinamide",
     categoria: "Protector solar",
     precio: 40000,
     descripcion:
-      "FPS 50+ PA++++ con 30% de extracto de arroz y probióticos. El protector que más se pide, y con razón.",
+      "FPS 50+ PA++++ con 30% de extracto de arroz y niacinamida. El protector que más se pide, y con razón.",
     beneficios: ["FPS 50+", "Sin residuo blanco"],
     destacado: true,
   },
