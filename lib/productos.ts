@@ -68,19 +68,43 @@ export type Producto = {
 };
 
 /*
-  ATENCION — PRECIOS PROVISORIOS
-  ------------------------------
-  Los numeros de abajo son el punto medio del rango estimado que vino en
-  la lista, redondeado al mil. NO son precios que haya fijado Valen.
+  LOS PRECIOS SALEN DE UN RELEVAMIENTO DEL MERCADO ARGENTINO
+  ==========================================================
+  Hecho el 18-09-2026 sobre tiendas que venden cosmetica coreana en el
+  pais: SkinFree, K-Beauty Argentina, iFans, Koko, REGY y Mercado Libre.
+  Se cargo el MAS BAJO encontrado en cada caso, redondeado.
 
-  El rango original salia de convertir lo que sale el producto en
-  YesStyle, eBay o Target, y en varios casos era enorme: la Triple
-  Collagen iba de $43.000 a $62.000, o sea un 44% de diferencia entre
-  una punta y la otra.
+  NO SON LOS PRECIOS DE VALEN. Son lo que cobra el mercado, que es otra
+  cosa: lo que ella tiene que cobrar depende de a cuanto los trae. Esto
+  sirve para dos cosas —saber cuanto es el techo antes de quedar cara, y
+  no publicar un numero inventado— y hay que revisarlo contra su costo.
 
-  Antes de publicar esta pagina hay que reemplazarlos por la lista de
-  precios de venta reales. Mientras tanto sirven para ver la grilla con
-  numeros verosimiles y para probar el largo de cada ficha.
+  LO QUE APARECIO EN EL RELEVAMIENTO
+  Los rangos que se habian cargado antes estaban dos o tres veces por
+  DEBAJO del mercado argentino: salian de convertir el precio de YesStyle
+  o eBay sin sumar importacion, impuestos ni margen. Ejemplos:
+
+    Glow Serum       estimado 20-30k   mercado 56-70k
+    Dynasty Cream    estimado 28-35k   mercado 77-85k
+    Zero Foam        estimado 30-45k   mercado 52-65k
+    Triple Collagen  estimado 43-62k   mercado 72,6k
+
+  Publicar los viejos era regalar la mitad del margen.
+
+  LOS QUE QUEDAN EN 0
+  Seis productos no se pudieron precisar: no hay tienda argentina que los
+  liste con precio a la vista, o el unico dato era de otro SKU parecido.
+  Van en 0, que muestra "Consultar" y lo pregunta por WhatsApp. Es lo
+  unico honesto: un numero inventado para rellenar es peor que no tenerlo,
+  porque la clienta lo lee como un compromiso.
+
+  DOS ADVERTENCIAS SOBRE LOS DATOS
+  - El Relief Sun Rice + Probiotics tiene una dispersion enorme: $40.410
+    en Mercado Libre contra $60.899 en SkinFree. Se cargo el bajo, pero
+    conviene mirar si el de ML es el mismo tamaño.
+  - La Triple Collagen aparecio a $206.063 en una tienda (Koko) contra
+    $72.599 en otra. Ese valor se descarto por manifiestamente fuera de
+    linea, no se promedio.
 */
 
 export const PRODUCTOS: Producto[] = [
@@ -90,7 +114,7 @@ export const PRODUCTOS: Producto[] = [
     marca: "Ariul",
     nombre: "Smooth & Pure Deep Clean Cleansing Foam",
     categoria: "Limpiadores",
-    precio: 21000,
+    precio: 0,
     descripcion:
       "Limpiador de acción profunda. Levanta el sebo, los restos de maquillaje y el polvo fino con una espuma muy densa.",
     beneficios: ["Piel grasa", "Limpieza profunda"],
@@ -100,7 +124,7 @@ export const PRODUCTOS: Producto[] = [
     marca: "Ariul",
     nombre: "Smooth & Pure Deep Cera Cleansing Foam",
     categoria: "Limpiadores",
-    precio: 21000,
+    precio: 0,
     descripcion:
       "El mismo limpiador, pero con ceramidas: arrastra la suciedad sin dejar la cara tirante.",
     beneficios: ["Piel sensible", "No reseca"],
@@ -111,7 +135,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Zero Foam Cleanser",
     medida: "120 g",
     categoria: "Limpiadores",
-    precio: 37000,
+    precio: 52000,
     descripcion:
       "Espuma de todos los días para destapar poros. Saca el exceso de grasitud y las células muertas sin irritar.",
     beneficios: ["Poros", "Uso diario"],
@@ -124,7 +148,7 @@ export const PRODUCTOS: Producto[] = [
     marca: "Beauty of Joseon",
     nombre: "Glow Serum",
     categoria: "Sérums",
-    precio: 25000,
+    precio: 56000,
     descripcion:
       "60% de propóleo y 2% de niacinamida. Para piel apagada o con los poros marcados: calma y empareja el tono.",
     beneficios: ["Luminosidad", "Manchas", "Poros"],
@@ -135,7 +159,7 @@ export const PRODUCTOS: Producto[] = [
     marca: "Beauty of Joseon",
     nombre: "Revive Serum",
     categoria: "Sérums",
-    precio: 25000,
+    precio: 57000,
     descripcion:
       "Ginseng y mucina de caracol. Devuelve elasticidad y repara la barrera de la piel cuando está castigada.",
     beneficios: ["Elasticidad", "Reparación"],
@@ -145,7 +169,7 @@ export const PRODUCTOS: Producto[] = [
     marca: "d'Alba",
     nombre: "Piedmont First Spray Serum",
     categoria: "Sérums",
-    precio: 39000,
+    precio: 0,
     descripcion:
       "Bruma bifásica con trufa blanca. Hace de tónico, sérum e hidratante al mismo tiempo, y se nota al toque.",
     beneficios: ["Luminosidad", "Tres en uno"],
@@ -158,7 +182,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "PDRN Pink Collagen Capsule Cream",
     medida: "55 g",
     categoria: "Cremas",
-    precio: 72000,
+    precio: 82000,
     descripcion:
       "Gel con cápsulas de PDRN y niacinamida. Es la más completa de las cuatro: hidrata, da firmeza y deja el efecto glass glow.",
     beneficios: ["Firmeza", "Glass glow", "Tono parejo"],
@@ -170,7 +194,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Triple Collagen Cream 4.0",
     medida: "50 ml",
     categoria: "Cremas",
-    precio: 52000,
+    precio: 72500,
     descripcion:
       "Colágeno triple, elastina y ácido hialurónico. Antiedad: nutre la barrera y sostiene la hidratación.",
     beneficios: ["Antiedad", "Firmeza"],
@@ -181,7 +205,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Zero Pore One Day Cream",
     medida: "50 ml",
     categoria: "Cremas",
-    precio: 42000,
+    precio: 0,
     descripcion:
       "Hidratante liviana con 5% de pantenol, BHA y niacinamida. Achica el poro dilatado y controla la grasitud.",
     beneficios: ["Poros", "Grasitud"],
@@ -192,7 +216,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Dynasty Cream",
     medida: "50 ml",
     categoria: "Cremas",
-    precio: 31000,
+    precio: 77000,
     descripcion:
       "29% de agua de salvado de arroz, ginseng y escualano. La más nutritiva, y la que mejor precio tiene.",
     beneficios: ["Nutrición", "Piel seca"],
@@ -204,7 +228,7 @@ export const PRODUCTOS: Producto[] = [
     marca: "AHC",
     nombre: "Time Rewind Real Eye Cream For Face",
     categoria: "Contorno de ojos",
-    precio: 34000,
+    precio: 0,
     descripcion:
       "Colágeno y elastina para la piel fina del contorno. Se puede usar en toda la cara, no solo en el ojo.",
     beneficios: ["Elasticidad", "Densidad"],
@@ -216,7 +240,7 @@ export const PRODUCTOS: Producto[] = [
     marca: "Beauty of Joseon",
     nombre: "Relief Sun Rice + Probiotics",
     categoria: "Protector solar",
-    precio: 46000,
+    precio: 40000,
     descripcion:
       "FPS 50+ PA++++ con 30% de extracto de arroz y probióticos. El protector que más se pide, y con razón.",
     beneficios: ["FPS 50+", "Sin residuo blanco"],
@@ -227,7 +251,7 @@ export const PRODUCTOS: Producto[] = [
     marca: "Beauty of Joseon",
     nombre: "Relief Sun Aqua-fresh Rice + B5",
     categoria: "Protector solar",
-    precio: 42000,
+    precio: 0,
     descripcion:
       "La versión fresca del anterior: 30% de agua de arroz y pantenol. Se absorbe al instante y no deja película.",
     beneficios: ["Textura liviana", "Calma"],
@@ -273,7 +297,7 @@ export const PRODUCTOS: Producto[] = [
     categoria: "Sérums",
     /* Sin precio: muestra "Consultar" y el mensaje de WhatsApp lo pide.
        Es lo unico honesto mientras no este el precio de venta de Valen. */
-    precio: 0,
+    precio: 68000,
     descripcion:
       "Sérum de primer paso con 95.000 micropartículas. Renueva la piel áspera y las células muertas para dejarla lisa. El 100 es el nivel más suave de la línea.",
     beneficios: ["Textura", "Renovación", "Primer paso"],
