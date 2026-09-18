@@ -322,10 +322,11 @@ export const PRODUCTOS: Producto[] = [
     marca: "Beauty of Joseon",
     nombre: "Revive Eye Serum — Ginseng + Retinal",
     categoria: "Contorno de ojos",
+    /* Sin precio argentino en el relevamiento: muestra "Consultar". */
     precio: 0,
-    descripcion: "",
-    beneficios: [],
-    borrador: true,
+    descripcion:
+      "Ginseng y retinal para la piel fina del contorno. Trabaja las líneas de expresión en la zona más delgada de la cara.",
+    beneficios: ["Contorno", "Líneas finas", "Firmeza"],
   },
 ];
 
