@@ -57,7 +57,7 @@ export default function Footer({
 
   return (
     <footer id="contacto" className="bg-tinta text-crema">
-      <div className="contenedor py-12 md:py-14 xl:py-16">
+      <div className="contenedor py-16 md:py-20 xl:py-16">
         <div className="grid gap-8 md:grid-cols-2 md:items-center md:gap-12">
           {/* Identidad */}
           <div>

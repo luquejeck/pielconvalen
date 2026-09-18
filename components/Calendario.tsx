@@ -17,7 +17,7 @@ import {
   MESES,
   sumarDias,
 } from "@/lib/fechas";
-import { IconoFlecha } from "./iconos";
+import { IconoFlecha, IconoReloj } from "./iconos";
 
 /*
   El dia y el horario son dos pasos, y por eso dos componentes.
@@ -296,6 +296,17 @@ export function Horarios({
         <span className="font-semibold">{formatearFechaLarga(fecha)}</span>
       </p>
 
+      {/*
+        Con la grilla vacia no se dibuja nada.
+
+        Un dia sin ningun horario cargado dejaba el recuadro en blanco y
+        el aviso colgado abajo, como si algo no hubiera terminado de
+        cargar. Cuando SI hay horarios pero estan todos tomados, la
+        grilla se muestra igual: ver seis botones que dicen "ocupado" es
+        lo que explica por que no se puede, y es distinto de que ese dia
+        no se atienda.
+      */}
+      {turnos.length > 0 && (
       <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6 lg:grid-cols-4 xl:grid-cols-6">
         {turnos.map((turno) => {
           const libre = turnoReservable(fecha, turno, ahora, agenda.anticipacionMinimaHs);
@@ -327,11 +338,27 @@ export function Horarios({
           );
         })}
       </div>
+      )}
 
+      {/*
+        El dia sin lugar se contesta, no se deja en silencio.
+
+        Dice las dos cosas que hacen falta: que paso y que hacer ahora.
+        Sin la segunda, la clienta se queda mirando el recuadro sin saber
+        si el problema es de ella o de la pagina.
+      */}
       {sinLugar && (
-        <p className="mt-4 text-lg text-tinta-suave">
-          Ese día ya no tiene lugar. Tocá otro día en el calendario.
-        </p>
+        <div className="mt-4 flex items-start gap-3 rounded-chico bg-crema-oscuro px-4 py-3.5">
+          <IconoReloj className="mt-0.5 h-5 w-5 shrink-0 text-tinta-suave" />
+          <p className="text-lg leading-snug text-tinta">
+            {turnos.length === 0
+              ? "Este día no se atiende."
+              : "Este día ya está completo."}{" "}
+            <span className="text-tinta-suave">
+              Probá con otro día del calendario, o con la semana que viene.
+            </span>
+          </p>
+        </div>
       )}
     </div>
   );

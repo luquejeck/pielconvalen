@@ -59,7 +59,7 @@ export default function Marcas() {
   return (
     <section
       id="marcas"
-      className="border-t border-borde bg-crema py-14 md:py-16 xl:py-20"
+      className="border-t border-borde bg-crema py-16 md:py-20 xl:py-24"
     >
       <div className="contenedor">
         <TituloTienda titulo="Las marcas" />

@@ -125,7 +125,7 @@ export default function Reservas() {
   return (
     <section
       id="reservar"
-      className="relative isolate border-t border-borde py-14 md:py-16 xl:py-20"
+      className="relative isolate border-t border-borde py-16 md:py-20 xl:py-24"
     >
       <FondoImagen
         imagen="/imagenes/reservas.jpg"
@@ -159,16 +159,6 @@ export default function Reservas() {
               titulo="Elegí el día"
               estado={fecha ? "hecho" : "actual"}
             />
-
-            {/*
-              Lo primero que se aclara es que no hay que elegir nada mas.
-              El paso de elegir tratamiento no esta, y sin una linea que
-              lo diga la clienta lo busca: el precio lo vio arriba.
-            */}
-            <p className="mt-2 text-lg leading-snug text-tinta-suave">
-              El turno se saca como consulta. Valen te mira la piel al llegar
-              y ahí definen el tratamiento y el precio.
-            </p>
 
             {/* En celular la tarjeta aprieta el padding: cada pixel que se le
                 saca al margen se lo gana el dia del calendario, que es lo
@@ -315,17 +305,45 @@ export default function Reservas() {
                     </a>
                   </>
                 ) : (
-                  /* Dice exactamente que falta, y en que paso. Antes decia
-                     "Elegí el día y la hora" tambien con el dia ya
-                     elegido: quien lo leia miraba el calendario, veia su
-                     dia marcado y no entendia que le faltaba. */
-                  <p className="mt-3 rounded-full bg-vino/12 px-6 py-3.5 text-center text-lg text-tinta-suave">
-                    {!fecha
-                      ? "Falta elegir el día (paso 1)"
-                      : !hora
-                        ? "Falta elegir el horario (paso 2)"
-                        : "Escribí tu nombre para confirmar"}
-                  </p>
+                  /*
+                    EL BOTON ESTA SIEMPRE, APAGADO HASTA QUE NO FALTE NADA.
+
+                    Antes, sin los datos completos, en su lugar iba un
+                    cartel y el boton no existia: quien llegaba al paso 3
+                    no veia adonde terminaba el tramite y volvia a subir a
+                    buscarlo. Apagado se ve la meta desde el principio.
+
+                    Es un <button disabled> y no un <a> con clases de
+                    apagado: un link no se puede deshabilitar de verdad
+                    —se toca igual, y el teclado lo sigue alcanzando— asi
+                    que tiene que ser otro elemento.
+
+                    Debajo sigue diciendo exactamente que falta y en que
+                    paso. Un boton gris sin explicacion es la mitad del
+                    problema: se ve que no se puede seguir y no por que.
+                  */
+                  <>
+                    <button
+                      type="button"
+                      disabled
+                      aria-describedby="falta-para-reservar"
+                      className="boton-principal mt-3 w-full cursor-not-allowed opacity-45 shadow-none"
+                    >
+                      <IconoWhatsApp className="h-5 w-5" />
+                      Abrir WhatsApp y confirmar
+                    </button>
+
+                    <p
+                      id="falta-para-reservar"
+                      className="mt-2.5 text-center text-lg text-tinta-suave"
+                    >
+                      {!fecha
+                        ? "Falta elegir el día (paso 1)"
+                        : !hora
+                          ? "Falta elegir el horario (paso 2)"
+                          : "Escribí tu nombre para confirmar"}
+                    </p>
+                  </>
                 )}
 
                 <p className="mt-3 text-center text-lg leading-snug text-tinta-suave">

@@ -101,48 +101,30 @@ export default async function Home() {
         <Hero consultorio={CONSULTORIO} />
 
         {/*
-          PRIMERO LA CARA, DESPUES EL CALENDARIO, Y RECIEN AHI EL FOLLETO.
+          EL ORDEN SIGUE EL RECORRIDO DE UNA DECISION, no el del folleto.
 
-          El modulo de reservas estaba al 65% de la pagina: quien entraba
-          decidido a sacar turno tenia que pasar 7,3 pantallas de celular
-          para llegar a el. La pagina estaba armada como un folleto con un
-          formulario al final.
+          1. Quien te atiende  — la cara y la credencial: sin eso, nada de
+             lo que sigue importa.
+          2. Que cuesta        — los precios ANTES del calendario. Antes el
+             modulo de reserva venia tercero y le pedia a la clienta que
+             eligiera un horario sin haber visto un solo numero; quien
+             queria saber cuanto salia tenia que pasarlo de largo, bajar
+             cinco secciones y despues volver.
+          3. Como se trabaja   — metodo, lo que va a notar, y el lugar.
+          4. El turno          — recien aca, con todo resuelto.
+          5. Los productos     — lo que se lleva a casa despues.
 
-          Ahora arranca con quien la va a atender —la cara y la credencial,
-          que es lo que hace falta para confiar— y sigue con el calendario.
-          Lo demas queda abajo para quien todavia esta mirando, y el boton
-          del encabezado lo trae de vuelta en cualquier momento.
+          Quien entra decidido no tiene que recorrer nada: el boton del
+          encabezado lo lleva al turno desde cualquier punto, y esta
+          siempre a la vista porque el encabezado es sticky.
         */}
         <Consultorio consultorio={CONSULTORIO} />
-        <Reservas />
-
-        {/* De aca para abajo, para quien no reservo todavia. */}
+        <Tratamientos />
         <ComoTrabajo agenda={agenda} />
         <Beneficios consultorio={CONSULTORIO} />
         <Videos subidos={videos} />
-        <Tratamientos />
-
-        {/*
-          Los productos van despues de los tratamientos y no antes: son
-          lo que se lleva a casa despues de la sesion, no un motivo para
-          venir. Puestos mas arriba le ponen una segunda decision encima
-          a quien todavia no reservo, que es lo unico que la pagina pide.
-
-          Es la unica seccion oscura de la portada. Marca el cambio de
-          tema —hasta aca lo que Valen hace, de aca lo que vende— y es
-          lo que hace que las fotos se vean: estan sacadas contra una
-          mesa oscura y sobre el crema quedaban como parches negros.
-        */}
+        <Reservas />
         <Productos consultorio={CONSULTORIO} />
-
-        {/*
-          El mosaico de marcas va DESPUES del carrusel y no antes.
-
-          Quien baja hasta aca todavia no sabe que Valen vende productos:
-          primero tiene que verlos. La marca es la segunda pregunta —"¿y
-          tiene la que yo uso?"— y es la que lleva al catalogo filtrado,
-          que es donde se compra.
-        */}
         <Marcas />
 
         {/* Al final de todo: es una seccion de consulta, no parte del

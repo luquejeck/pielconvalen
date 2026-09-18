@@ -26,7 +26,7 @@ export default function Beneficios({
       /* Fondo mas oscuro que la seccion de al lado: alterna, y ademas
          las tarjetas blancas se despegan. Con crema quedaban casi
          invisibles sobre casi el mismo color. */
-      className="border-t border-borde bg-crema-oscuro py-14 md:py-16 xl:py-20"
+      className="border-t border-borde bg-crema-oscuro py-16 md:py-20 xl:py-24"
     >
       <div className="contenedor">
         <TituloSeccion titulo="Qué vas a notar" />

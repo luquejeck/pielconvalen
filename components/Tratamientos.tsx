@@ -36,7 +36,7 @@ export default function Tratamientos() {
   return (
     <section
       id="tratamientos"
-      className="border-t border-borde bg-crema-oscuro py-14 md:py-16 xl:py-20"
+      className="border-t border-borde bg-crema-oscuro py-16 md:py-20 xl:py-24"
     >
       <div className="contenedor">
         <TituloSeccion
@@ -62,6 +62,27 @@ export default function Tratamientos() {
           que suma, y cuanto. Una fila por tratamiento, separadas por
           una linea fina. El unico color es el del precio.
         */}
+        {/*
+          EL AVISO DE LA CONSULTA, ACA Y NO EN EL FLUJO DE RESERVA.
+
+          Antes vivia adentro del paso 1 del calendario, y ahi llegaba
+          tarde: la clienta ya habia visto los precios, habia elegido
+          cual queria, y recien en el ultimo tramo se enteraba de que no
+          se elige por la web. Puesto arriba de la lista contesta la
+          pregunta justo cuando aparece —"¿cual pido?"— y el calendario
+          queda limpio, con un solo mensaje por paso.
+        */}
+        <p className="mx-auto mt-6 flex max-w-2xl items-start gap-3 rounded-chico border border-borde bg-papel px-4 py-3 text-lg leading-snug text-tinta">
+          <span
+            aria-hidden
+            className="mt-0.5 h-5 w-1 shrink-0 rounded-full bg-vino"
+          />
+          <span>
+            El turno se saca como <b>consulta</b>. Valen te mira la piel al
+            llegar y ahí definen el tratamiento y el precio.
+          </span>
+        </p>
+
         {/*
           LA LISTA VA ADENTRO DE UNA TARJETA.
 
