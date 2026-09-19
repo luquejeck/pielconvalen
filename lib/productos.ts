@@ -84,43 +84,39 @@ export type Producto = {
 };
 
 /*
-  LOS PRECIOS SALEN DE UN RELEVAMIENTO DEL MERCADO ARGENTINO
-  ==========================================================
-  Hecho el 18-09-2026 sobre tiendas que venden cosmetica coreana en el
-  pais: SkinFree, K-Beauty Argentina, iFans, Koko, REGY y Mercado Libre.
-  Se cargo el MAS BAJO encontrado en cada caso, redondeado.
+  AHORA SI SON LOS PRECIOS DE VALEN
+  =================================
+  Desde el 19-09-2026, 18 de los 20 productos llevan el precio al que
+  Valen vende, que paso Lucas en su planilla: la columna "Precio Efectivo
+  (ARS)". Antes eran otra cosa —ver mas abajo— y conviene no mezclarlos.
 
-  NO SON LOS PRECIOS DE VALEN. Son lo que cobra el mercado, que es otra
-  cosa: lo que ella tiene que cobrar depende de a cuanto los trae. Esto
-  sirve para dos cosas —saber cuanto es el techo antes de quedar cara, y
-  no publicar un numero inventado— y hay que revisarlo contra su costo.
+  SOLO SE PUBLICA EL PRECIO DE VENTA.
+  La planilla trae tambien el costo de compra en dolares y el margen. Eso
+  NO entra aca por la misma razon por la que la tabla `inventario` vive
+  detras del login: el costo es de la casa, no de la clienta. Si algun dia
+  hace falta tenerlo a mano, va en `inventario`, no en este archivo.
 
-  LO QUE APARECIO EN EL RELEVAMIENTO
-  Los rangos que se habian cargado antes estaban dos o tres veces por
-  DEBAJO del mercado argentino: salian de convertir el precio de YesStyle
-  o eBay sin sumar importacion, impuestos ni margen. Ejemplos:
+  LOS DOS QUE TODAVIA NO SON DE VALEN
+  Quedaron fuera de la planilla y siguen con el numero del relevamiento de
+  mercado, que es una estimacion y no un precio:
 
-    Glow Serum       estimado 20-30k   mercado 56-70k
-    Dynasty Cream    estimado 28-35k   mercado 77-85k
-    Zero Foam        estimado 30-45k   mercado 52-65k
-    Triple Collagen  estimado 43-62k   mercado 72,6k
+    Dynasty Cream                  $77.000
+    Relief Sun Rice + Niacinamide  $40.000
 
-  Publicar los viejos era regalar la mitad del margen.
+  Son los unicos dos con un criterio distinto al resto, asi que hay que
+  pedirselos a Valen y emparejarlos. Mientras tanto la web los muestra
+  como si fueran definitivos, que es lo incomodo de dejarlos.
 
-  LOS QUE QUEDAN EN 0
-  Seis productos no se pudieron precisar: no hay tienda argentina que los
-  liste con precio a la vista, o el unico dato era de otro SKU parecido.
-  Van en 0, que muestra "Consultar" y lo pregunta por WhatsApp. Es lo
-  unico honesto: un numero inventado para rellenar es peor que no tenerlo,
-  porque la clienta lo lee como un compromiso.
+  DE DONDE VENIA EL NUMERO ANTES
+  Un relevamiento del 18-09-2026 sobre tiendas argentinas de cosmetica
+  coreana —SkinFree, K-Beauty Argentina, iFans, Koko, REGY y Mercado
+  Libre—, cargando el mas bajo de cada caso. Servia para saber el techo
+  antes de quedar cara, no para cobrar.
 
-  DOS ADVERTENCIAS SOBRE LOS DATOS
-  - El Relief Sun Rice + Probiotics tiene una dispersion enorme: $40.410
-    en Mercado Libre contra $60.899 en SkinFree. Se cargo el bajo, pero
-    conviene mirar si el de ML es el mismo tamaño.
-  - La Triple Collagen aparecio a $206.063 en una tienda (Koko) contra
-    $72.599 en otra. Ese valor se descarto por manifiestamente fuera de
-    linea, no se promedio.
+  Comparado contra lo que Valen efectivamente cobra, el mercado estaba
+  arriba en casi todo: la PDRN Pink Collagen bajo de $82.000 a $65.000, la
+  Zero Foam de $52.000 a $42.000 y el Revive Serum de $57.000 a $48.000.
+  O sea que la web venia pidiendo mas caro de lo que ella cobra.
 */
 
 export const PRODUCTOS: Producto[] = [
@@ -131,7 +127,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Smooth & Pure Deep Clean Cleansing Foam",
     medida: "80 ml",
     categoria: "Limpiadores",
-    precio: 0,
+    precio: 18000,
     descripcion:
       "Limpiador de acción profunda. Levanta el sebo, los restos de maquillaje y el polvo fino con una espuma muy densa.",
     beneficios: ["Piel grasa", "Limpieza profunda"],
@@ -142,7 +138,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Smooth & Pure Deep Cera Cleansing Foam",
     medida: "120 ml",
     categoria: "Limpiadores",
-    precio: 0,
+    precio: 22000,
     descripcion:
       "El mismo limpiador, pero con ceramidas: arrastra la suciedad sin dejar la cara tirante.",
     beneficios: ["Piel sensible", "No reseca"],
@@ -153,7 +149,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Zero Foam Cleanser",
     medida: "120 g",
     categoria: "Limpiadores",
-    precio: 52000,
+    precio: 42000,
     descripcion:
       "Espuma de todos los días para destapar poros. Saca el exceso de grasitud y las células muertas sin irritar.",
     beneficios: ["Poros", "Uso diario"],
@@ -167,7 +163,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Glow Serum",
     medida: "30 ml",
     categoria: "Sérums",
-    precio: 56000,
+    precio: 55000,
     descripcion:
       "60% de propóleo y 2% de niacinamida. Para piel apagada o con los poros marcados: calma y empareja el tono.",
     beneficios: ["Luminosidad", "Manchas", "Poros"],
@@ -179,7 +175,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Revive Serum",
     medida: "30 ml",
     categoria: "Sérums",
-    precio: 57000,
+    precio: 48000,
     descripcion:
       "Ginseng y mucina de caracol. Devuelve elasticidad y repara la barrera de la piel cuando está castigada.",
     beneficios: ["Elasticidad", "Reparación"],
@@ -190,7 +186,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Piedmont First Spray Serum",
     medida: "100 ml",
     categoria: "Sérums",
-    precio: 0,
+    precio: 55000,
     descripcion:
       "Bruma bifásica con trufa blanca. Hace de tónico, sérum e hidratante al mismo tiempo, y se nota al toque.",
     beneficios: ["Luminosidad", "Tres en uno"],
@@ -203,7 +199,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "PDRN Pink Collagen Capsule Cream",
     medida: "55 g",
     categoria: "Cremas",
-    precio: 82000,
+    precio: 65000,
     descripcion:
       "Gel con cápsulas de PDRN y niacinamida. Es la más completa de las cuatro: hidrata, da firmeza y deja el efecto glass glow.",
     beneficios: ["Firmeza", "Glass glow", "Tono parejo"],
@@ -215,7 +211,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Triple Collagen Cream 4.0",
     medida: "50 ml",
     categoria: "Cremas",
-    precio: 72500,
+    precio: 65000,
     descripcion:
       "Colágeno triple, elastina y ácido hialurónico. Antiedad: nutre la barrera y sostiene la hidratación.",
     beneficios: ["Antiedad", "Firmeza"],
@@ -226,7 +222,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Zero Pore One Day Cream",
     medida: "50 ml",
     categoria: "Cremas",
-    precio: 0,
+    precio: 65000,
     descripcion:
       "Hidratante liviana con 5% de pantenol, BHA y niacinamida. Achica el poro dilatado y controla la grasitud.",
     beneficios: ["Poros", "Grasitud"],
@@ -250,7 +246,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Time Rewind Real Eye Cream For Face",
     medida: "30 ml",
     categoria: "Contorno de ojos",
-    precio: 0,
+    precio: 32000,
     descripcion:
       "Colágeno y elastina para la piel fina del contorno. Se puede usar en toda la cara, no solo en el ojo.",
     beneficios: ["Elasticidad", "Densidad"],
@@ -289,7 +285,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Relief Sun Aqua-fresh Rice + B5",
     medida: "50 ml",
     categoria: "Protector solar",
-    precio: 0,
+    precio: 50000,
     descripcion:
       "La versión fresca del anterior: 30% de agua de arroz y pantenol. Se absorbe al instante y no deja película.",
     beneficios: ["Textura liviana", "Calma"],
@@ -309,8 +305,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Heartleaf 80 Moisture Soothing Ampoule",
     medida: "30 ml",
     categoria: "Sérums",
-    /* Sin precio argentino en el relevamiento: muestra "Consultar". */
-    precio: 0,
+    precio: 62000,
     descripcion:
       "80% de extracto de heartleaf y pantenol. Calma la piel irritada o reactiva y la hidrata sin dejar sensación pegajosa.",
     beneficios: ["Calma", "Piel reactiva", "Hidratación"],
@@ -334,9 +329,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Cica Reedle Shot 100",
     medida: "50 ml",
     categoria: "Sérums",
-    /* Sin precio: muestra "Consultar" y el mensaje de WhatsApp lo pide.
-       Es lo unico honesto mientras no este el precio de venta de Valen. */
-    precio: 68000,
+    precio: 62000,
     descripcion:
       "Sérum de primer paso con 95.000 micropartículas. Renueva la piel áspera y las células muertas para dejarla lisa. El 100 es el nivel más suave de la línea.",
     beneficios: ["Textura", "Renovación", "Primer paso"],
@@ -347,8 +340,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Revive Eye Serum — Ginseng + Retinal",
     medida: "30 ml",
     categoria: "Contorno de ojos",
-    /* Sin precio argentino en el relevamiento: muestra "Consultar". */
-    precio: 0,
+    precio: 45000,
     descripcion:
       "Ginseng y retinal para la piel fina del contorno. Trabaja las líneas de expresión en la zona más delgada de la cara.",
     beneficios: ["Contorno", "Líneas finas", "Firmeza"],
@@ -384,7 +376,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Relief Sun Rice + Probiotics",
     medida: "50 ml",
     categoria: "Protector solar",
-    precio: 0,
+    precio: 48000,
     descripcion: "",
     beneficios: [],
     borrador: true,
@@ -395,7 +387,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Glow Replenishing Rice Milk",
     medida: "150 ml",
     categoria: "Tónicos",
-    precio: 0,
+    precio: 48000,
     descripcion: "",
     beneficios: [],
     borrador: true,
@@ -406,7 +398,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Peach 77% Conditioning Milk",
     medida: "150 ml",
     categoria: "Tónicos",
-    precio: 0,
+    precio: 65000,
     descripcion: "",
     beneficios: [],
     borrador: true,
@@ -429,7 +421,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Mask",
     medida: "Caja x10",
     categoria: "Mascarillas",
-    precio: 0,
+    precio: 24000,
     descripcion: "",
     beneficios: [],
     borrador: true,
