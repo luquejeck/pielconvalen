@@ -155,6 +155,65 @@ grant execute on function sumar_stock(uuid, integer) to authenticated;
 revoke all on table inventario from anon;
 
 
+-- ---------------------------------------------------------------------
+-- 5. EL COSTO EN LAS DOS MONEDAS
+--
+--    Valen le paga al proveedor en dolares y vende en pesos. Guardar
+--    solo el costo en pesos hace que el numero envejezca: un producto
+--    que costo 31,50 dolares "costo $48.000" mientras el dolar estuvo a
+--    1.538, y ese $48.000 sigue escrito cuando el dolar ya esta en otro
+--    lado. El margen historico queda mal calculado sin que nada avise.
+--
+--    Guardar solo dolares tampoco alcanza: lo que ella efectivamente
+--    pago un dia fueron pesos, y el flujo de caja va en pesos.
+--
+--    Entonces van los dos. `costo` sigue siendo el de pesos y
+--    `costo_usd` el de dolares; el panel muestra ambos y calcula el
+--    equivalente de hoy con la cotizacion vigente.
+-- ---------------------------------------------------------------------
+alter table inventario
+  add column if not exists costo_usd numeric(10, 2);
+
+/*
+  Y EN CADA MOVIMIENTO SE CONGELAN LOS TRES.
+
+  Igual que `costo`, que ya se congelaba: leerlos despues del inventario
+  daria los de hoy y no los del dia de la venta. La novedad es
+  `cotizacion`, y es la que hace que la cuenta cierre para siempre: con
+  el costo en dolares y el dolar de ese dia, el margen de una venta de
+  marzo se puede recalcular en marzo aunque hoy el dolar este al doble.
+
+  Sin guardar la cotizacion, la ganancia historica en dolares se
+  recalcularia sola cada vez que cambia el tipo de cambio, que es
+  exactamente lo que no tiene que pasar en un libro de cuentas.
+*/
+alter table movimientos
+  add column if not exists costo_usd  numeric(10, 2),
+  add column if not exists cotizacion numeric(12, 2);
+
+
+-- ---------------------------------------------------------------------
+-- 6. LA COTIZACION VIGENTE
+--
+--    Va en `configuracion`, que es la tabla clave/valor que Valen ya
+--    edita desde /admin/web, para no inventar una tabla nueva ni una
+--    pantalla nueva para un solo numero.
+--
+--    Esa tabla es de lectura publica. Para una cotizacion del dolar da
+--    igual —no es un dato de la casa, es el precio del dolar— y a
+--    cambio se reusa toda la maquinaria que ya existe. Los costos, que
+--    SI son de la casa, siguen en `inventario`, que anon no puede leer.
+--
+--    El valor inicial sale de la planilla de Lucas del 19-09-2026, que
+--    era consistente: 18.000/11,7 y 62.000/40,3 dan los dos 1.538. Es
+--    un punto de partida para que el panel no arranque en cero, y Valen
+--    lo cambia cuando el dolar se mueva.
+-- ---------------------------------------------------------------------
+insert into configuracion (clave, valor)
+values ('cotizacion_usd', '1538')
+on conflict (clave) do nothing;
+
+
 -- =====================================================================
 --  LISTO.
 --

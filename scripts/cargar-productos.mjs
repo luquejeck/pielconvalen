@@ -26,6 +26,54 @@ const CATALOGO = "lib/productos.ts";
 const aplicar = process.argv.includes("--aplicar");
 
 /**
+ * Lo que le cuesta cada producto a Valen, EN DOLARES.
+ *
+ * De la planilla de Lucas del 19-09-2026. Va en dolares y no en pesos
+ * porque es lo que ella efectivamente le paga al proveedor: el costo en
+ * pesos se mueve con el dolar aunque el producto no haya cambiado de
+ * precio, y un costo en pesos escrito hoy miente en tres meses.
+ *
+ * La clave es el codigo y no el nombre: el nombre se puede editar desde
+ * el panel y esto dejaria de matchear en silencio.
+ *
+ * FALTAN DOS. El Dynasty Cream y el Relief Sun Rice + Niacinamide no
+ * estaban en la planilla —son los mismos dos que tampoco tenian precio
+ * de venta—. Entran con costo nulo, que el panel muestra como "sin
+ * cargar" y no como cero: un cero diria que se los regalan.
+ */
+const COSTOS_USD = {
+  "ARL-SMOO-80ML": 3.5,
+  "ARL-SMOO-120ML": 5.5,
+  "MDC-ZERO-120G": 14.5,
+  "BOJ-GLOW-30ML": 21.5,
+  "BOJ-REVI-30ML": 15.0,
+  "ALB-PIED-100ML": 21.0,
+  "MDC-PDRN-55G": 24.0,
+  "MDC-TRIP-50ML": 23.5,
+  "MDC-ZERO-50ML": 24.0,
+  "AHC-TIME-30ML": 10.0,
+  "BOJ-RELIAQUA-50ML": 16.0,
+  "ANU-HEAR-30ML": 31.5,
+  "VT-CICA-50ML": 20.0,
+  "BOJ-REVIEYE-30ML": 15.0,
+  "BOJ-RELIPROB-50ML": 16.0,
+  "BOJ-GLOW-150ML": 16.0,
+  "ANU-PEAC-150ML": 26.0,
+  "JMS-MASK-X10": 6.0,
+};
+
+/**
+ * El dolar con el que se convierte la carga inicial.
+ *
+ * Sale de la propia planilla, que era consistente: 18.000/11,7 y
+ * 62.000/40,3 dan los dos 1.538. Es solo el punto de partida —despues
+ * la cotizacion vive en `configuracion` y la cambia Valen— y por eso el
+ * costo en pesos que se escribe aca es una foto de hoy, no una verdad
+ * permanente. La verdad permanente es el numero en dolares.
+ */
+const COTIZACION = 1538;
+
+/**
  * Los productos, leidos del codigo.
  *
  * Con expresion regular y no importando el modulo, por lo mismo que
@@ -89,19 +137,35 @@ for (const p of productos) {
   p.foto = `/imagenes/productos/${p.slug}.webp`;
 }
 
+for (const p of productos) {
+  p.costoUsd = COSTOS_USD[p.codigo] ?? null;
+  p.costoArs = p.costoUsd === null ? null : Math.round(p.costoUsd * COTIZACION);
+  /* El margen que deja hoy, para poder mirarlo antes de escribir. */
+  p.margen =
+    p.costoArs && p.precio ? Math.round((p.precio / p.costoArs - 1) * 100) : null;
+}
+
 const ancho = Math.max(...productos.map((p) => p.codigo.length));
-console.log(`\n${productos.length} productos en ${CATALOGO}\n`);
-console.log("  " + "codigo".padEnd(ancho) + "  cat.".padEnd(20) + "precio".padStart(10) + "  estado");
+const $ = (n) => (n ? "$" + n.toLocaleString("es-AR") : "—");
+console.log(`\n${productos.length} productos en ${CATALOGO}`);
+console.log(`Costos convertidos a $${COTIZACION} por dolar\n`);
+console.log(
+  "  " + "codigo".padEnd(ancho) + "  costo USD".padStart(10) + "costo $".padStart(11) +
+  "venta $".padStart(11) + "margen".padStart(9) + "  estado"
+);
 for (const p of productos) {
   console.log(
-    "  " +
-      p.codigo.padEnd(ancho) +
-      "  " +
-      p.categoria.slice(0, 17).padEnd(18) +
-      (p.precio ? "$" + p.precio.toLocaleString("es-AR") : "—").padStart(10) +
-      "  " +
-      (p.publicado ? "publicado" : "borrador")
+    "  " + p.codigo.padEnd(ancho) +
+      (p.costoUsd === null ? "—" : "u$s " + p.costoUsd.toFixed(2)).padStart(10) +
+      $(p.costoArs).padStart(11) +
+      $(p.precio).padStart(11) +
+      (p.margen === null ? "—" : p.margen + "%").padStart(9) +
+      "  " + (p.publicado ? "publicado" : "borrador")
   );
+}
+const sinCosto = productos.filter((p) => p.costoUsd === null);
+if (sinCosto.length) {
+  console.log(`\n  Sin costo cargado (${sinCosto.length}): ${sinCosto.map((p) => p.codigo).join(", ")}`);
 }
 
 if (!aplicar) {
@@ -170,7 +234,10 @@ for (const p of productos) {
     const { error } = await sb.from("inventario").insert({
       ...delCatalogo,
       precio_venta: p.precio,
-      costo: 0, // lo carga Valen: el costo no sale del catalogo publico
+      /* El de dolares es el que vale: el de pesos es su equivalente a la
+         cotizacion de hoy y Valen lo va a ver recalculado en el panel. */
+      costo_usd: p.costoUsd,
+      costo: p.costoArs ?? 0,
       cantidad: 0,
       publicado: p.publicado,
     });
