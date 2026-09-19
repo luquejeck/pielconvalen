@@ -115,7 +115,24 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
             reconoce de un vistazo sin gastar un renglon propio, que era
             lo que hacia antes.
           */}
-          <h3 className="line-clamp-2 text-[0.8125rem] leading-snug tracking-[0.02em] text-tinta-suave uppercase">
+          {/*
+            TRES RENGLONES EN CELULAR, DOS DE ANCHO PARA ARRIBA.
+
+            La ficha mide 161 px en un telefono y en dos renglones
+            entran unos 34 caracteres contando la marca. Diez de los
+            diecisiete productos pasaban de ahi y quedaban cortados
+            justo en la parte que los distingue: "Beauty of Joseon
+            Revive Eye Ser..." no dice si es el de ojos o el otro.
+
+            Se acortaron los nombres —fuera los nombres de linea y el
+            relleno del fabricante— y aun asi los dos Relief Sun llegan
+            a 38, porque "Beauty of Joseon" solo ya son 16. El tercer
+            renglon cierra el caso: pasa de diez cortados a ninguno, y
+            la ficha crece 18 px.
+
+            De 640 para arriba la tarjeta es mas ancha y dos alcanzan.
+          */}
+          <h3 className="line-clamp-3 text-[0.8125rem] leading-snug tracking-[0.02em] text-tinta-suave uppercase sm:line-clamp-2">
             <span className="font-semibold text-tinta">{p.marca}</span>{" "}
             {p.nombre}
           </h3>

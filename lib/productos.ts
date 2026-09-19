@@ -1,14 +1,20 @@
 /**
  * Los productos de reventa que Valen ofrece por WhatsApp.
  *
- * NO es la tabla `inventario` del panel. Esa guarda el costo de compra y
- * el stock, y vive detras del login por algo: el costo no se publica.
- * Esto es la cara publica —lo que la clienta ve y elige— y por ahora vive
- * en el codigo, igual que TRATAMIENTOS_POR_DEFECTO.
+ * ESTO YA NO ES EL CATALOGO: ES EL RESPALDO.
  *
- * Cuando haga falta que Valen los edite sin tocar el codigo, el camino ya
- * esta marcado por `lib/catalogo.ts`: tabla en Supabase, y esta lista
- * queda de respaldo para que la web nunca se quede sin catalogo.
+ * Desde el 19-09-2026 los productos viven en la tabla `inventario` y
+ * Valen los edita desde /admin/productos. La web los lee con
+ * `obtenerProductos()` de lib/catalogo-productos.ts.
+ *
+ * Esta lista queda para un solo caso: que la base no conteste. Ahi la
+ * web muestra estos en vez de una pagina vacia. Por eso conviene que no
+ * se desactualice del todo —los nombres y los precios se van
+ * emparejando cuando se tocan— pero NO es la fuente de la verdad y
+ * editar aca no cambia lo que ve nadie.
+ *
+ * El costo de compra no esta ni va a estar: vive en `inventario`, que
+ * pide sesion. Esto es la cara publica.
  */
 
 import { URL_SUPABASE } from "./supabase";
@@ -31,17 +37,15 @@ export type Categoria =
  * Quien esta armando su primera rutina puede leer la pagina de arriba a
  * abajo y lo que le queda es el orden en que se aplica.
  *
- * "TONICOS" Y "MASCARILLAS" TODAVIA NO SE VEN EN LA WEB.
+ * "TONICOS" YA SE VE; "MASCARILLAS" TODAVIA NO.
  *
- * Entraron con los cuatro borradores del 19-09-2026, que son los
- * primeros productos que no eran ni limpiador, ni serum, ni crema. Como
- * `porCategoria()` saltea las categorias vacias y los borradores no
- * cuentan, no dibujan pastilla ni seccion hasta que se publique el
- * primero de cada una.
+ * Las dos entraron el 19-09-2026, con los primeros productos que no
+ * eran ni limpiador, ni serum, ni crema. Tonicos aparecio en la web al
+ * publicarse el Glow Rice Milk y el Peach 77%. Mascarillas espera a las
+ * cinco JM Solution, que estan cargadas y les falta la foto.
  *
- * El lugar de las dos en la rutina esta puesto por como se usan —el
- * tonico despues de limpiar, la mascarilla despues del serum— y hay que
- * confirmarlo con Valen antes de publicar, que es quien arma las rutinas.
+ * `porCategoria()` saltea las vacias, asi que una categoria sin
+ * productos publicados no dibuja ni pastilla ni seccion.
  */
 export const CATEGORIAS: Categoria[] = [
   "Limpiadores",
@@ -114,16 +118,14 @@ export type Producto = {
   detras del login: el costo es de la casa, no de la clienta. Si algun dia
   hace falta tenerlo a mano, va en `inventario`, no en este archivo.
 
-  LOS DOS QUE TODAVIA NO SON DE VALEN
-  Quedaron fuera de la planilla y siguen con el numero del relevamiento de
-  mercado, que es una estimacion y no un precio:
+  QUEDA UNO SOLO AFUERA
+  El Relief Sun Rice + Niacinamide sigue con el numero del relevamiento,
+  $40.000, y por eso esta DESPUBLICADO: no se muestra un precio estimado
+  como si fuera definitivo.
 
-    Dynasty Cream                  $77.000
-    Relief Sun Rice + Niacinamide  $40.000
-
-  Son los unicos dos con un criterio distinto al resto, asi que hay que
-  pedirselos a Valen y emparejarlos. Mientras tanto la web los muestra
-  como si fueran definitivos, que es lo incomodo de dejarlos.
+  El Dynasty Cream estuvo en la misma situacion hasta que Lucas paso su
+  precio real —$65.000, no los $77.000 del relevamiento— y una unidad de
+  stock. Volvio a la web con el numero correcto.
 
   DE DONDE VENIA EL NUMERO ANTES
   Un relevamiento del 18-09-2026 sobre tiendas argentinas de cosmetica
@@ -142,7 +144,7 @@ export const PRODUCTOS: Producto[] = [
   {
     id: "ariul-deep-clean",
     marca: "Ariul",
-    nombre: "Smooth & Pure Deep Clean Cleansing Foam",
+    nombre: "Deep Clean Cleansing Foam",
     medida: "80 ml",
     categoria: "Limpiadores",
     precio: 18000,
@@ -153,7 +155,7 @@ export const PRODUCTOS: Producto[] = [
   {
     id: "ariul-deep-cera",
     marca: "Ariul",
-    nombre: "Smooth & Pure Deep Cera Cleansing Foam",
+    nombre: "Deep Cera Cleansing Foam",
     medida: "120 ml",
     categoria: "Limpiadores",
     precio: 22000,
@@ -201,7 +203,7 @@ export const PRODUCTOS: Producto[] = [
   {
     id: "dalba-first-spray-serum",
     marca: "d'Alba",
-    nombre: "Piedmont First Spray Serum",
+    nombre: "White Truffle Spray Serum",
     medida: "100 ml",
     categoria: "Sérums",
     precio: 55000,
@@ -214,7 +216,7 @@ export const PRODUCTOS: Producto[] = [
   {
     id: "medicube-pdrn-pink-collagen",
     marca: "Medicube",
-    nombre: "PDRN Pink Collagen Capsule Cream",
+    nombre: "PDRN Pink Collagen Cream",
     medida: "55 g",
     categoria: "Cremas",
     precio: 65000,
@@ -251,7 +253,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Dynasty Cream",
     medida: "50 ml",
     categoria: "Cremas",
-    precio: 77000,
+    precio: 65000,
     descripcion:
       "29% de agua de salvado de arroz, ginseng y escualano. La más nutritiva, y la que mejor precio tiene.",
     beneficios: ["Nutrición", "Piel seca"],
@@ -261,7 +263,7 @@ export const PRODUCTOS: Producto[] = [
   {
     id: "ahc-time-rewind-eye",
     marca: "AHC",
-    nombre: "Time Rewind Real Eye Cream For Face",
+    nombre: "Time Rewind Eye Cream",
     medida: "30 ml",
     categoria: "Contorno de ojos",
     precio: 32000,
@@ -300,7 +302,7 @@ export const PRODUCTOS: Producto[] = [
   {
     id: "joseon-relief-sun-aqua",
     marca: "Beauty of Joseon",
-    nombre: "Relief Sun Aqua-fresh Rice + B5",
+    nombre: "Relief Sun Aqua-fresh",
     medida: "50 ml",
     categoria: "Protector solar",
     precio: 48000,
@@ -320,7 +322,7 @@ export const PRODUCTOS: Producto[] = [
   {
     id: "anua-heartleaf-ampoule",
     marca: "Anua",
-    nombre: "Heartleaf 80 Moisture Soothing Ampoule",
+    nombre: "Heartleaf 80% Ampoule",
     medida: "30 ml",
     categoria: "Sérums",
     precio: 62000,
@@ -350,12 +352,12 @@ export const PRODUCTOS: Producto[] = [
     precio: 62000,
     descripcion:
       "Sérum de primer paso con 95.000 micropartículas. Renueva la piel áspera y las células muertas para dejarla lisa. El 100 es el nivel más suave de la línea.",
-    beneficios: ["Textura", "Renovación", "Primer paso"],
+    beneficios: ["Textura", "Renovación"],
   },
   {
     id: "joseon-revive-eye-serum",
     marca: "Beauty of Joseon",
-    nombre: "Revive Eye Serum — Ginseng + Retinal",
+    nombre: "Revive Eye Serum",
     medida: "30 ml",
     categoria: "Contorno de ojos",
     precio: 45000,
@@ -391,7 +393,7 @@ export const PRODUCTOS: Producto[] = [
     */
     id: "joseon-relief-sun-rice-probiotics",
     marca: "Beauty of Joseon",
-    nombre: "Relief Sun Rice + Probiotics",
+    nombre: "Relief Sun Probiotics",
     medida: "50 ml",
     categoria: "Protector solar",
     precio: 48000,
