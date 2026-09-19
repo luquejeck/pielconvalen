@@ -285,7 +285,7 @@ export const PRODUCTOS: Producto[] = [
     nombre: "Relief Sun Aqua-fresh Rice + B5",
     medida: "50 ml",
     categoria: "Protector solar",
-    precio: 50000,
+    precio: 48000,
     descripcion:
       "La versión fresca del anterior: 30% de agua de arroz y pantenol. Se absorbe al instante y no deja película.",
     beneficios: ["Textura liviana", "Calma"],
