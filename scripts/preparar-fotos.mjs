@@ -47,7 +47,31 @@ const CATALOGO = "lib/productos.ts";
 */
 const MARCAS_ORIGENES = "fotos-marcas";
 const MARCAS_DESTINO = "public/imagenes/marcas";
-const MARCAS_LADO = 900;
+
+/**
+ * Lado de la pieza de marca. Lo manda LA TARJETA GRANDE del mosaico.
+ *
+ * Estuvo en 900 y se veia estirada, porque 900 no le alcanza a la
+ * destacada en pantallas densas. Lo que pide cada caso, en pixeles
+ * reales (css x densidad):
+ *
+ *   iPhone Pro Max   92vw de 430 = 396 css  x3 = 1188
+ *   iPhone 13/14     92vw de 390 = 359 css  x3 = 1077
+ *   Notebook retina  34rem       = 544 css  x2 = 1088
+ *
+ * Con 900 el navegador estiraba entre un 16% y un 24% justo en la
+ * imagen mas grande de la portada. 1600 cubre los tres casos con aire y
+ * entra holgado en los originales, que son de 2048.
+ *
+ * Las tarjetas chicas nunca pasaron de 582 y las fotos de producto de
+ * 582 tambien, asi que ninguna de las dos necesitaba esto: LADO se
+ * queda donde estaba.
+ *
+ * El archivo pasa de unos 30 KB a unos 60 KB, y eso NO es lo que baja
+ * la clienta: Next sirve la variante del tamaño que pide la pantalla.
+ * Lo que cambia es que ahora hay pixeles de donde sacarla.
+ */
+const MARCAS_LADO = 1600;
 
 /** Lado final. El doble del que ocupa la ficha en pantalla, para retina. */
 const LADO = 640;
