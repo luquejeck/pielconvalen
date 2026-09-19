@@ -113,6 +113,7 @@ export const PRODUCTOS: Producto[] = [
     id: "ariul-deep-clean",
     marca: "Ariul",
     nombre: "Smooth & Pure Deep Clean Cleansing Foam",
+    medida: "80 ml",
     categoria: "Limpiadores",
     precio: 0,
     descripcion:
@@ -123,6 +124,7 @@ export const PRODUCTOS: Producto[] = [
     id: "ariul-deep-cera",
     marca: "Ariul",
     nombre: "Smooth & Pure Deep Cera Cleansing Foam",
+    medida: "120 ml",
     categoria: "Limpiadores",
     precio: 0,
     descripcion:
@@ -147,6 +149,7 @@ export const PRODUCTOS: Producto[] = [
     id: "joseon-glow-serum",
     marca: "Beauty of Joseon",
     nombre: "Glow Serum",
+    medida: "30 ml",
     categoria: "Sérums",
     precio: 56000,
     descripcion:
@@ -158,6 +161,7 @@ export const PRODUCTOS: Producto[] = [
     id: "joseon-revive-serum",
     marca: "Beauty of Joseon",
     nombre: "Revive Serum",
+    medida: "30 ml",
     categoria: "Sérums",
     precio: 57000,
     descripcion:
@@ -168,6 +172,7 @@ export const PRODUCTOS: Producto[] = [
     id: "dalba-first-spray-serum",
     marca: "d'Alba",
     nombre: "Piedmont First Spray Serum",
+    medida: "100 ml",
     categoria: "Sérums",
     precio: 0,
     descripcion:
@@ -227,6 +232,7 @@ export const PRODUCTOS: Producto[] = [
     id: "ahc-time-rewind-eye",
     marca: "AHC",
     nombre: "Time Rewind Real Eye Cream For Face",
+    medida: "30 ml",
     categoria: "Contorno de ojos",
     precio: 0,
     descripcion:
@@ -253,6 +259,7 @@ export const PRODUCTOS: Producto[] = [
       romperia las dos cosas por un tema de rotulo.
     */
     nombre: "Relief Sun Rice + Niacinamide",
+    medida: "50 ml",
     categoria: "Protector solar",
     precio: 40000,
     descripcion:
@@ -264,6 +271,7 @@ export const PRODUCTOS: Producto[] = [
     id: "joseon-relief-sun-aqua",
     marca: "Beauty of Joseon",
     nombre: "Relief Sun Aqua-fresh Rice + B5",
+    medida: "50 ml",
     categoria: "Protector solar",
     precio: 0,
     descripcion:
@@ -321,6 +329,7 @@ export const PRODUCTOS: Producto[] = [
     id: "joseon-revive-eye-serum",
     marca: "Beauty of Joseon",
     nombre: "Revive Eye Serum — Ginseng + Retinal",
+    medida: "30 ml",
     categoria: "Contorno de ojos",
     /* Sin precio argentino en el relevamiento: muestra "Consultar". */
     precio: 0,
