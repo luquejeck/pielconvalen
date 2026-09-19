@@ -8,7 +8,8 @@
     "start": "next start",
     "fotos": "node scripts/preparar-fotos.mjs",
     "fotos:lista": "node scripts/preparar-fotos.mjs lista",
-    "productos:cargar": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.local scripts/cargar-productos.mjs"
+    "productos:cargar": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.local scripts/cargar-productos.mjs",
+    "permisos": "node --env-file-if-exists=.env.local scripts/verificar-permisos.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
