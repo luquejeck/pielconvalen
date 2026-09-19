@@ -139,8 +139,22 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
               </p>
             )}
 
+            {/*
+              DOS RENGLONES Y NO UNO.
+
+              El subtitulo es `medida + beneficios`, y con un solo renglon
+              se cortaban 15 de las 16 fichas en celular: entraba "30 ml ·
+              Luminosidad · Manch…" y los beneficios —que es lo que la
+              clienta lee para elegir— quedaban afuera. Empeoro el
+              19-09-2026, cuando se cargaron las nueve medidas que
+              faltaban: cada ficha sumo unos siete caracteres adelante.
+
+              Con dos renglones se corta una sola, la mas larga, y la
+              ficha pasa de 335 a 353 px de alto en un iPhone: 18 px por
+              catorce fichas que recuperan sus beneficios.
+            */}
             {subtitulo && (
-              <p className="mt-1 line-clamp-1 text-[0.8125rem] leading-snug text-tinta-suave">
+              <p className="mt-1 line-clamp-2 text-[0.8125rem] leading-snug text-tinta-suave">
                 {subtitulo}
               </p>
             )}

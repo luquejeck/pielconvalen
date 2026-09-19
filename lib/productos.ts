@@ -15,7 +15,9 @@ import { formatearPrecio as formatearPesos } from "./tratamientos";
 
 export type Categoria =
   | "Limpiadores"
+  | "Tónicos"
   | "Sérums"
+  | "Mascarillas"
   | "Cremas"
   | "Contorno de ojos"
   | "Protector solar";
@@ -27,10 +29,24 @@ export type Categoria =
  * limpia, despues se trata, despues se hidrata y al final se protege.
  * Quien esta armando su primera rutina puede leer la pagina de arriba a
  * abajo y lo que le queda es el orden en que se aplica.
+ *
+ * "TONICOS" Y "MASCARILLAS" TODAVIA NO SE VEN EN LA WEB.
+ *
+ * Entraron con los cuatro borradores del 19-09-2026, que son los
+ * primeros productos que no eran ni limpiador, ni serum, ni crema. Como
+ * `porCategoria()` saltea las categorias vacias y los borradores no
+ * cuentan, no dibujan pastilla ni seccion hasta que se publique el
+ * primero de cada una.
+ *
+ * El lugar de las dos en la rutina esta puesto por como se usan —el
+ * tonico despues de limpiar, la mascarilla despues del serum— y hay que
+ * confirmarlo con Valen antes de publicar, que es quien arma las rutinas.
  */
 export const CATEGORIAS: Categoria[] = [
   "Limpiadores",
+  "Tónicos",
   "Sérums",
+  "Mascarillas",
   "Cremas",
   "Contorno de ojos",
   "Protector solar",
@@ -336,6 +352,87 @@ export const PRODUCTOS: Producto[] = [
     descripcion:
       "Ginseng y retinal para la piel fina del contorno. Trabaja las líneas de expresión en la zona más delgada de la cara.",
     beneficios: ["Contorno", "Líneas finas", "Firmeza"],
+  },
+
+  /* ------------------------------------------------ BORRADORES 19-09-2026
+
+     Los cuatro salieron de la lista que paso Lucas. Entran en borrador,
+     o sea que no se ven en la web: les falta foto, precio y descripcion.
+
+     LA DESCRIPCION Y LOS BENEFICIOS VAN VACIOS A PROPOSITO. Es el mismo
+     camino que hizo el Revive Eye Serum, que estuvo en borrador con los
+     dos campos en "" hasta que hubo que decir algo cierto sobre el. Un
+     texto de relleno escrito de memoria es peor que el vacio: se publica
+     sin que nadie lo revise, porque ya parece terminado.
+  */
+  {
+    /*
+      OJO CON LOS DOS RELIEF SUN.
+      Beauty of Joseon vende las dos formulas y Valen trae las dos, asi
+      que son dos fichas y no un cambio de nombre.
+
+      El `id` de la que YA esta publicada dice "probiotics" pero el
+      producto es el Rice + Niacinamide: el rotulo cambio despues de que
+      se le pusiera nombre al archivo de la foto, y el id no se toca
+      porque es la clave del pedido guardado en el telefono de cada
+      clienta. Por eso esta, que si es la Probiotics, lleva un id mas
+      largo. Mirar el envase de la foto antes de tocar cualquiera de las
+      dos: es lo unico que no miente.
+    */
+    id: "joseon-relief-sun-rice-probiotics",
+    marca: "Beauty of Joseon",
+    nombre: "Relief Sun Rice + Probiotics",
+    medida: "50 ml",
+    categoria: "Protector solar",
+    precio: 0,
+    descripcion: "",
+    beneficios: [],
+    borrador: true,
+  },
+  {
+    id: "joseon-glow-replenishing-rice-milk",
+    marca: "Beauty of Joseon",
+    nombre: "Glow Replenishing Rice Milk",
+    medida: "150 ml",
+    categoria: "Tónicos",
+    precio: 0,
+    descripcion: "",
+    beneficios: [],
+    borrador: true,
+  },
+  {
+    id: "anua-peach-77-conditioning-milk",
+    marca: "Anua",
+    nombre: "Peach 77% Conditioning Milk",
+    medida: "150 ml",
+    categoria: "Tónicos",
+    precio: 0,
+    descripcion: "",
+    beneficios: [],
+    borrador: true,
+  },
+  {
+    /*
+      PUBLICARLA PIDE DECIDIR QUE SE VENDE.
+      La lista dice "Caja x10" y aparte "$3.500 c/u si las vendes
+      sueltas": son dos productos distintos para la clienta —una caja y
+      una unidad— y la ficha muestra un solo precio. Hasta que eso se
+      defina queda en 0, que es "Consultar".
+
+      Ademas es la unica marca del catalogo sin ningun producto
+      publicado, asi que el dia que salga hay que sumarle su imagen en
+      fotos-marcas/jm-solution.jpg o el mosaico de la portada cae en la
+      foto del producto.
+    */
+    id: "jm-solution-mask",
+    marca: "JM Solution",
+    nombre: "Mask",
+    medida: "Caja x10",
+    categoria: "Mascarillas",
+    precio: 0,
+    descripcion: "",
+    beneficios: [],
+    borrador: true,
   },
 ];
 
