@@ -116,7 +116,31 @@ export async function POST(req: NextRequest) {
         cada vez que cambie un precio de compra.
       */
       costo: body.costo ?? null,
+      /*
+        Y el costo en dolares con la cotizacion del dia, por lo mismo.
+        Sin la cotizacion guardada, el margen historico en dolares se
+        recalcularia solo cada vez que se mueve el tipo de cambio, y
+        una venta de marzo mostraria un numero distinto segun el dia en
+        que se la mire.
+      */
+      costo_usd: body.costo_usd ?? null,
+      cotizacion: body.cotizacion ?? null,
       cliente_id: body.cliente_id ?? null,
+      /*
+        QUE PRODUCTO SE VENDIO.
+
+        Antes `inventario_id` llegaba, se usaba para descontar stock y
+        se tiraba: el movimiento quedaba con una descripcion de texto y
+        nada que lo atara al producto. Por eso era imposible contestar
+        "cuanto gane con el Glow Serum".
+
+        El nombre va congelado al lado: el dia que Valen borre un
+        producto, el id queda en null y sin esto el movimiento se
+        quedaria sin decir de que fue.
+      */
+      inventario_id: body.inventario_id ?? null,
+      unidades: body.unidades ?? (body.inventario_id ? 1 : null),
+      producto_nombre: body.producto_nombre ?? null,
     })
     .select()
     .single();
@@ -124,7 +148,7 @@ export async function POST(req: NextRequest) {
   if (error) return fallo("guardar el movimiento", error);
 
   if (body.inventario_id) {
-    await descontarStock(sesion.sb, body.inventario_id);
+    await descontarStock(sesion.sb, body.inventario_id, Number(body.unidades) || 1);
   }
 
   return NextResponse.json(data, { status: 201 });
