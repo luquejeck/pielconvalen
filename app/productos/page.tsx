@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import FichaProducto from "@/components/FichaProducto";
 import { IconoFlecha, IconoWhatsApp } from "@/components/iconos";
+import { obtenerProductos } from "@/lib/catalogo-productos";
 import { SITIO_URL } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
 import {
@@ -22,11 +23,12 @@ type Busqueda = {
 
 export async function generateMetadata(): Promise<Metadata> {
   const CONSULTORIO = await obtenerConfiguracion();
-  const cuantos = productosPublicados().length;
+  const productos = await obtenerProductos();
+  const cuantos = productosPublicados(productos).length;
 
   return {
     title: `Productos | ${CONSULTORIO.nombre}`,
-    description: `${cuantos} productos de cosmética coreana elegidos por ${CONSULTORIO.profesional}: ${marcas().join(", ")}. Se compran por WhatsApp y se retiran en ${CONSULTORIO.direccion}.`,
+    description: `${cuantos} productos de cosmética coreana elegidos por ${CONSULTORIO.profesional}: ${marcas(productos).join(", ")}. Se compran por WhatsApp y se retiran en ${CONSULTORIO.direccion}.`,
     alternates: { canonical: `${SITIO_URL}/productos` },
     openGraph: {
       title: `Productos | ${CONSULTORIO.nombre}`,
@@ -58,18 +60,22 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function Productos({ searchParams }: Busqueda) {
   const CONSULTORIO = await obtenerConfiguracion();
+  /* El catalogo sale de la base; lib/productos.ts queda de respaldo si
+     no contesta. Se pide una sola vez y viaja a todas las cuentas de
+     abajo: pedirlo en cada una serian ocho viajes por visita. */
+  const productos = await obtenerProductos();
   const { marca: marcaPedida, categoria: categoriaPedida } =
     await searchParams;
 
   /* Los dos filtros se validan contra lo que existe: un ?marca= o
      ?categoria= con cualquier cosa tiene que caer en el catalogo entero
      y no en una pagina vacia. */
-  const marcaElegida = marcasConFoto().find((m) => m.slug === marcaPedida);
+  const marcaElegida = marcasConFoto(productos).find((m) => m.slug === marcaPedida);
   const categoriaElegida = CATEGORIAS.find(
     (c) => aSlug(c) === categoriaPedida
   );
 
-  const grupos = porCategoria();
+  const grupos = porCategoria(productos);
 
   /*
     EL FILTRO VIVE EN LA DIRECCION Y NO EN EL ESTADO DEL NAVEGADOR.
@@ -82,7 +88,7 @@ export default async function Productos({ searchParams }: Busqueda) {
     Los dos filtros se combinan: entrar por la marca desde el mosaico y
     despues acotar por categoria tiene que seguir funcionando.
   */
-  const filtrados = productosPublicados().filter(
+  const filtrados = productosPublicados(productos).filter(
     (p) =>
       (!marcaElegida || aSlug(p.marca) === marcaElegida.slug) &&
       (!categoriaElegida || p.categoria === categoriaElegida)
@@ -145,10 +151,10 @@ export default async function Productos({ searchParams }: Busqueda) {
                   texto="Todos"
                   cuantos={
                     marcaElegida
-                      ? productosPublicados().filter(
+                      ? productosPublicados(productos).filter(
                           (p) => aSlug(p.marca) === marcaElegida.slug
                         ).length
-                      : productosPublicados().length
+                      : productosPublicados(productos).length
                   }
                 />
               </li>
@@ -157,7 +163,7 @@ export default async function Productos({ searchParams }: Busqueda) {
                 /* El conteo respeta la marca elegida: dentro de Beauty of
                    Joseon, "Cremas" tiene que decir 1 y no 4. Las
                    categorias que quedan en cero no se dibujan. */
-                const cuantos = productosPublicados().filter(
+                const cuantos = productosPublicados(productos).filter(
                   (p) =>
                     p.categoria === categoria &&
                     (!marcaElegida || aSlug(p.marca) === marcaElegida.slug)
@@ -192,7 +198,7 @@ export default async function Productos({ searchParams }: Busqueda) {
               className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-full border border-borde bg-papel px-4 text-base text-tinta transition-colors hover:border-vino hover:text-vino"
             >
               <IconoFlecha className="h-4 w-4 rotate-180" />
-              Ver las {marcas().length} marcas
+              Ver las {marcas(productos).length} marcas
             </Link>
           )}
 

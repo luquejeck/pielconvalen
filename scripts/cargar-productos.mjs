@@ -252,7 +252,11 @@ for (const p of productos) {
 console.log(`  ${nuevos} cargados, ${actualizados} actualizados.`);
 if (nuevos) {
   console.log(`
-  Los nuevos entraron con costo 0 y stock 0: eso lo carga Valen desde
-  el panel, que es donde sabe cuanto pago y cuantos tiene.
+  Entraron con STOCK 0: cuantas unidades hay lo carga Valen desde el
+  panel, que es donde lo sabe.
+
+  Los ${sinCosto.length} sin costo quedan con costo_usd nulo y costo 0. La columna
+  \`costo\` no admite nulos, asi que el cero no significa "gratis" sino
+  "todavia no se cargo": lo que lo distingue es el nulo de al lado.
 `);
 }

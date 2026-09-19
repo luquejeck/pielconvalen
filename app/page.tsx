@@ -12,6 +12,7 @@ import { ReservaProvider } from "@/components/ReservaContext";
 import Reservas from "@/components/Reservas";
 import Tratamientos from "@/components/Tratamientos";
 import Videos from "@/components/Videos";
+import { obtenerProductos } from "@/lib/catalogo-productos";
 import { obtenerAgenda, obtenerTratamientosPublicos } from "@/lib/catalogo";
 import { horariosDelDia } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
@@ -41,12 +42,14 @@ function horaDeCierre(ultimoTurno: string): string {
 export default async function Home() {
   // Precios, tratamientos y horarios salen de la base: lo que Valen
   // edita en el panel se ve en la web sin tocar el codigo.
-  const [tratamientos, agenda, CONSULTORIO, videos] = await Promise.all([
-    obtenerTratamientosPublicos(),
-    obtenerAgenda(),
-    obtenerConfiguracion(),
-    obtenerVideos(),
-  ]);
+  const [tratamientos, agenda, CONSULTORIO, videos, productos] =
+    await Promise.all([
+      obtenerTratamientosPublicos(),
+      obtenerAgenda(),
+      obtenerConfiguracion(),
+      obtenerVideos(),
+      obtenerProductos(),
+    ]);
 
   /** Ficha de negocio local para Google. */
   const jsonLd = {
@@ -122,8 +125,8 @@ export default async function Home() {
         <Consultorio consultorio={CONSULTORIO} />
         <Tratamientos />
         <Reservas />
-        <Productos consultorio={CONSULTORIO} />
-        <Marcas />
+        <Productos consultorio={CONSULTORIO} productos={productos} />
+        <Marcas productos={productos} />
         <ComoTrabajo agenda={agenda} />
         <Beneficios consultorio={CONSULTORIO} />
         <Videos subidos={videos} />

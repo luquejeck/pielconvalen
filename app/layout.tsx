@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
+import { obtenerProductos } from "@/lib/catalogo-productos";
 import { SITIO_URL } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
 import Carrito from "@/components/Carrito";
@@ -27,7 +28,10 @@ const montserrat = Montserrat({
    descripcion y las palabras clave salen de la configuracion que Valen
    edita en el panel. */
 export async function generateMetadata(): Promise<Metadata> {
-  const CONSULTORIO = await obtenerConfiguracion();
+  const [CONSULTORIO, productos] = await Promise.all([
+    obtenerConfiguracion(),
+    obtenerProductos(),
+  ]);
 
   return {
   /* Sin esto, la imagen de la vista previa se pide con una ruta
@@ -73,12 +77,15 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const CONSULTORIO = await obtenerConfiguracion();
+  const [CONSULTORIO, productos] = await Promise.all([
+    obtenerConfiguracion(),
+    obtenerProductos(),
+  ]);
 
   return (
     <html lang="es-AR" className={montserrat.variable}>
       <body>
-        <CarritoProvider>
+        <CarritoProvider catalogo={productos}>
           {children}
           <Carrito whatsapp={CONSULTORIO.whatsapp} />
         </CarritoProvider>

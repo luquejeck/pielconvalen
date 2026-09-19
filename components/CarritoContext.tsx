@@ -56,7 +56,26 @@ type Carrito = {
 
 const Contexto = createContext<Carrito | null>(null);
 
-export function CarritoProvider({ children }: { children: React.ReactNode }) {
+export function CarritoProvider({
+  children,
+  catalogo = PRODUCTOS,
+}: {
+  children: React.ReactNode;
+  /*
+    EL CATALOGO LLEGA DESDE EL SERVIDOR.
+
+    Antes se leia PRODUCTOS directo de lib/productos.ts, y eso alcanzaba
+    mientras el catalogo vivia en el codigo. Ahora los productos los
+    carga Valen en la base, asi que el que vale es el que baja armado
+    desde el layout: si no, un producto que ella agrego no se podria
+    poner en el pedido, y uno que saco seguiria sumando al total.
+
+    El valor por defecto es el del codigo, por lo mismo que en todo el
+    resto: si algo falla, el carrito anda con los de siempre en vez de
+    quedarse vacio.
+  */
+  catalogo?: Producto[];
+}) {
   const [lineas, setLineas] = useState<Linea[]>([]);
   const [listo, setListo] = useState(false);
   const [abierto, setAbierto] = useState(false);
@@ -80,7 +99,7 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
         setLineas(
           leidas.filter(
             (l) =>
-              l.cantidad > 0 && PRODUCTOS.some((p) => p.id === l.id && !p.borrador)
+              l.cantidad > 0 && catalogo.some((p) => p.id === l.id && !p.borrador)
           )
         );
       }
@@ -146,7 +165,7 @@ export function CarritoProvider({ children }: { children: React.ReactNode }) {
 
   const valor = useMemo<Carrito>(() => {
     const detalle = lineas.flatMap((l) => {
-      const producto = PRODUCTOS.find((p) => p.id === l.id);
+      const producto = catalogo.find((p) => p.id === l.id);
       if (!producto) return [];
       return [
         {

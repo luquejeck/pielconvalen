@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import Image from "next/image";
 import Link from "next/link";
-import { marcasConFoto } from "@/lib/productos";
+import { marcasConFoto, type Producto } from "@/lib/productos";
 import TituloTienda from "./TituloTienda";
 
 /**
@@ -49,8 +49,8 @@ function imagenDe(marca: { slug: string; foto: string }) {
  * lado del logo, asi que no va: el nombre viaja igual en el `aria-label`
  * para quien escucha la pagina.
  */
-export default function Marcas() {
-  const marcas = marcasConFoto();
+export default function Marcas({ productos }: { productos: Producto[] }) {
+  const marcas = marcasConFoto(productos);
   if (marcas.length === 0) return null;
 
   const [principal, ...resto] = marcas;

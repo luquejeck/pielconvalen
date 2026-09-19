@@ -11,6 +11,7 @@
  * queda de respaldo para que la web nunca se quede sin catalogo.
  */
 
+import { URL_SUPABASE } from "./supabase";
 import { formatearPrecio as formatearPesos } from "./tratamientos";
 
 export type Categoria =
@@ -53,8 +54,25 @@ export const CATEGORIAS: Categoria[] = [
 ];
 
 export type Producto = {
-  /** Tambien es el nombre de la foto: public/imagenes/productos/<id>.webp */
+  /**
+   * De los de este archivo, tambien es el nombre de la foto:
+   * public/imagenes/productos/<id>.webp. De los que vienen de la base,
+   * es el uuid de la fila y la foto va aparte, en `foto`.
+   */
   id: string;
+  /**
+   * El rotulo con el que Valen lo nombra: BOJ-GLOW-30ML. Lo arma
+   * lib/codigo-producto.ts y solo lo tienen los que vienen de la base:
+   * los de este archivo son el respaldo y no se piden por codigo.
+   */
+  codigo?: string;
+  /**
+   * De donde sale la imagen. Con barra adelante es un archivo del repo
+   * —"/imagenes/productos/x.webp"—, y sin barra es el nombre de un
+   * archivo del bucket, que es como entran las que sube Valen. Esa
+   * barra es lo unico que distingue las dos cosas.
+   */
+  foto?: string;
   marca: string;
   nombre: string;
   /** "50 ml", "120 g". Vacio si no esta confirmada: mejor callar que inventar. */
@@ -428,16 +446,33 @@ export const PRODUCTOS: Producto[] = [
   },
 ];
 
+/*
+  TODAS ESTAS RECIBEN LA LISTA.
+
+  Antes leian PRODUCTOS directo, porque el catalogo era este archivo y
+  nada mas. Ahora el catalogo de verdad lo trae `obtenerProductos()`
+  desde la base y este archivo es el respaldo, asi que la lista viaja
+  como argumento.
+
+  El valor por defecto es PRODUCTOS y no es de adorno: lo usa el
+  carrito, que corre en el navegador y no puede leer la base. Si alguna
+  pantalla se olvida de pasar la lista, muestra el respaldo en vez de
+  romperse, que es el mismo trato que el resto del archivo.
+*/
+
 /** Los que se publican. El borrador queda afuera de todo. */
-export const productosPublicados = () => PRODUCTOS.filter((p) => !p.borrador);
+export const productosPublicados = (lista: Producto[] = PRODUCTOS) =>
+  lista.filter((p) => !p.borrador);
 
 /** Los de la portada, en el orden de la rutina en que estan cargados. */
-export const productosDestacados = () =>
-  productosPublicados().filter((p) => p.destacado);
+export const productosDestacados = (lista: Producto[] = PRODUCTOS) =>
+  productosPublicados(lista).filter((p) => p.destacado);
 
 /** Agrupados por categoria, salteando las que quedaron vacias. */
-export function porCategoria(): { categoria: Categoria; items: Producto[] }[] {
-  const publicados = productosPublicados();
+export function porCategoria(
+  lista: Producto[] = PRODUCTOS
+): { categoria: Categoria; items: Producto[] }[] {
+  const publicados = productosPublicados(lista);
   return CATEGORIAS.map((categoria) => ({
     categoria,
     items: publicados.filter((p) => p.categoria === categoria),
@@ -445,12 +480,29 @@ export function porCategoria(): { categoria: Categoria; items: Producto[] }[] {
 }
 
 /** Las marcas que hay, ordenadas como se leen. */
-export const marcas = () =>
-  [...new Set(productosPublicados().map((p) => p.marca))].sort((a, b) =>
+export const marcas = (lista: Producto[] = PRODUCTOS) =>
+  [...new Set(productosPublicados(lista).map((p) => p.marca))].sort((a, b) =>
     a.localeCompare(b, "es")
   );
 
-export const fotoDe = (p: Producto) => `/imagenes/productos/${p.id}.webp`;
+/**
+ * La imagen del producto, venga de donde venga.
+ *
+ * Tres casos, y el orden importa:
+ *
+ *   `foto` con barra adelante  -> archivo del repo, tal cual
+ *   `foto` sin barra           -> archivo que subio Valen, al bucket
+ *   sin `foto`                 -> los de este archivo, por su id
+ *
+ * El bucket se arma aca y no se importa de lib/galeria.ts porque ese
+ * archivo es `server-only` y esto lo usa el carrito, que corre en el
+ * navegador. Es la misma URL: el bucket `casos` es publico.
+ */
+export const fotoDe = (p: Producto) => {
+  if (!p.foto) return `/imagenes/productos/${p.id}.webp`;
+  if (p.foto.startsWith("/")) return p.foto;
+  return `${URL_SUPABASE}/storage/v1/object/public/casos/${p.foto}`;
+};
 
 /** El porcentaje de descuento, o null si el producto no esta en oferta. */
 export function descuentoDe(p: Producto): number | null {
@@ -486,10 +538,10 @@ export type MarcaConFoto = {
  * La foto de cada una es la del producto mas caro: no por el precio en
  * si, sino porque suele ser el envase mas vistoso de la linea.
  */
-export function marcasConFoto(): MarcaConFoto[] {
-  const publicados = productosPublicados();
+export function marcasConFoto(lista: Producto[] = PRODUCTOS): MarcaConFoto[] {
+  const publicados = productosPublicados(lista);
 
-  return marcas()
+  return marcas(lista)
     .map((nombre) => {
       const suyos = publicados.filter((p) => p.marca === nombre);
       const cara = suyos.reduce((a, b) => (b.precio > a.precio ? b : a));
@@ -504,8 +556,8 @@ export function marcasConFoto(): MarcaConFoto[] {
 }
 
 /** Los de una marca, buscada por slug. Vacio si el slug no existe. */
-export const productosDeMarca = (slug: string) =>
-  productosPublicados().filter((p) => aSlug(p.marca) === slug);
+export const productosDeMarca = (slug: string, lista: Producto[] = PRODUCTOS) =>
+  productosPublicados(lista).filter((p) => aSlug(p.marca) === slug);
 
 /**
  * El precio como se muestra en la ficha.

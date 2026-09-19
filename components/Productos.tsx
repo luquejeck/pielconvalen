@@ -1,5 +1,5 @@
 import type { ConfiguracionWeb } from "@/lib/consultorio";
-import { productosDestacados } from "@/lib/productos";
+import { productosDestacados, type Producto } from "@/lib/productos";
 import CarruselProductos from "./CarruselProductos";
 import FichaProducto from "./FichaProducto";
 import TituloTienda from "./TituloTienda";
@@ -20,10 +20,14 @@ import TituloTienda from "./TituloTienda";
  */
 export default function Productos({
   consultorio: CONSULTORIO,
+  productos,
 }: {
   consultorio: ConfiguracionWeb;
+  /* La trae la portada, que es la que habla con la base. Este
+     componente no la pide solo para no hacer dos viajes por visita. */
+  productos: Producto[];
 }) {
-  const destacados = productosDestacados();
+  const destacados = productosDestacados(productos);
 
   // Sin productos cargados la seccion no existe, en vez de quedar vacia.
   if (destacados.length === 0) return null;
