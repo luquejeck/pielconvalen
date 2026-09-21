@@ -79,14 +79,23 @@ probar(
 const MARCA = "__prueba_permisos__";
 await anon.from("productos_publicos").insert({ marca: MARCA, producto: MARCA });
 await anon.from("inventario").insert({ marca: MARCA, producto: MARCA });
+await anon.from("movimientos_stock").insert({ cantidad: 1, motivo: "ajuste", nota: MARCA });
 
 let entraron = null;
+let entraronHistorial = null;
 if (SERVICIO) {
   const svc = createClient(URL, SERVICIO, sinSesion);
   const { data } = await svc.from("inventario").select("id").eq("marca", MARCA);
   entraron = data ?? [];
   if (entraron.length) {
     await svc.from("inventario").delete().eq("marca", MARCA);
+  }
+  /* El historial no tiene update ni delete para nadie, pero la clave
+     de servicio si puede limpiar lo que haya dejado la prueba. */
+  const { data: h } = await svc.from("movimientos_stock").select("id").eq("nota", MARCA);
+  entraronHistorial = h ?? [];
+  if (entraronHistorial.length) {
+    await svc.from("movimientos_stock").delete().eq("nota", MARCA);
   }
 }
 probar(
@@ -96,6 +105,16 @@ probar(
     ? "sin clave de servicio, no se pudo comprobar"
     : entraron.length
       ? `ENTRARON ${entraron.length} filas (se borraron)`
+      : "bloqueado"
+);
+
+probar(
+  "escribir en el historial de stock",
+  entraronHistorial === null ? true : entraronHistorial.length === 0,
+  entraronHistorial === null
+    ? "sin clave de servicio, no se pudo comprobar"
+    : entraronHistorial.length
+      ? `ENTRARON ${entraronHistorial.length} filas (se borraron)`
       : "bloqueado"
 );
 
