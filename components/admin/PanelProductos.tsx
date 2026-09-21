@@ -279,23 +279,28 @@ function Fila({
   onCambio: () => void;
 }) {
   const [ocupado, setOcupado] = useState(false);
-  const [reponiendo, setReponiendo] = useState(false);
+  const [panel, setPanel] = useState<null | "reponer" | "historial" | "sumar" | "restar">(null);
   const margen = margenDe(p);
   const foto = urlFoto(p.foto);
 
+  const alternar = (cual: NonNullable<typeof panel>) => setPanel((v) => (v === cual ? null : cual));
+
   /*
-    El +/- de la fila es un AJUSTE y no una compra: corrige el numero
-    contra lo que hay en el estante, sin tocar la plata. Una compra
-    mueve plata y va por "Reponer", que pide cuanto se pago.
+    El +/- es un AJUSTE: corrige el numero contra lo que hay en el
+    estante, sin tocar la plata. Pide el motivo, porque es el unico
+    cambio de stock que antes no dejaba rastro y el que mas importa
+    entender despues. El motivo va en botones y no en un campo de texto:
+    sigue siendo un toque.
   */
-  const ajustar = async (unidades: number) => {
+  const ajustar = async (unidades: number, nota: string) => {
     setOcupado(true);
     await fetch("/api/inventario/stock", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ inventario_id: p.id, unidades, motivo: "ajuste" }),
+      body: JSON.stringify({ inventario_id: p.id, unidades, motivo: "ajuste", nota }),
     });
     setOcupado(false);
+    setPanel(null);
     onCambio();
   };
 
@@ -310,7 +315,7 @@ function Fila({
     await fetch(`/api/inventario?id=${p.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...p, publicado: !p.publicado }),
+      body: JSON.stringify({ publicado: !p.publicado }),
     });
     setOcupado(false);
     onCambio();
@@ -354,7 +359,7 @@ function Fila({
           <button
             type="button"
             disabled={ocupado || p.cantidad === 0}
-            onClick={() => ajustar(-1)}
+            onClick={() => alternar("restar")}
             aria-label={`Quitar una unidad de ${p.producto}`}
             className="flex size-9 items-center justify-center rounded-full text-lg text-tinta disabled:opacity-40"
           >
@@ -366,7 +371,7 @@ function Fila({
           <button
             type="button"
             disabled={ocupado}
-            onClick={() => ajustar(1)}
+            onClick={() => alternar("sumar")}
             aria-label={`Agregar una unidad de ${p.producto}`}
             className="flex size-9 items-center justify-center rounded-full text-lg text-tinta disabled:opacity-40"
           >
@@ -376,7 +381,7 @@ function Fila({
 
         <button
           type="button"
-          onClick={() => setReponiendo((v) => !v)}
+          onClick={() => alternar("reponer")}
           className="rounded-full border border-vino px-3 py-1.5 text-sm text-vino transition-colors hover:bg-vino-suave"
         >
           Reponer
@@ -402,19 +407,165 @@ function Fila({
         >
           Editar
         </button>
+
+        <button
+          type="button"
+          onClick={() => alternar("historial")}
+          className="rounded-full px-2 py-1.5 text-sm text-tinta-suave underline-offset-2 hover:text-vino hover:underline"
+        >
+          Historial
+        </button>
       </div>
 
-      {reponiendo && (
+      {(panel === "restar" || panel === "sumar") && (
+        <Motivo
+          sale={panel === "restar"}
+          ocupado={ocupado}
+          onElegir={(nota) => ajustar(panel === "restar" ? -1 : 1, nota)}
+          onCancelar={() => setPanel(null)}
+        />
+      )}
+
+      {panel === "reponer" && (
         <Reponer
           producto={p}
           cotizacion={cotizacion}
           onListo={() => {
-            setReponiendo(false);
+            setPanel(null);
             onCambio();
           }}
         />
       )}
+
+      {panel === "historial" && <Historial id={p.id} />}
     </li>
+  );
+}
+
+/**
+ * El por que de un ajuste, en un toque.
+ *
+ * Los motivos son los que explican de verdad una diferencia entre el
+ * sistema y el estante. "Vendido sin registrar" va primero en la
+ * salida porque es el que mas va a pasar: una venta de mostrador que no
+ * se anoto. Si se usa mucho, es la señal de que falta registrar ventas.
+ */
+const MOTIVOS_SALE = ["Vendido sin registrar", "Se rompió o venció", "Regalo o muestra", "Recuento"];
+const MOTIVOS_ENTRA = ["Recuento", "Devolución", "Me lo regalaron"];
+
+function Motivo({
+  sale,
+  ocupado,
+  onElegir,
+  onCancelar,
+}: {
+  sale: boolean;
+  ocupado: boolean;
+  onElegir: (nota: string) => void;
+  onCancelar: () => void;
+}) {
+  return (
+    <div className="mt-3 rounded-chico border border-borde bg-crema p-3">
+      <p className="text-sm font-semibold text-tinta">
+        {sale ? "¿Por qué sale una unidad?" : "¿Por qué entra una unidad?"}
+      </p>
+      <p className="text-xs text-tinta-suave">
+        {sale
+          ? "Si la vendiste, mejor registrala en Caja: así queda la plata."
+          : "Si la compraste, usá Reponer: así queda lo que pagaste."}
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {(sale ? MOTIVOS_SALE : MOTIVOS_ENTRA).map((m) => (
+          <button
+            key={m}
+            type="button"
+            disabled={ocupado}
+            onClick={() => onElegir(m)}
+            className="rounded-full border border-borde bg-papel px-3 py-1.5 text-sm text-tinta transition-colors hover:border-vino hover:text-vino disabled:opacity-50"
+          >
+            {m}
+          </button>
+        ))}
+        <button type="button" onClick={onCancelar} className="px-2 py-1.5 text-sm text-tinta-suave">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+type LineaHistorial = {
+  id: string;
+  cantidad: number;
+  motivo: "compra" | "venta" | "ajuste" | "inicial";
+  nota: string | null;
+  stock_resultante: number | null;
+  fecha: string;
+};
+
+const ROTULO: Record<LineaHistorial["motivo"], string> = {
+  compra: "Compra",
+  venta: "Venta",
+  ajuste: "Ajuste",
+  inicial: "Recuento inicial",
+};
+
+/** Cada unidad que entro o salio de un producto, de la mas nueva a la mas vieja. */
+function Historial({ id }: { id: string }) {
+  const [lineas, setLineas] = useState<LineaHistorial[] | null>(null);
+  const [falta, setFalta] = useState(false);
+
+  useEffect(() => {
+    let vigente = true;
+    fetch(`/api/inventario/historial?id=${id}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!vigente) return;
+        setLineas(d.lineas ?? []);
+        setFalta(Boolean(d.falta));
+      })
+      .catch(() => vigente && setLineas([]));
+    return () => {
+      vigente = false;
+    };
+  }, [id]);
+
+  if (lineas === null) return <p className="mt-3 text-sm text-tinta-suave">Cargando historial…</p>;
+
+  if (falta) {
+    return (
+      <p className="mt-3 rounded-chico bg-crema p-3 text-sm text-tinta-suave">
+        El historial todavía no está activado: falta correr el SQL de schema-17.
+      </p>
+    );
+  }
+
+  if (lineas.length === 0) {
+    return <p className="mt-3 text-sm text-tinta-suave">Todavía no hay movimientos de este producto.</p>;
+  }
+
+  return (
+    <ul className="mt-3 divide-y divide-borde rounded-chico border border-borde bg-crema">
+      {lineas.map((l) => (
+        <li key={l.id} className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm">
+          <div className="min-w-0">
+            <span className="text-tinta-suave tabular-nums">
+              {new Date(l.fecha + "T12:00:00").toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit" })}
+            </span>{" "}
+            <span className="text-tinta">{ROTULO[l.motivo]}</span>
+            {l.nota && <span className="text-tinta-suave"> · {l.nota}</span>}
+          </div>
+          <div className="shrink-0 text-right tabular-nums">
+            <span className={l.cantidad > 0 ? "font-semibold text-positivo" : "font-semibold text-negativo"}>
+              {l.cantidad > 0 ? `+${l.cantidad}` : l.cantidad}
+            </span>
+            {l.stock_resultante != null && (
+              <span className="text-tinta-suave"> → {l.stock_resultante}</span>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }
 

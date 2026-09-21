@@ -1,4 +1,5 @@
 import { fallo, requerirSesion } from "@/lib/api";
+import { registrarStock } from "@/lib/historial-stock";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -53,8 +54,23 @@ export async function POST(req: NextRequest) {
 
   if (eStock) return fallo("mover el stock", eStock);
 
-  /* Un ajuste no es plata: termina aca. */
+  const nombre = `${producto.marca} ${producto.producto}`.trim();
+
+  /*
+    Un ajuste no es plata: no deja nada en la caja. Pero SI queda en el
+    historial, con el motivo que escribio Valen. Es el unico cambio de
+    stock que antes no dejaba rastro, y el que mas importa poder mirar
+    cuando el numero no coincide con lo que hay en el estante.
+  */
   if (motivo === "ajuste") {
+    await registrarStock(sesion.sb, {
+      inventario_id: id,
+      cantidad: unidades,
+      motivo: "ajuste",
+      nota: typeof body.nota === "string" ? body.nota : null,
+      stock_resultante: typeof cantidadNueva === "number" ? cantidadNueva : null,
+      producto_nombre: nombre,
+    });
     return NextResponse.json({ cantidad: cantidadNueva, movimiento: null });
   }
 
@@ -98,8 +114,6 @@ export async function POST(req: NextRequest) {
         ? Math.round(costoUsdUnitario * cotizacion)
         : Number(producto.costo) || 0;
 
-  const nombre = `${producto.marca} ${producto.producto}`.trim();
-
   const { data: movimiento, error: eMov } = await sesion.sb
     .from("movimientos")
     .insert({
@@ -119,6 +133,18 @@ export async function POST(req: NextRequest) {
     })
     .select()
     .single();
+
+  /* La compra queda en el historial atada a su gasto en la caja, asi
+     desde cualquiera de los dos lados se llega al otro. */
+  await registrarStock(sesion.sb, {
+    inventario_id: id,
+    cantidad: unidades,
+    motivo: "compra",
+    movimiento_id: movimiento?.id ?? null,
+    stock_resultante: typeof cantidadNueva === "number" ? cantidadNueva : null,
+    producto_nombre: nombre,
+    fecha: body.fecha || undefined,
+  });
 
   if (eMov) {
     /*

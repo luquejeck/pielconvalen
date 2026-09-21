@@ -62,6 +62,14 @@ for (const columna of ["costo", "costo_usd"]) {
 const { error: eTabla } = await anon.from("inventario").select("costo").limit(1);
 probar("leer `inventario` directo", Boolean(eTabla), eTabla ? "bloqueado" : "SE FILTRA");
 
+/* El historial de stock es solo del panel: la web no lo lee nunca. */
+const { data: hist, error: eHist } = await anon.from("movimientos_stock").select("id").limit(1);
+probar(
+  "leer el historial de stock",
+  Boolean(eHist) || (hist ?? []).length === 0,
+  eHist ? "bloqueado" : (hist ?? []).length ? "SE FILTRA" : "no devuelve nada"
+);
+
 /*
   La escritura se prueba de verdad: se intenta insertar y despues se
   mira si quedo la fila. No alcanza con leer el error, porque una regla

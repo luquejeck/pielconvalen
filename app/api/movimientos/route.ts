@@ -1,4 +1,5 @@
 import { fallo, requerirSesion } from "@/lib/api";
+import { registrarStock } from "@/lib/historial-stock";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -66,19 +67,25 @@ export async function GET(req: NextRequest) {
  * VALEN / LUCAS: corriendo schema-7-correcciones.sql en Supabase, se usa
  * siempre el camino bueno.
  */
-async function descontarStock(sb: SupabaseClient, id: string, unidades = 1) {
-  const { error } = await sb.rpc("descontar_stock", {
+async function descontarStock(
+  sb: SupabaseClient,
+  id: string,
+  unidades = 1
+): Promise<number | null> {
+  const { data, error } = await sb.rpc("descontar_stock", {
     p_inventario_id: id,
     p_unidades: unidades,
   });
 
-  if (!error) return;
+  /* La funcion devuelve la cantidad que quedo: el historial la guarda
+     para poder leerse sin recalcular. */
+  if (!error) return typeof data === "number" ? data : null;
 
   // 42883 = la funcion no existe todavia. PGRST202 = idem, visto por PostgREST.
   const faltaLaFuncion = error.code === "42883" || error.code === "PGRST202";
   if (!faltaLaFuncion) {
     console.error("[api] descontar stock:", error.code, error.message);
-    return;
+    return null;
   }
 
   const { data: item } = await sb
@@ -88,11 +95,11 @@ async function descontarStock(sb: SupabaseClient, id: string, unidades = 1) {
     .single();
 
   if (item && item.cantidad > 0) {
-    await sb
-      .from("inventario")
-      .update({ cantidad: Math.max(0, item.cantidad - unidades) })
-      .eq("id", id);
+    const queda = Math.max(0, item.cantidad - unidades);
+    await sb.from("inventario").update({ cantidad: queda }).eq("id", id);
+    return queda;
   }
+  return null;
 }
 
 export async function POST(req: NextRequest) {
@@ -198,7 +205,18 @@ export async function POST(req: NextRequest) {
   if (error) return fallo("guardar el movimiento", error);
 
   if (body.inventario_id) {
-    await descontarStock(sesion.sb, body.inventario_id, Number(body.unidades) || 1);
+    const unidades = Number(body.unidades) || 1;
+    const queda = await descontarStock(sesion.sb, body.inventario_id, unidades);
+    /* La venta en el historial de stock, atada a su ingreso en la caja. */
+    await registrarStock(sesion.sb, {
+      inventario_id: body.inventario_id,
+      cantidad: -unidades,
+      motivo: "venta",
+      movimiento_id: data.id,
+      stock_resultante: queda,
+      producto_nombre: delProducto?.producto_nombre ?? null,
+      fecha: body.fecha || undefined,
+    });
   }
 
   return NextResponse.json(data, { status: 201 });
