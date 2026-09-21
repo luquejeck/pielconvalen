@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { URL_SUPABASE } from "@/lib/supabase";
 import { formatearPrecio } from "@/lib/tratamientos";
 
 /**
@@ -64,6 +65,15 @@ const usd = (n: number | null | undefined) =>
   n == null ? "—" : `u$s ${Number(n).toFixed(2)}`;
 
 /**
+ * La URL de la foto, venga del repo o del bucket.
+ *
+ * Mismo criterio que `fotoDe()` en lib/productos.ts: con barra adelante
+ * es un archivo del repo, sin barra es algo que subio Valen al bucket.
+ */
+const urlFoto = (foto: string | null) =>
+  !foto ? null : foto.startsWith("/") ? foto : `${URL_SUPABASE}/storage/v1/object/public/casos/${foto}`;
+
+/**
  * El margen sobre el costo, o null si no se puede calcular.
  *
  * Devuelve null y NO cero cuando falta el costo: un cero diria que no
@@ -87,19 +97,28 @@ export default function PanelProductos() {
   const [filtro, setFiltro] = useState<"todos" | "publicados" | "borrador" | "sin-stock">("todos");
   const [editando, setEditando] = useState<Producto | null>(null);
   const [creando, setCreando] = useState(false);
+  const [cotizacion, setCotizacion] = useState<number | null>(null);
 
   const traer = useCallback(async () => {
     setError("");
     try {
-      const [rp, rm] = await Promise.all([
+      const [rp, rm, rc] = await Promise.all([
         fetch("/api/inventario"),
         fetch("/api/movimientos"),
+        fetch("/api/configuracion"),
       ]);
       if (!rp.ok) throw new Error("No se pudo traer el inventario");
       setProductos(await rp.json());
       /* Los movimientos son para la pestaña de ganancia. Si fallan, el
          inventario igual se muestra: son dos cosas independientes. */
       if (rm.ok) setMovimientos(await rm.json());
+      /* La cotizacion es para mostrar cuanto sale en pesos una compra
+         antes de confirmarla. El servidor la vuelve a leer al guardar,
+         asi que si esto falla la cuenta igual queda bien. */
+      if (rc.ok) {
+        const cfg = await rc.json();
+        setCotizacion(cfg.cotizacion_usd ? Number(cfg.cotizacion_usd) : null);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Algo fallo");
     } finally {
@@ -206,7 +225,7 @@ export default function PanelProductos() {
 
           <ul className="space-y-2">
             {visibles.map((p) => (
-              <Fila key={p.id} producto={p} onEditar={() => setEditando(p)} onCambio={traer} />
+              <Fila key={p.id} producto={p} cotizacion={cotizacion} onEditar={() => setEditando(p)} onCambio={traer} />
             ))}
           </ul>
           {visibles.length === 0 && (
@@ -250,20 +269,24 @@ function Tarjeta({ titulo, valor, pie }: { titulo: string; valor: string; pie: s
 /** Una fila del inventario, con el stock a mano. */
 function Fila({
   producto: p,
+  cotizacion,
   onEditar,
   onCambio,
 }: {
   producto: Producto;
+  cotizacion: number | null;
   onEditar: () => void;
   onCambio: () => void;
 }) {
   const [ocupado, setOcupado] = useState(false);
+  const [reponiendo, setReponiendo] = useState(false);
   const margen = margenDe(p);
+  const foto = urlFoto(p.foto);
 
   /*
     El +/- de la fila es un AJUSTE y no una compra: corrige el numero
-    contra lo que hay en el estante. Una compra mueve plata y se carga
-    con el boton "Reponer", que pide cuanto se pago.
+    contra lo que hay en el estante, sin tocar la plata. Una compra
+    mueve plata y va por "Reponer", que pide cuanto se pago.
   */
   const ajustar = async (unidades: number) => {
     setOcupado(true);
@@ -277,6 +300,12 @@ function Fila({
   };
 
   const publicar = async () => {
+    /* Sin foto no se publica: la web mostraria el recuadro vacio. Es lo
+       que paso con tres productos el 19-09-2026 y hubo que ocultarlos. */
+    if (!p.publicado && !p.foto) {
+      alert("Antes de mostrarlo en la web, subile una foto desde Editar.");
+      return;
+    }
     setOcupado(true);
     await fetch(`/api/inventario?id=${p.id}`, {
       method: "PATCH",
@@ -288,8 +317,21 @@ function Fila({
   };
 
   return (
-    <li className="rounded-chico border border-borde bg-papel px-4 py-3">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <li className="rounded-chico border border-borde bg-papel px-3 py-3">
+      <div className="flex gap-3">
+        {/* La miniatura dice de un vistazo que producto no tiene foto,
+            que es lo que hay que resolver antes de publicarlo. */}
+        {foto ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={foto} alt="" className="size-14 shrink-0 rounded-lg border border-borde object-cover" />
+        ) : (
+          <div className="flex size-14 shrink-0 items-center justify-center rounded-lg border border-dashed border-vino/50 bg-vino-suave text-center text-[0.65rem] leading-tight text-vino">
+            sin
+            <br />
+            foto
+          </div>
+        )}
+
         <div className="min-w-0 flex-1">
           <p className="font-mono text-xs text-tinta-suave">{p.codigo ?? "sin código"}</p>
           <p className="text-base leading-snug text-tinta">
@@ -298,60 +340,167 @@ function Fila({
           </p>
           <p className="mt-0.5 text-sm text-tinta-suave tabular-nums">
             {usd(p.costo_usd)} · {formatearPrecio(p.costo)} → {formatearPrecio(p.precio_venta)}
-            {margen != null && <span className={` ${claseMargen(margen)}`}> · {margen}%</span>}
-            {margen == null && <span className="text-tinta-suave"> · sin costo</span>}
+            {margen != null ? (
+              <span className={claseMargen(margen)}> · {margen}%</span>
+            ) : (
+              <span> · sin costo</span>
+            )}
           </p>
         </div>
+      </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <div className="inline-flex items-center rounded-full bg-crema-oscuro">
-            <button
-              type="button"
-              disabled={ocupado || p.cantidad === 0}
-              onClick={() => ajustar(-1)}
-              aria-label={`Quitar una unidad de ${p.producto}`}
-              className="flex size-9 items-center justify-center rounded-full text-lg text-tinta disabled:opacity-40"
-            >
-              −
-            </button>
-            <span className="min-w-8 text-center font-display font-semibold text-tinta tabular-nums">
-              {p.cantidad}
-            </span>
-            <button
-              type="button"
-              disabled={ocupado}
-              onClick={() => ajustar(1)}
-              aria-label={`Agregar una unidad de ${p.producto}`}
-              className="flex size-9 items-center justify-center rounded-full text-lg text-tinta disabled:opacity-40"
-            >
-              +
-            </button>
-          </div>
-
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="inline-flex items-center rounded-full bg-crema-oscuro">
           <button
             type="button"
-            onClick={publicar}
-            disabled={ocupado}
-            title={p.publicado ? "Sacar de la web" : "Mostrar en la web"}
-            className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
-              p.publicado
-                ? "border-vino bg-vino-suave text-vino"
-                : "border-borde text-tinta-suave hover:border-vino"
-            }`}
+            disabled={ocupado || p.cantidad === 0}
+            onClick={() => ajustar(-1)}
+            aria-label={`Quitar una unidad de ${p.producto}`}
+            className="flex size-9 items-center justify-center rounded-full text-lg text-tinta disabled:opacity-40"
           >
-            {p.publicado ? "En la web" : "Oculto"}
+            −
           </button>
-
+          <span className="min-w-8 text-center font-display font-semibold text-tinta tabular-nums">
+            {p.cantidad}
+          </span>
           <button
             type="button"
-            onClick={onEditar}
-            className="rounded-full border border-borde px-3 py-1.5 text-sm text-tinta transition-colors hover:border-vino"
+            disabled={ocupado}
+            onClick={() => ajustar(1)}
+            aria-label={`Agregar una unidad de ${p.producto}`}
+            className="flex size-9 items-center justify-center rounded-full text-lg text-tinta disabled:opacity-40"
           >
-            Editar
+            +
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setReponiendo((v) => !v)}
+          className="rounded-full border border-vino px-3 py-1.5 text-sm text-vino transition-colors hover:bg-vino-suave"
+        >
+          Reponer
+        </button>
+
+        <button
+          type="button"
+          onClick={publicar}
+          disabled={ocupado}
+          className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+            p.publicado
+              ? "border-vino bg-vino-suave text-vino"
+              : "border-borde text-tinta-suave hover:border-vino"
+          }`}
+        >
+          {p.publicado ? "En la web" : "Oculto"}
+        </button>
+
+        <button
+          type="button"
+          onClick={onEditar}
+          className="rounded-full border border-borde px-3 py-1.5 text-sm text-tinta transition-colors hover:border-vino"
+        >
+          Editar
+        </button>
       </div>
+
+      {reponiendo && (
+        <Reponer
+          producto={p}
+          cotizacion={cotizacion}
+          onListo={() => {
+            setReponiendo(false);
+            onCambio();
+          }}
+        />
+      )}
     </li>
+  );
+}
+
+/**
+ * Registrar una compra de mercaderia.
+ *
+ * Es la otra mitad del inventario: las ventas descuentan stock desde
+ * Economia, y esto lo repone. A diferencia del +/-, deja un movimiento
+ * de plata —salio dinero de la caja— con el costo en las dos monedas y
+ * la cotizacion del dia, congelados.
+ *
+ * El costo en dolares viene cargado con el del producto, que es lo que
+ * pasa casi siempre: repone al mismo precio. Si esta vez le costo
+ * distinto, lo cambia y ese manda.
+ */
+function Reponer({
+  producto: p,
+  cotizacion,
+  onListo,
+}: {
+  producto: Producto;
+  cotizacion: number | null;
+  onListo: () => void;
+}) {
+  const [unidades, setUnidades] = useState(1);
+  const [costoUsd, setCostoUsd] = useState(p.costo_usd != null ? String(p.costo_usd) : "");
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState("");
+
+  const usdNum = costoUsd === "" ? null : Number(costoUsd);
+  /* Lo mismo que calcula el servidor: dolares por la cotizacion de hoy. */
+  const pesosUnidad = usdNum != null && cotizacion ? Math.round(usdNum * cotizacion) : p.costo;
+  const total = pesosUnidad * unidades;
+
+  const guardar = async () => {
+    if (unidades < 1) {
+      setError("Tienen que ser una o más unidades");
+      return;
+    }
+    setGuardando(true);
+    setError("");
+    const r = await fetch("/api/inventario/stock", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        inventario_id: p.id,
+        unidades,
+        motivo: "compra",
+        costo_usd_unitario: costoUsd,
+      }),
+    });
+    setGuardando(false);
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok && r.status !== 207) {
+      setError(d.error ?? "No se pudo registrar la compra");
+      return;
+    }
+    if (d.aviso) alert(d.aviso);
+    onListo();
+  };
+
+  const campo = "mt-1 w-full rounded-xl border border-borde px-3 py-2 text-base outline-none focus:border-vino";
+
+  return (
+    <div className="mt-3 rounded-chico border border-vino/30 bg-crema p-3">
+      <p className="text-sm font-semibold text-tinta">Registrar una compra</p>
+      <div className="mt-2 grid grid-cols-2 gap-3">
+        <label className="block">
+          <span className="text-sm text-tinta-suave">Unidades</span>
+          <input type="number" min={1} className={campo} value={unidades} onChange={(e) => setUnidades(Number(e.target.value))} />
+        </label>
+        <label className="block">
+          <span className="text-sm text-tinta-suave">Costo c/u (u$s)</span>
+          <input type="number" step="0.01" className={campo} value={costoUsd} onChange={(e) => setCostoUsd(e.target.value)} />
+        </label>
+      </div>
+      <p className="mt-2 text-sm text-tinta-suave tabular-nums">
+        {cotizacion ? `Al dólar de hoy ($${cotizacion.toLocaleString("es-AR")}): ` : "Total: "}
+        <span className="font-semibold text-tinta">{formatearPrecio(total)}</span>
+        {" "}· el stock pasa de {p.cantidad} a {p.cantidad + Math.max(0, unidades)}
+      </p>
+      {error && <p className="mt-2 text-sm text-negativo">{error}</p>}
+      <button type="button" onClick={guardar} disabled={guardando} className="boton-principal mt-3 disabled:opacity-60">
+        {guardando ? "Guardando…" : "Registrar compra"}
+      </button>
+    </div>
   );
 }
 
@@ -509,6 +658,11 @@ function Editor({
   );
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
+  /* La foto elegida y todavia no subida. Se sube al guardar, despues
+     del producto, porque para subirla hace falta su id. */
+  const [archivo, setArchivo] = useState<File | null>(null);
+  const vistaPrevia = useMemo(() => (archivo ? URL.createObjectURL(archivo) : null), [archivo]);
+  useEffect(() => () => { if (vistaPrevia) URL.revokeObjectURL(vistaPrevia); }, [vistaPrevia]);
 
   const guardar = async () => {
     if (!f.marca.trim() || !f.producto.trim()) {
@@ -534,12 +688,37 @@ function Editor({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(cuerpo),
         });
-    setGuardando(false);
     if (!r.ok) {
+      setGuardando(false);
       const d = await r.json().catch(() => ({}));
       setError(d.error ?? "No se pudo guardar");
       return;
     }
+
+    /*
+      La foto va despues, con el id que devolvio el guardado. Si el
+      producto es nuevo, recien ahora existe. Si falla la foto, el
+      producto ya quedo guardado: se avisa y se deja el editor abierto
+      para reintentar, en vez de perder lo que se cargo.
+    */
+    if (archivo) {
+      const guardado = await r.json().catch(() => null);
+      const id = producto?.id ?? guardado?.id;
+      if (id) {
+        const datos = new FormData();
+        datos.append("inventario_id", id);
+        datos.append("foto", archivo);
+        const rf = await fetch("/api/inventario/foto", { method: "POST", body: datos });
+        if (!rf.ok) {
+          setGuardando(false);
+          const d = await rf.json().catch(() => ({}));
+          setError(`El producto se guardó, pero la foto no: ${d.error ?? "probá de nuevo"}`);
+          return;
+        }
+      }
+    }
+
+    setGuardando(false);
     onGuardado();
   };
 
@@ -630,10 +809,45 @@ function Editor({
             <span className="text-sm text-tinta-suave">Beneficios, separados por coma</span>
             <input className={campo} placeholder="Poros, Uso diario" value={f.beneficios} onChange={(e) => setF({ ...f, beneficios: e.target.value })} />
           </label>
-          <label className="block sm:col-span-2">
+          {/*
+            LA FOTO SE SUBE, NO SE ESCRIBE.
+
+            Antes era un campo de texto donde habia que pegar una ruta del
+            repo: ponerle imagen a un producto nuevo pedia un programador
+            y un deploy. Ahora se elige desde el celular y el servidor la
+            deja cuadrada y liviana, igual que las del catalogo.
+          */}
+          <div className="sm:col-span-2">
             <span className="text-sm text-tinta-suave">Foto</span>
-            <input className={campo} placeholder="/imagenes/productos/x.webp" value={f.foto} onChange={(e) => setF({ ...f, foto: e.target.value })} />
-          </label>
+            <div className="mt-1 flex items-center gap-3">
+              {vistaPrevia || urlFoto(f.foto) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={vistaPrevia ?? urlFoto(f.foto) ?? ""}
+                  alt=""
+                  className="size-20 shrink-0 rounded-lg border border-borde object-cover"
+                />
+              ) : (
+                <div className="flex size-20 shrink-0 items-center justify-center rounded-lg border border-dashed border-vino/50 bg-vino-suave text-xs text-vino">
+                  sin foto
+                </div>
+              )}
+              <label className="cursor-pointer rounded-full border border-vino px-4 py-2 text-sm text-vino transition-colors hover:bg-vino-suave">
+                {vistaPrevia || f.foto ? "Cambiar foto" : "Subir foto"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                  className="sr-only"
+                  onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
+                />
+              </label>
+            </div>
+            {archivo && (
+              <p className="mt-1 text-sm text-tinta-suave">
+                Se sube al guardar. Queda cuadrada y liviana, como las demás.
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-4">

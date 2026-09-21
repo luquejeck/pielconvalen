@@ -215,22 +215,3 @@ export default function Carrito({ whatsapp }: { whatsapp: string }) {
     </div>
   );
 }
-
-/** La bolsa del boton flotante. Trazo fino, como el resto de los iconos. */
-function IconoBolsa({ className = "h-5 w-5" }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M6 7h12l1 13H5L6 7Z" />
-      <path d="M9 10V6a3 3 0 0 1 6 0v4" />
-    </svg>
-  );
-}

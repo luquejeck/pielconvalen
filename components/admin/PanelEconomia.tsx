@@ -19,15 +19,6 @@ type Movimiento = {
   medio_pago?: string | null;
 };
 
-type ItemInventario = {
-  id: string;
-  marca: string;
-  producto: string;
-  costo: number;
-  precio_venta: number;
-  cantidad: number;
-};
-
 // ─── Helpers ──────────────────────────────────────────────────────────
 /* El signo va ANTES del peso. Con `$${n}` un mes en rojo salia "$-56.000",
    que se lee como un precio raro antes que como una perdida; ahora que el
@@ -595,7 +586,7 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
             <span className="text-xs font-medium uppercase tracking-wide text-tinta-suave">Producto *</span>
             {productos.length === 0 ? (
               <p className="mt-1 rounded-xl border border-vino/20 bg-vino-suave px-3 py-2.5 text-sm text-vino">
-                No tenés productos en inventario. Agregá uno desde la pestaña Inventario.
+                No tenés productos cargados. Agregalos desde la sección Productos.
               </p>
             ) : (
               <select
@@ -772,154 +763,6 @@ function FormProducto({
   );
 }
 
-// ─── Tab: Inventario ──────────────────────────────────────────────────
-function TabInventario({ items, onActualizar }: { items: ItemInventario[]; onActualizar: () => void }) {
-  const [editando, setEditando] = useState<ItemInventario | null>(null);
-  const [nuevo, setNuevo] = useState(false);
-  const [form, setForm] = useState(FORM_INV_VACIO);
-  const [guardando, setGuardando] = useState(false);
-  const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
-
-  const cancelar = () => { setEditando(null); setNuevo(false); setForm(FORM_INV_VACIO); setErrorGuardar(null); };
-
-  const guardar = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setGuardando(true);
-    setErrorGuardar(null);
-    const payload = {
-      marca: form.marca,
-      producto: form.producto,
-      costo: parseInt(form.costo),
-      precio_venta: parseInt(form.precio_venta),
-      cantidad: parseInt(form.cantidad),
-    };
-    try {
-      const res = editando
-        ? await fetch(`/api/inventario?id=${editando.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
-        : await fetch("/api/inventario", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        setErrorGuardar(err.error ?? "No se pudo guardar. Revisá tu conexión.");
-        return;
-      }
-      cancelar();
-      await onActualizar();
-    } catch {
-      setErrorGuardar("Error de red. Intentá de nuevo.");
-    } finally {
-      setGuardando(false);
-    }
-  };
-
-  const [confirmarElimId, setConfirmarElimId] = useState<string | null>(null);
-
-  const eliminar = async (id: string) => {
-    await fetch(`/api/inventario?id=${id}`, { method: "DELETE" });
-    setConfirmarElimId(null);
-    onActualizar();
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-tinta-suave">{items.length} productos</p>
-        <button onClick={() => { setNuevo((v) => !v); setEditando(null); setForm(FORM_INV_VACIO); setErrorGuardar(null); }}
-          className="rounded-full border border-borde px-4 py-2 text-sm text-tinta-suave hover:border-vino hover:text-vino">
-          {nuevo ? "Cancelar" : "+ Agregar producto"}
-        </button>
-      </div>
-
-      {nuevo && (
-        <FormProducto
-          form={form} setForm={setForm} guardando={guardando} error={errorGuardar}
-          onSubmit={guardar} onCancelar={cancelar}
-        />
-      )}
-
-      {/* Lista de productos — tarjetas en mobile, tabla en desktop */}
-      {items.length === 0 ? (
-        <p className="rounded-2xl border border-borde bg-white px-4 py-8 text-center text-tinta-suave">
-          Sin productos cargados aún.
-        </p>
-      ) : (
-        <ul className="space-y-3">
-          {items.map((item) => {
-            const margen = item.precio_venta - item.costo;
-            const margenPct = item.precio_venta > 0 ? Math.round((margen / item.precio_venta) * 100) : 0;
-            const stockBajo = item.cantidad <= 2;
-
-            if (editando?.id === item.id) {
-              return (
-                <li key={item.id}>
-                  <FormProducto
-                    form={form} setForm={setForm} guardando={guardando} error={errorGuardar}
-                    onSubmit={guardar} onCancelar={cancelar}
-                  />
-                </li>
-              );
-            }
-
-            return (
-              <li key={item.id} className="rounded-2xl border border-borde bg-white p-4">
-                {/* Nombre y marca */}
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-semibold text-tinta">{item.producto}</p>
-                    <p className="text-xs text-tinta-suave">{item.marca}</p>
-                  </div>
-                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${stockBajo ? "bg-vino text-crema" : "bg-crema-oscuro text-tinta-suave"}`}>
-                    Stock: {item.cantidad}{stockBajo ? " ⚠️" : ""}
-                  </span>
-                </div>
-
-                {/* Números en grilla 3 columnas */}
-                <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl bg-crema-oscuro p-3">
-                  <div>
-                    <p className="text-xs text-tinta-suave">Costo</p>
-                    <p className="font-medium text-tinta">{fmt(item.costo)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-tinta-suave">Venta</p>
-                    <p className="font-medium text-tinta">{fmt(item.precio_venta)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-tinta-suave">Margen</p>
-                    <p className="font-medium text-vino">{margenPct}%</p>
-                  </div>
-                </div>
-
-                {/* Acciones */}
-                {confirmarElimId === item.id ? (
-                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-vino/20 bg-vino-suave px-3 py-2">
-                    <p className="flex-1 text-sm text-vino">¿Eliminar?</p>
-                    <button onClick={() => eliminar(item.id)}
-                      className="rounded-full bg-vino px-3 py-1 text-xs text-crema">Sí</button>
-                    <button onClick={() => setConfirmarElimId(null)}
-                      className="rounded-full border border-vino/25 px-3 py-1 text-xs text-vino">No</button>
-                  </div>
-                ) : (
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      onClick={() => { setEditando(item); setNuevo(false); setForm({ marca: item.marca, producto: item.producto, costo: String(item.costo), precio_venta: String(item.precio_venta), cantidad: String(item.cantidad) }); }}
-                      className="rounded-full border border-borde px-4 py-1.5 text-xs text-tinta-suave hover:border-vino hover:text-vino">
-                      Editar
-                    </button>
-                    <button onClick={() => setConfirmarElimId(item.id)}
-                      className="rounded-full border border-borde px-4 py-1.5 text-xs text-tinta-suave hover:border-vino/40 hover:text-vino">
-                      Eliminar
-                    </button>
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
-  );
-}
-
 // ─── Tab: Flujo de caja ───────────────────────────────────────────────
 function TabFlujo({ todos, mes, setMes, onEliminar }: {
   todos: Movimiento[];
@@ -1034,7 +877,7 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
 }
 
 // ─── Panel principal ──────────────────────────────────────────────────
-type Tab = "dashboard" | "ingresos" | "inventario" | "fijos" | "flujo";
+type Tab = "dashboard" | "ingresos" | "fijos" | "flujo";
 
 /** El zoom del dashboard: un mes o el año entero. */
 type VistaPeriodo = "mes" | "anio";
@@ -1042,7 +885,6 @@ type VistaPeriodo = "mes" | "anio";
 const TABS: { id: Tab; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
   { id: "ingresos", label: "Registrar venta/gasto" },
-  { id: "inventario", label: "Inventario" },
   { id: "fijos", label: "Gastos fijos" },
   { id: "flujo", label: "Flujo de caja" },
 ];
@@ -1076,7 +918,6 @@ function ventana(mes: string, vista: VistaPeriodo): { desde: string; hasta: stri
 export default function PanelEconomia() {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
-  const [inventario, setInventario] = useState<ItemInventario[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mes, setMes] = useState(mesActual());
@@ -1107,21 +948,16 @@ export default function PanelEconomia() {
     setError(null);
   }, [desde, hasta]);
 
-  const cargarInventario = useCallback(async () => {
-    const res = await fetch("/api/inventario");
-    if (res.ok) setInventario(await res.json());
-  }, []);
-
   useEffect(() => {
     let vigente = true;
     setCargando(true);
-    void Promise.all([cargarMovimientos(), cargarInventario()]).finally(() => {
+    void cargarMovimientos().finally(() => {
       if (vigente) setCargando(false);
     });
     return () => {
       vigente = false;
     };
-  }, [cargarMovimientos, cargarInventario]);
+  }, [cargarMovimientos]);
 
   const eliminarMovimiento = async (id: string) => {
     const res = await fetch(`/api/movimientos?id=${id}`, { method: "DELETE" });
@@ -1169,15 +1005,14 @@ export default function PanelEconomia() {
           onRegistrar={() => setTab("ingresos")}
         />
       )}
-      {/* Una venta de producto descuenta stock: hay que refrescar las dos cosas. */}
-      {tab === "ingresos" && (
-        <TabIngresos
-          onGuardado={async () => {
-            await Promise.all([cargarMovimientos(), cargarInventario()]);
-          }}
-        />
-      )}
-      {tab === "inventario" && <TabInventario items={inventario} onActualizar={cargarInventario} />}
+      {/*
+        El inventario ya no vive aca: tiene su seccion, Productos. Estuvo
+        repetido en esta pestaña, y dos pantallas editando la misma tabla
+        es la receta para que se cambie un stock en un lado y se lo busque
+        en el otro. La venta igual descuenta stock —eso lo hace la API—,
+        y la seccion Productos lo muestra al entrar.
+      */}
+      {tab === "ingresos" && <TabIngresos onGuardado={() => void cargarMovimientos()} />}
       {tab === "fijos" && (
         <TabGastosFijos mes={mes} onVolcado={() => void cargarMovimientos()} />
       )}

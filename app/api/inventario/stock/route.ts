@@ -58,21 +58,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ cantidad: cantidadNueva, movimiento: null });
   }
 
+  /* La cotizacion sale de la base, no del formulario, igual que en las
+     ventas: es la vigente el dia de la compra y queda congelada. */
+  let cotizacion: number | null =
+    body.cotizacion != null && body.cotizacion !== "" ? Number(body.cotizacion) : null;
+  if (cotizacion == null) {
+    const { data: cfg } = await sesion.sb
+      .from("configuracion")
+      .select("valor")
+      .eq("clave", "cotizacion_usd")
+      .maybeSingle();
+    cotizacion = cfg?.valor ? Number(cfg.valor) : null;
+  }
+
   /*
     La compra, en pesos y en dolares.
 
-    Si no mandan costo, se usa el que tiene cargado el producto: es lo
-    que pasa cuando repone al mismo precio de siempre. Si mandan uno
-    distinto, ese manda, porque es lo que efectivamente pago hoy.
+    Si mandan el costo, ese manda: es lo que efectivamente pago hoy.
+
+    Si NO lo mandan, el de pesos se recalcula desde los dolares con la
+    cotizacion de hoy, y no se toma el `costo` guardado del producto. Ese
+    quedo congelado el dia que se cargo —a 1.538 para los primeros
+    veinte— y reponer con el dolar en otro lado anotaria un gasto que no
+    es el real. Es justo el desfasaje que llevo a guardar el costo en las
+    dos monedas. El `costo` guardado queda de ultimo recurso, para los
+    productos que no tienen costo en dolares.
   */
-  const costoUnitario = body.costo_unitario != null ? Number(body.costo_unitario) : Number(producto.costo) || 0;
   const costoUsdUnitario =
     body.costo_usd_unitario != null && body.costo_usd_unitario !== ""
       ? Number(body.costo_usd_unitario)
       : producto.costo_usd != null
         ? Number(producto.costo_usd)
         : null;
-  const cotizacion = body.cotizacion != null && body.cotizacion !== "" ? Number(body.cotizacion) : null;
+
+  const costoUnitario =
+    body.costo_unitario != null && body.costo_unitario !== ""
+      ? Number(body.costo_unitario)
+      : costoUsdUnitario != null && cotizacion
+        ? Math.round(costoUsdUnitario * cotizacion)
+        : Number(producto.costo) || 0;
 
   const nombre = `${producto.marca} ${producto.producto}`.trim();
 

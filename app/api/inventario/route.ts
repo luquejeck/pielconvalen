@@ -121,7 +121,30 @@ export async function PATCH(req: NextRequest) {
   if (!id) return NextResponse.json({ error: "Falta id" }, { status: 400 });
 
   const body = await req.json();
-  const campos = camposDe(body);
+
+  /*
+    UN PATCH TOCA SOLO LO QUE LE MANDAN.
+
+    `camposDe` arma el producto entero con valores por defecto, que es
+    lo que hace falta para CREAR uno. Usado tal cual en una edicion,
+    pisa todo lo que no vino en el pedido: una pantalla que mandara solo
+    el stock le borraba la foto, la descripcion, los beneficios y el
+    costo en dolares, y lo despublicaba.
+
+    Paso de verdad: la pestaña Inventario de Economia mandaba cinco
+    campos y quedo en produccion dos dias con esta ruta asi. Valen no
+    llego a usarla —se reviso: ningun producto tiene la firma del
+    borrado—, pero la primera edicion ahi hubiera vaciado el producto.
+
+    Por eso aca se queda solo con las columnas que el pedido trae. Asi
+    no depende de que cada pantalla se acuerde de mandar el objeto
+    completo.
+  */
+  const todos = camposDe(body);
+  const campos: Record<string, unknown> = { actualizado_en: todos.actualizado_en };
+  for (const [clave, valor] of Object.entries(todos)) {
+    if (clave in body) campos[clave] = valor;
+  }
 
   /*
     El codigo se edita solo si lo mandan, y NO se recalcula al cambiar

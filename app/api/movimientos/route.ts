@@ -101,6 +101,48 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
 
+  /*
+    SI ES UNA VENTA DE PRODUCTO, LOS DATOS LOS PONE EL SERVIDOR.
+
+    El costo, el costo en dolares, la cotizacion del dia y el nombre se
+    leen de la base y se congelan aca, no se aceptan del formulario. Asi
+    cualquier forma de registrar una venta —la pantalla de Economia hoy,
+    otra mañana— queda bien sin depender de que se acuerde de mandarlos.
+
+    Antes el formulario mandaba solo el costo en pesos y la venta
+    quedaba sin costo en dolares, sin cotizacion y sin nombre: justo lo
+    que hace falta para que la ganancia no se desfase con el dolar.
+  */
+  let delProducto: {
+    costo: number | null;
+    costo_usd: number | null;
+    cotizacion: number | null;
+    producto_nombre: string | null;
+  } | null = null;
+
+  if (body.inventario_id) {
+    const [{ data: prod }, { data: cfg }] = await Promise.all([
+      sesion.sb
+        .from("inventario")
+        .select("marca, producto, costo, costo_usd")
+        .eq("id", body.inventario_id)
+        .maybeSingle(),
+      sesion.sb
+        .from("configuracion")
+        .select("valor")
+        .eq("clave", "cotizacion_usd")
+        .maybeSingle(),
+    ]);
+    if (prod) {
+      delProducto = {
+        costo: prod.costo ?? null,
+        costo_usd: prod.costo_usd ?? null,
+        cotizacion: cfg?.valor ? Number(cfg.valor) : null,
+        producto_nombre: `${prod.marca} ${prod.producto}`.trim(),
+      };
+    }
+  }
+
   const { data, error } = await sesion.sb
     .from("movimientos")
     .insert({
@@ -115,7 +157,7 @@ export async function POST(req: NextRequest) {
         dia en que se vendio, y el margen historico quedaria falseado
         cada vez que cambie un precio de compra.
       */
-      costo: body.costo ?? null,
+      costo: delProducto?.costo ?? body.costo ?? null,
       /*
         Y el costo en dolares con la cotizacion del dia, por lo mismo.
         Sin la cotizacion guardada, el margen historico en dolares se
@@ -123,9 +165,17 @@ export async function POST(req: NextRequest) {
         una venta de marzo mostraria un numero distinto segun el dia en
         que se la mire.
       */
-      costo_usd: body.costo_usd ?? null,
-      cotizacion: body.cotizacion ?? null,
+      costo_usd: delProducto?.costo_usd ?? body.costo_usd ?? null,
+      cotizacion: delProducto?.cotizacion ?? body.cotizacion ?? null,
       cliente_id: body.cliente_id ?? null,
+      /*
+        El formulario siempre lo mando y esta ruta lo tiraba: nunca
+        estuvo en este insert. No se noto porque los cobros de Valen
+        entran por /api/turnos, que si lo guarda, y ella todavia no habia
+        registrado una venta de producto desde aca. La primera vez que lo
+        hiciera, el medio de pago se perdia.
+      */
+      medio_pago: body.medio_pago ?? null,
       /*
         QUE PRODUCTO SE VENDIO.
 
@@ -140,7 +190,7 @@ export async function POST(req: NextRequest) {
       */
       inventario_id: body.inventario_id ?? null,
       unidades: body.unidades ?? (body.inventario_id ? 1 : null),
-      producto_nombre: body.producto_nombre ?? null,
+      producto_nombre: delProducto?.producto_nombre ?? body.producto_nombre ?? null,
     })
     .select()
     .single();
