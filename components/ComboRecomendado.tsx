@@ -85,14 +85,11 @@ export default function ComboRecomendado({
       aria-labelledby={`combo-${c.slug}`}
       className={`rounded-suave border border-borde bg-papel p-5 shadow-sm sm:p-7 ${className}`}
     >
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <p className="font-display text-sm font-semibold tracking-[0.12em] text-vino uppercase">
-          Se usan juntos
-        </p>
-        <span className="rounded-md bg-positivo px-2 py-0.5 font-display text-xs font-bold text-white">
-          {porcentaje}% OFF llevando los {c.productos.length}
-        </span>
-      </div>
+      {/* El "10% OFF" no va aca: va pegado al precio, que es donde se
+          lo busca. Aca arriba quedaba lejos del numero al que se aplica. */}
+      <p className="font-display text-sm font-semibold tracking-[0.12em] text-vino uppercase">
+        Se usan juntos
+      </p>
       <h2 id={`combo-${c.slug}`} className="mt-2 font-display text-2xl font-semibold text-tinta sm:text-3xl">
         {c.nombre}
       </h2>
@@ -169,15 +166,22 @@ export default function ComboRecomendado({
         </ol>
 
         {/* El total y el boton: aparte, como en Amazon. */}
-        <div className="rounded-chico bg-crema p-5 lg:w-72 lg:shrink-0">
+        <div className="rounded-chico bg-crema p-5 lg:w-76 lg:shrink-0">
           {todos ? (
             <>
               <p className="text-base text-tinta-suave">
                 Por separado <span className="line-through tabular-nums">{formatearPrecio(c.suma)}</span>
               </p>
-              <p className="mt-1 font-display text-4xl font-bold text-tinta tabular-nums">
-                {formatearPrecio(aPagar)}
-              </p>
+              {/* El porcentaje pegado al precio, como en Mercado Libre: se
+                  lee "$88.200 · 10% OFF" de un golpe. */}
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="font-display text-4xl font-bold text-tinta tabular-nums">
+                  {formatearPrecio(aPagar)}
+                </span>
+                <span className="rounded-md bg-positivo px-2 py-1 font-display text-sm font-bold text-white">
+                  {porcentaje}% OFF
+                </span>
+              </div>
               <p className="mt-1 text-base font-semibold text-positivo">
                 Ahorrás {formatearPrecio(c.ahorro)}
               </p>
@@ -197,9 +201,13 @@ export default function ComboRecomendado({
                   {formatearPrecio(aPagar)}
                 </p>
               )}
-              {/* Lo que se deja sobre la mesa: el empujon a llevar los tres. */}
-              <p className="mt-1 text-base font-semibold text-positivo">
-                Llevando los {c.productos.length} ahorrás {formatearPrecio(c.ahorro)}
+              {/* Lo que se deja sobre la mesa: el empujon a llevar los tres.
+                  La etiqueta sigue en la zona del precio tambien aca. */}
+              <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-base font-semibold text-positivo">
+                <span className="rounded-md bg-positivo px-2 py-0.5 font-display text-xs font-bold text-white">
+                  {porcentaje}% OFF
+                </span>
+                llevando los {c.productos.length} · ahorrás {formatearPrecio(c.ahorro)}
               </p>
             </>
           )}
