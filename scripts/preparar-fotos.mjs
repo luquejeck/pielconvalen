@@ -8,6 +8,13 @@
  * pesen lo que pesen— y deja en public/imagenes/productos/<id>.webp la
  * version que usa la web: cuadrada, aclarada y de unos 25 KB.
  *
+ * PARA UN PRODUCTO NUEVO, ESTO NO: se sube la foto desde el panel.
+ * Desde el 21-09-2026 los productos viven en la base y Valen les sube la
+ * foto desde Productos -> Editar; /api/inventario/foto la deja cuadrada y
+ * liviana igual que esto, y la guarda en el bucket. Este script queda
+ * para las fotos del repo —las de los productos de antes, y las piezas de
+ * marca de fotos-marcas/—.
+ *
  * EL NOMBRE DEL ARCHIVO ES LO QUE IDENTIFICA AL PRODUCTO.
  * Una foto llamada `joseon-glow-serum.jpg` es la del Glow Serum. No hay
  * ninguna otra lista que mantener: los ids salen de lib/productos.ts, que
@@ -308,26 +315,28 @@ const aSlug = (texto) =>
 /**
  * Las imagenes de marca, con la misma deteccion que las de producto.
  *
- * Hay dos clases conviviendo y no se pueden tratar igual:
+ * HOY TODAS LAS PIEZAS SON FOTOS. Desde el 18-09-2026 las siete son del
+ * mismo formato: la foto de los envases de fondo, desenfocada, con el
+ * logo encima, en 2048x2048. Todas van por `cover`, y como ya son
+ * cuadradas el recorte no corta nada: solo se achican. `fondos.json`
+ * queda en {} por eso.
  *
- *   LOGOS sobre blanco (Medicube, Ariul, AHC). Van con `contain`: el
- *   logo de Ariul es 2:1 y recortarlo a cuadrado le come las puntas de
- *   la firma. Se rellena con el mismo blanco y no se nota que sobro
- *   lugar. Ademas se achica al 70% del cuadro, porque un logo pegado
- *   contra los cuatro bordes se lee como un recorte mal hecho: el aire
- *   alrededor es parte de como se dibujo la marca.
+ * La rama de logos se conserva para el dia que entre una pieza que sea
+ * solo el logo sobre blanco —asi eran las primeras—:
  *
- *   FOTOS (la linea de Beauty of Joseon, el fondo de d'Alba). Van con
- *   `cover`: traen fondo de sobra y el recorte al centro no pierde nada
- *   importante.
+ *   LOGOS sobre blanco. Van con `contain`: un logo apaisado recortado a
+ *   cuadrado pierde las puntas. Se rellena con el mismo blanco y se
+ *   achica al 70% del cuadro, porque un logo pegado contra los cuatro
+ *   bordes se lee como un recorte mal hecho.
+ *
+ *   FOTOS. Van con `cover`: traen fondo de sobra y el recorte al centro
+ *   no pierde nada importante.
  *
  * Cual es cual NO se decide por el brillo del borde, como en los
- * productos: las cinco imagenes de marca son claras, incluida la foto de
- * la linea de Beauty of Joseon, que esta sobre crema. Lo que las separa
- * es cuanto de la imagen es casi blanco: un logo es casi todo fondo
- * —Medicube 94%, Ariul 89%, AHC 90%— y una foto no —Beauty of Joseon 1%,
- * d'Alba 19%. Entre 19 y 89 no hay nada, asi que el 60% del medio es un
- * umbral comodo.
+ * productos: una foto de marca puede ser clara y no ser un logo. Lo que
+ * las separa es cuanto de la imagen es casi blanco: un logo sobre blanco
+ * es casi todo fondo —las primeras piezas daban 89 a 94%— y una foto no:
+ * las siete de hoy dan entre 1 y 15%. El 60% queda lejos de los dos.
  *
  * Devuelve si es un logo, que es lo que el mosaico necesita saber para
  * escribir el nombre en tinta o en crema.

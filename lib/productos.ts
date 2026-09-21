@@ -348,6 +348,10 @@ export const PRODUCTOS: Producto[] = [
     descripcion:
       "FPS 50+ PA++++ con 30% de extracto de arroz y niacinamida. El protector que más se pide, y con razón.",
     beneficios: ["FPS 50+", "Sin residuo blanco"],
+    /* Oculto tambien aca, igual que en la base: su precio es el del
+       relevamiento de mercado, nunca uno de Valen. Si la base no
+       contesta, el respaldo no tiene que mostrar lo que la base esconde. */
+    borrador: true,
     destacado: true,
   },
   {
