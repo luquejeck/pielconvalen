@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { hoyEnArgentina } from "@/lib/fechas";
 import { URL_SUPABASE } from "@/lib/supabase";
 import { formatearPrecio } from "@/lib/tratamientos";
+import { MEDIOS_DE_PAGO } from "./FormularioCobro";
 
 /**
  * El control de productos de Valen.
@@ -279,7 +281,7 @@ function Fila({
   onCambio: () => void;
 }) {
   const [ocupado, setOcupado] = useState(false);
-  const [panel, setPanel] = useState<null | "reponer" | "historial" | "sumar" | "restar">(null);
+  const [panel, setPanel] = useState<null | "vender" | "reponer" | "historial" | "sumar" | "restar">(null);
   const margen = margenDe(p);
   const foto = urlFoto(p.foto);
 
@@ -379,6 +381,24 @@ function Fila({
           </button>
         </div>
 
+        {/*
+          VENDI VA PRIMERO Y RELLENO: es lo que mas va a pasar.
+
+          Hasta el 21-09-2026 Valen no habia registrado ninguna venta de
+          producto. Para hacerlo tenia que ir a Caja, cambiar el tipo a
+          "producto" y buscarlo en una lista, mientras en esta pantalla
+          —donde esta mirando ese producto— no habia como. Y todo el
+          seguimiento de ganancia depende de que las ventas se anoten.
+        */}
+        <button
+          type="button"
+          onClick={() => alternar("vender")}
+          disabled={ocupado}
+          className="rounded-full bg-vino px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-vino-oscuro disabled:opacity-50"
+        >
+          Vendí
+        </button>
+
         <button
           type="button"
           onClick={() => alternar("reponer")}
@@ -423,6 +443,16 @@ function Fila({
           ocupado={ocupado}
           onElegir={(nota) => ajustar(panel === "restar" ? -1 : 1, nota)}
           onCancelar={() => setPanel(null)}
+        />
+      )}
+
+      {panel === "vender" && (
+        <Vender
+          producto={p}
+          onListo={() => {
+            setPanel(null);
+            onCambio();
+          }}
         />
       )}
 
@@ -471,7 +501,7 @@ function Motivo({
       </p>
       <p className="text-xs text-tinta-suave">
         {sale
-          ? "Si la vendiste, mejor registrala en Caja: así queda la plata."
+          ? "Si la vendiste, usá Vendí: así queda la plata y la ganancia."
           : "Si la compraste, usá Reponer: así queda lo que pagaste."}
       </p>
       <div className="mt-2 flex flex-wrap gap-2">
@@ -566,6 +596,120 @@ function Historial({ id }: { id: string }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/**
+ * Registrar una venta, desde el producto.
+ *
+ * Es la misma venta que se carga en Caja —un movimiento `venta_producto`
+ * que descuenta stock y queda en el historial—, pero sin salir de aca:
+ * el producto ya esta elegido, el precio ya esta puesto.
+ *
+ * EL PRECIO SE PUEDE CAMBIAR. Viene cargado con el de lista, que es lo
+ * que pasa casi siempre. Pero si vendio con descuento, o dentro del
+ * combo, pone lo que cobro de verdad: la ganancia sale de eso, y un
+ * precio de lista que no se cobro la inflaria.
+ *
+ * El costo NO se manda: lo pone el servidor, con el del producto y el
+ * dolar del dia, congelados. Asi no depende de esta pantalla.
+ */
+function Vender({ producto: p, onListo }: { producto: Producto; onListo: () => void }) {
+  const [unidades, setUnidades] = useState(1);
+  const [precio, setPrecio] = useState(String(p.precio_venta || ""));
+  const [medio, setMedio] = useState(MEDIOS_DE_PAGO[0]);
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState("");
+
+  const precioNum = Number(precio) || 0;
+  const total = precioNum * unidades;
+  const ganancia = p.costo ? (precioNum - p.costo) * unidades : null;
+  const masQueElStock = unidades > p.cantidad;
+
+  const guardar = async () => {
+    if (unidades < 1) return setError("Tiene que ser una o más unidades");
+    if (precioNum <= 0) return setError("Poné a cuánto lo vendiste");
+    setGuardando(true);
+    setError("");
+    const nombre = `${p.marca} ${p.producto}`;
+    const r = await fetch("/api/movimientos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fecha: hoyEnArgentina(),
+        tipo: "venta_producto",
+        categoria: "producto",
+        descripcion: unidades === 1 ? `Venta de ${nombre}` : `Venta ${unidades} u. de ${nombre}`,
+        monto: total,
+        inventario_id: p.id,
+        unidades,
+        medio_pago: medio,
+      }),
+    });
+    setGuardando(false);
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      return setError(d.error ?? "No se pudo registrar la venta");
+    }
+    onListo();
+  };
+
+  const campo = "mt-1 w-full rounded-xl border border-borde px-3 py-2 text-base outline-none focus:border-vino";
+
+  return (
+    <div className="mt-3 rounded-chico border border-vino/30 bg-crema p-3">
+      <p className="text-sm font-semibold text-tinta">Registrar una venta</p>
+      <div className="mt-2 grid grid-cols-2 gap-3">
+        <label className="block">
+          <span className="text-sm text-tinta-suave">Unidades</span>
+          <input type="number" min={1} className={campo} value={unidades} onChange={(e) => setUnidades(Number(e.target.value))} />
+        </label>
+        <label className="block">
+          <span className="text-sm text-tinta-suave">Precio c/u</span>
+          <input type="number" className={campo} value={precio} onChange={(e) => setPrecio(e.target.value)} />
+        </label>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Medio de pago">
+        {MEDIOS_DE_PAGO.map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => setMedio(m)}
+            aria-pressed={medio === m}
+            className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+              medio === m ? "border-vino bg-vino text-white" : "border-borde bg-papel text-tinta hover:border-vino"
+            }`}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
+
+      <p className="mt-3 text-sm text-tinta-suave tabular-nums">
+        Total <span className="font-semibold text-tinta">{formatearPrecio(total)}</span>
+        {ganancia != null && (
+          <span className={ganancia >= 0 ? "text-positivo" : "text-negativo"}>
+            {" "}· {ganancia >= 0 ? "ganás" : "perdés"} {formatearPrecio(Math.abs(ganancia))}
+          </span>
+        )}
+        {" "}· el stock pasa de {p.cantidad} a {Math.max(0, p.cantidad - unidades)}
+      </p>
+      {/*
+        Vender mas de lo que dice el stock no se bloquea: si paso, el que
+        estaba mal era el numero, no la venta. Se avisa, y el stock queda
+        en cero en vez de negativo.
+      */}
+      {masQueElStock && (
+        <p className="mt-1 text-sm text-negativo">
+          En el sistema tenés {p.cantidad}. Si vendiste más, después corregí el stock con + y el motivo &quot;Recuento&quot;.
+        </p>
+      )}
+      {error && <p className="mt-2 text-sm text-negativo">{error}</p>}
+      <button type="button" onClick={guardar} disabled={guardando} className="boton-principal mt-3 disabled:opacity-60">
+        {guardando ? "Guardando…" : `Registrar venta · ${formatearPrecio(total)}`}
+      </button>
+    </div>
   );
 }
 
