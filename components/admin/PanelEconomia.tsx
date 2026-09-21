@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import AvisoDuplicado from "./AvisoDuplicado";
 import BuscadorCliente from "./BuscadorCliente";
 import { MEDIOS_DE_PAGO } from "./FormularioCobro";
-import TabGastosFijos from "./TabGastosFijos";
 
 // ─── Tipos ────────────────────────────────────────────────────────────
 type Movimiento = {
@@ -877,7 +876,7 @@ function TabFlujo({ todos, mes, setMes, onEliminar }: {
 }
 
 // ─── Panel principal ──────────────────────────────────────────────────
-type Tab = "dashboard" | "ingresos" | "fijos" | "flujo";
+type Tab = "dashboard" | "ingresos" | "flujo";
 
 /** El zoom del dashboard: un mes o el año entero. */
 type VistaPeriodo = "mes" | "anio";
@@ -885,7 +884,6 @@ type VistaPeriodo = "mes" | "anio";
 const TABS: { id: Tab; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
   { id: "ingresos", label: "Registrar venta/gasto" },
-  { id: "fijos", label: "Gastos fijos" },
   { id: "flujo", label: "Flujo de caja" },
 ];
 
@@ -1013,9 +1011,15 @@ export default function PanelEconomia() {
         y la seccion Productos lo muestra al entrar.
       */}
       {tab === "ingresos" && <TabIngresos onGuardado={() => void cargarMovimientos()} />}
-      {tab === "fijos" && (
-        <TabGastosFijos mes={mes} onVolcado={() => void cargarMovimientos()} />
-      )}
+      {/*
+        GASTOS FIJOS ESTA ESCONDIDO, NO BORRADO.
+
+        Tenia su pestaña y en un mes nunca se cargo nada: cero filas en
+        `gastos_fijos`. Se saco de la vista para que Caja muestre solo
+        lo que Valen usa. El componente sigue en TabGastosFijos.tsx y la
+        tabla sigue en la base: volver a mostrarlo es sumar la pestaña a
+        TABS y esta linea.
+      */}
       {tab === "flujo" && <TabFlujo todos={movimientos} mes={mes} setMes={setMes} onEliminar={eliminarMovimiento} />}
 
       {error && (
