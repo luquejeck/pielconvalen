@@ -19,6 +19,28 @@ export function claveFecha(fecha: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+/**
+ * La fecha de hoy EN ARGENTINA, como "2026-09-21".
+ *
+ * NO USAR `new Date().toISOString().slice(0, 10)` PARA "HOY". Eso da la
+ * fecha en UTC, que esta tres horas adelante: desde las 21 h de Buenos
+ * Aires ya es mañana, y lo que se registra a esa hora queda anotado un
+ * dia despues —el ultimo dia del mes, en el mes siguiente—. Se encontro
+ * en seis lugares el 21-09-2026 (la Caja, las Clientas, las compras).
+ *
+ * Tampoco alcanza `claveFecha(new Date())` en el servidor: usa la zona
+ * horaria de la maquina, y Vercel corre en UTC. Esto fija la de
+ * Argentina, asi da lo mismo en el servidor y en el telefono de Valen.
+ */
+export function hoyEnArgentina(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 /** "2026-08-19" -> Date local a las 00:00 */
 export function desdeClave(clave: string): Date {
   const [y, m, d] = clave.split("-").map(Number);

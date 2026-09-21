@@ -5,6 +5,7 @@ import { normalizarTelefono } from "@/lib/whatsapp";
 import AvisoDuplicado from "./AvisoDuplicado";
 import { IconoWhatsApp } from "../iconos";
 import ResumenClienta from "./ResumenClienta";
+import { hoyEnArgentina } from "@/lib/fechas";
 
 type Cliente = {
   id: string;
@@ -188,7 +189,7 @@ function FichaCliente({ cliente, onVolver, onActualizar }: {
   const [editando, setEditando] = useState(false);
   const [nuevaSesion, setNuevaSesion] = useState(false);
   const [formSesion, setFormSesion] = useState({
-    fecha: new Date().toISOString().slice(0, 10),
+    fecha: hoyEnArgentina(),
     tratamiento: "",
     precio: "",
     notas: "",
@@ -227,7 +228,7 @@ function FichaCliente({ cliente, onVolver, onActualizar }: {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...formSesion, cliente_id: cliente.id }),
     });
-    setFormSesion({ fecha: new Date().toISOString().slice(0, 10), tratamiento: "", precio: "", notas: "" });
+    setFormSesion({ fecha: hoyEnArgentina(), tratamiento: "", precio: "", notas: "" });
     setNuevaSesion(false);
     await cargarSesiones();
     setGuardandoSesion(false);

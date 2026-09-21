@@ -1,6 +1,7 @@
 import { fallo, requerirSesion } from "@/lib/api";
 import { registrarStock } from "@/lib/historial-stock";
 import { NextRequest, NextResponse } from "next/server";
+import { hoyEnArgentina } from "@/lib/fechas";
 
 /**
  * Las unidades que entran al deposito.
@@ -117,7 +118,7 @@ export async function POST(req: NextRequest) {
   const { data: movimiento, error: eMov } = await sesion.sb
     .from("movimientos")
     .insert({
-      fecha: body.fecha || new Date().toISOString().slice(0, 10),
+      fecha: body.fecha || hoyEnArgentina(),
       tipo: "compra_producto",
       categoria: "producto",
       descripcion: `Compra ${unidades} u. de ${nombre}`,

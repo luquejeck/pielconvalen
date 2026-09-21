@@ -1,5 +1,6 @@
 import { fallo, requerirSesion } from "@/lib/api";
 import { NextRequest, NextResponse } from "next/server";
+import { hoyEnArgentina } from "@/lib/fechas";
 
 /** Los datos de las clientas incluyen historial medico: solo con sesion. */
 
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
     .in("cliente_id", ids)
     .order("fecha");
 
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyEnArgentina();
   const resumen = new Map<
     string,
     { visitas: number; ultimaVisita: string | null; proximo: string | null }

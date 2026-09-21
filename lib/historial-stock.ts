@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { hoyEnArgentina } from "./fechas";
 
 /**
  * Anota un cambio de stock en el historial.
@@ -42,7 +43,9 @@ export async function registrarStock(
       movimiento_id: datos.movimiento_id ?? null,
       stock_resultante: datos.stock_resultante ?? null,
       producto_nombre: datos.producto_nombre ?? null,
-      ...(datos.fecha ? { fecha: datos.fecha } : {}),
+      /* Siempre con fecha de Argentina: el `current_date` por defecto de
+         la base es UTC, y un ajuste a las 22 h quedaba con la de mañana. */
+      fecha: datos.fecha || hoyEnArgentina(),
     });
     if (error) console.error("[historial-stock]", error.message);
   } catch (e) {

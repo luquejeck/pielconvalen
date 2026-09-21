@@ -2,6 +2,7 @@ import { fallo, requerirSesion } from "@/lib/api";
 import { registrarStock } from "@/lib/historial-stock";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { hoyEnArgentina } from "@/lib/fechas";
 
 /**
  * "2026-02" -> "2026-03-01"
@@ -153,7 +154,9 @@ export async function POST(req: NextRequest) {
   const { data, error } = await sesion.sb
     .from("movimientos")
     .insert({
-      fecha: body.fecha,
+      /* Sin fecha, la de hoy EN ARGENTINA: el default de la base es
+         UTC y desde las 21 h ya es mañana. */
+      fecha: body.fecha || hoyEnArgentina(),
       tipo: body.tipo,
       categoria: body.categoria,
       descripcion: body.descripcion,

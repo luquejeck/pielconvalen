@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import AvisoDuplicado from "./AvisoDuplicado";
 import BuscadorCliente from "./BuscadorCliente";
 import { MEDIOS_DE_PAGO } from "./FormularioCobro";
+import { hoyEnArgentina } from "@/lib/fechas";
 
 // ─── Tipos ────────────────────────────────────────────────────────────
 type Movimiento = {
@@ -408,7 +409,7 @@ function TabIngresos({ onGuardado }: { onGuardado: () => void }) {
   const [selTratamiento, setSelTratamiento] = useState<TratamientoDB | null>(null);
   const [selProducto, setSelProducto] = useState<ProductoDB | null>(null);
   const [form, setForm] = useState({
-    fecha: new Date().toISOString().slice(0, 10),
+    fecha: hoyEnArgentina(),
     descripcion: "",
     monto: "",
     costo: "",

@@ -1,5 +1,6 @@
 import { fallo, requerirSesion } from "@/lib/api";
 import { NextRequest, NextResponse } from "next/server";
+import { hoyEnArgentina } from "@/lib/fechas";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
   if (errorTurnos) return fallo("traer los turnos de la clienta", errorTurnos);
   if (errorMovs) return fallo("traer los pagos de la clienta", errorMovs);
 
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = hoyEnArgentina();
 
   const realizados = (turnos ?? []).filter((t) => t.estado === "realizado");
   const proximos = (turnos ?? []).filter(
