@@ -1,6 +1,8 @@
+import { resolverCombos } from "@/lib/combos";
 import type { ConfiguracionWeb } from "@/lib/consultorio";
 import { productosDestacados, type Producto } from "@/lib/productos";
 import CarruselProductos from "./CarruselProductos";
+import ComboRecomendado from "./ComboRecomendado";
 import FichaProducto from "./FichaProducto";
 import TituloTienda from "./TituloTienda";
 
@@ -28,6 +30,7 @@ export default function Productos({
   productos: Producto[];
 }) {
   const destacados = productosDestacados(productos);
+  const combos = resolverCombos(productos);
 
   // Sin productos cargados la seccion no existe, en vez de quedar vacia.
   if (destacados.length === 0) return null;
@@ -50,6 +53,20 @@ export default function Productos({
             ))}
           </CarruselProductos>
         </div>
+
+        {/*
+          EL COMBO, DEBAJO DEL CARRUSEL.
+
+          Es donde lo ponen Mercado Libre y Amazon: primero se ve que se
+          vende, y despues "llevate el conjunto" cierra la compra. Arriba
+          empujaba el adelanto de la tienda hacia abajo, y la portada no
+          puede tapar lo que muestra con una oferta.
+
+          Si falta alguno de sus productos, no aparece.
+        */}
+        {combos.map((c) => (
+          <ComboRecomendado key={c.id} combo={c} className="mt-10" />
+        ))}
       </div>
     </section>
   );

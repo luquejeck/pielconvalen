@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import ComboRecomendado from "@/components/ComboRecomendado";
 import FichaProducto from "@/components/FichaProducto";
 import { IconoFlecha, IconoWhatsApp } from "@/components/iconos";
 import { obtenerProductos } from "@/lib/catalogo-productos";
+import { resolverCombos } from "@/lib/combos";
 import { SITIO_URL } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
 import {
@@ -12,14 +14,34 @@ import {
   CATEGORIAS,
   marcas,
   marcasConFoto,
+  NECESIDADES,
   porCategoria,
   productosPublicados,
+  sirvePara,
 } from "@/lib/productos";
 import { linkConsultaProductos } from "@/lib/whatsapp";
 
 type Busqueda = {
-  searchParams: Promise<{ marca?: string; categoria?: string }>;
+  searchParams: Promise<{
+    marca?: string;
+    categoria?: string;
+    necesidad?: string;
+    orden?: string;
+  }>;
 };
+
+/*
+  LOS ORDENES.
+
+  "Rutina" es el de siempre: por paso, en el orden en que se aplican.
+  Los otros dos son para quien ya sabe que quiere y compara precios.
+*/
+type Orden = "rutina" | "precio-menor" | "precio-mayor";
+const ORDENES: { slug: Orden; texto: string }[] = [
+  { slug: "rutina", texto: "Orden de rutina" },
+  { slug: "precio-menor", texto: "Menor precio" },
+  { slug: "precio-mayor", texto: "Mayor precio" },
+];
 
 export async function generateMetadata(): Promise<Metadata> {
   const CONSULTORIO = await obtenerConfiguracion();
@@ -64,16 +86,20 @@ export default async function Productos({ searchParams }: Busqueda) {
      no contesta. Se pide una sola vez y viaja a todas las cuentas de
      abajo: pedirlo en cada una serian ocho viajes por visita. */
   const productos = await obtenerProductos();
-  const { marca: marcaPedida, categoria: categoriaPedida } =
-    await searchParams;
+  const {
+    marca: marcaPedida,
+    categoria: categoriaPedida,
+    necesidad: necesidadPedida,
+    orden: ordenPedido,
+  } = await searchParams;
 
-  /* Los dos filtros se validan contra lo que existe: un ?marca= o
-     ?categoria= con cualquier cosa tiene que caer en el catalogo entero
-     y no en una pagina vacia. */
+  /* Los filtros se validan contra lo que existe: una direccion con
+     cualquier cosa tiene que caer en el catalogo entero y no en una
+     pagina vacia. */
   const marcaElegida = marcasConFoto(productos).find((m) => m.slug === marcaPedida);
-  const categoriaElegida = CATEGORIAS.find(
-    (c) => aSlug(c) === categoriaPedida
-  );
+  const categoriaElegida = CATEGORIAS.find((c) => aSlug(c) === categoriaPedida);
+  const necesidadElegida = NECESIDADES.find((n) => n.slug === necesidadPedida);
+  const orden: Orden = ORDENES.some((o) => o.slug === ordenPedido) ? (ordenPedido as Orden) : "rutina";
 
   const grupos = porCategoria(productos);
 
@@ -81,20 +107,57 @@ export default async function Productos({ searchParams }: Busqueda) {
     EL FILTRO VIVE EN LA DIRECCION Y NO EN EL ESTADO DEL NAVEGADOR.
 
     Asi funciona sin javascript, el boton de atras hace lo que se espera,
-    y el link se puede pasar por WhatsApp: "mirá los protectores" es
-    /productos?categoria=protector-solar. Con estado en el cliente, ese
+    y el link se puede pasar por WhatsApp: "mirá lo que tengo para los
+    poros" es /productos?necesidad=poros. Con estado en el cliente, ese
     link no existe.
 
-    Los dos filtros se combinan: entrar por la marca desde el mosaico y
-    despues acotar por categoria tiene que seguir funcionando.
+    Los cuatro se combinan: marca, categoria, necesidad y orden.
   */
-  const filtrados = productosPublicados(productos).filter(
-    (p) =>
-      (!marcaElegida || aSlug(p.marca) === marcaElegida.slug) &&
-      (!categoriaElegida || p.categoria === categoriaElegida)
-  );
+  const publicados = productosPublicados(productos);
+  const cumple = (p: (typeof publicados)[number], ignorar?: "marca" | "categoria" | "necesidad") =>
+    (ignorar === "marca" || !marcaElegida || aSlug(p.marca) === marcaElegida.slug) &&
+    (ignorar === "categoria" || !categoriaElegida || p.categoria === categoriaElegida) &&
+    (ignorar === "necesidad" || !necesidadElegida || sirvePara(p, necesidadElegida.slug));
 
-  const hayFiltro = Boolean(marcaElegida || categoriaElegida);
+  const filtrados = publicados.filter((p) => cumple(p));
+  if (orden === "precio-menor") filtrados.sort((a, b) => a.precio - b.precio);
+  if (orden === "precio-mayor") filtrados.sort((a, b) => b.precio - a.precio);
+
+  const hayFiltro = Boolean(marcaElegida || categoriaElegida || necesidadElegida);
+  /* Ordenar por precio tambien aplana la grilla: agrupar por paso de la
+     rutina y ordenar por precio se contradicen. */
+  const enGrilla = hayFiltro || orden !== "rutina";
+
+  /* Los combos que se pueden armar hoy con lo publicado. Si falta
+     alguno de sus productos, no aparece. */
+  const combos = resolverCombos(productos);
+
+  /*
+    La direccion con un cambio, conservando el resto.
+
+    Cada pastilla tiene que llevar a "lo mismo que hay ahora, mas esto":
+    tocar "Sérums" estando en Beauty of Joseon tiene que dar los sérums
+    de Beauty of Joseon, no todos los sérums. `null` saca el filtro.
+  */
+  const actual = {
+    marca: marcaElegida?.slug,
+    categoria: categoriaElegida ? aSlug(categoriaElegida) : undefined,
+    necesidad: necesidadElegida?.slug,
+    orden: orden === "rutina" ? undefined : orden,
+  };
+  const aca = (cambios: Partial<Record<keyof typeof actual, string | null>>) => {
+    const p = new URLSearchParams();
+    for (const [clave, valor] of Object.entries({ ...actual, ...cambios })) {
+      if (valor) p.set(clave, valor);
+    }
+    const q = p.toString();
+    return q ? `/productos?${q}` : "/productos";
+  };
+
+  /* Cuantos quedarian con una pastilla prendida: la que da cero no se
+     dibuja, para no ofrecer un filtro que no trae nada. */
+  const cuantosCon = (campo: "marca" | "categoria" | "necesidad", prueba: (p: (typeof publicados)[number]) => boolean) =>
+    publicados.filter((p) => cumple(p, campo) && prueba(p)).length;
 
   return (
     <>
@@ -114,70 +177,40 @@ export default async function Productos({ searchParams }: Busqueda) {
             <h1 className="text-4xl text-tinta sm:text-5xl">
               {marcaElegida ? marcaElegida.nombre : "Productos"}
             </h1>
-            {/* Con marca elegida queda el conteo, que es informacion:
-                dice cuantos hay sin tener que contarlos. Sin marca no va
-                nada: el titulo "Productos" ya lo dice todo. */}
-            {marcaElegida && (
-              <p className="mt-3 text-xl leading-snug text-tinta-suave">
-                {filtrados.length}{" "}
-                {filtrados.length === 1 ? "producto" : "productos"} de esta
-                marca.
-              </p>
-            )}
           </header>
 
           {/*
-            LOS FILTROS, EN PASTILLAS.
+            TRES FILAS DE FILTROS, LA PRIMERA A LA VISTA.
 
-            Son filtros de verdad y no anclas. Con el ancla, tocar
-            "Cremas" bajaba hasta las cremas pero dejaba las otras diez
-            fichas en el medio: la clienta que solo quiere ver cremas
-            tenia que ignorarlas sola. Ahora las esconde, y "Todos"
-            vuelve.
+            La categoria va arriba y siempre visible: es el paso de la
+            rutina, lo primero que se busca. Debajo, la necesidad de piel,
+            que es como busca quien no conoce las marcas.
 
-            Cada pastilla dice cuantos hay. Sin el numero, tocar un filtro
-            es una apuesta: puede traer uno o doce.
+            Marca y orden van plegados en "Mas filtros": los usa menos
+            gente, y abiertos los cuatro llenaban la pantalla del
+            telefono antes del primer producto. Es un <details>, asi que
+            se abre sin javascript igual que el resto de la pagina.
 
-            La fila se desliza al costado en celular en vez de envolverse
-            en tres renglones, asi los productos quedan a la vista sin
-            scrollear.
+            Cada fila se desliza al costado en el telefono en vez de
+            envolverse en tres renglones.
           */}
-          <nav aria-label="Filtrar productos" className="mt-7">
+          <nav aria-label="Filtrar productos" className="mt-7 space-y-3">
             <ul className="sin-barra -mx-5 flex gap-2 overflow-x-auto px-5">
               <li className="shrink-0">
                 <Pastilla
-                  href={marcaElegida ? `/productos?marca=${marcaElegida.slug}` : "/productos"}
+                  href={aca({ categoria: null })}
                   activa={!categoriaElegida}
                   texto="Todos"
-                  cuantos={
-                    marcaElegida
-                      ? productosPublicados(productos).filter(
-                          (p) => aSlug(p.marca) === marcaElegida.slug
-                        ).length
-                      : productosPublicados(productos).length
-                  }
+                  cuantos={cuantosCon("categoria", () => true)}
                 />
               </li>
-
               {grupos.map(({ categoria }) => {
-                /* El conteo respeta la marca elegida: dentro de Beauty of
-                   Joseon, "Cremas" tiene que decir 1 y no 4. Las
-                   categorias que quedan en cero no se dibujan. */
-                const cuantos = productosPublicados(productos).filter(
-                  (p) =>
-                    p.categoria === categoria &&
-                    (!marcaElegida || aSlug(p.marca) === marcaElegida.slug)
-                ).length;
+                const cuantos = cuantosCon("categoria", (p) => p.categoria === categoria);
                 if (cuantos === 0) return null;
-
-                const params = new URLSearchParams();
-                if (marcaElegida) params.set("marca", marcaElegida.slug);
-                params.set("categoria", aSlug(categoria));
-
                 return (
                   <li key={categoria} className="shrink-0">
                     <Pastilla
-                      href={`/productos?${params}`}
+                      href={aca({ categoria: aSlug(categoria) })}
                       activa={categoriaElegida === categoria}
                       texto={categoria}
                       cuantos={cuantos}
@@ -186,29 +219,102 @@ export default async function Productos({ searchParams }: Busqueda) {
                 );
               })}
             </ul>
+
+            <div>
+              <p className="mb-1.5 text-sm text-tinta-suave">¿Qué buscás para tu piel?</p>
+              <ul className="sin-barra -mx-5 flex gap-2 overflow-x-auto px-5">
+                {NECESIDADES.map((n) => {
+                  const cuantos = cuantosCon("necesidad", (p) => sirvePara(p, n.slug));
+                  if (cuantos === 0) return null;
+                  const prendida = necesidadElegida?.slug === n.slug;
+                  return (
+                    <li key={n.slug} className="shrink-0">
+                      <Pastilla
+                        href={aca({ necesidad: prendida ? null : n.slug })}
+                        activa={prendida}
+                        texto={n.texto}
+                        cuantos={cuantos}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            <details className="group" open={Boolean(marcaElegida) || orden !== "rutina"}>
+              <summary className="inline-flex min-h-10 cursor-pointer list-none items-center gap-1.5 text-base text-tinta-suave transition-colors hover:text-vino [&::-webkit-details-marker]:hidden">
+                <IconoFlecha className="h-4 w-4 rotate-90 transition-transform group-open:-rotate-90" />
+                Más filtros: marca y orden
+              </summary>
+
+              <div className="mt-2 space-y-3">
+                <ul className="sin-barra -mx-5 flex gap-2 overflow-x-auto px-5">
+                  {marcasConFoto(productos).map((m) => {
+                    const cuantos = cuantosCon("marca", (p) => aSlug(p.marca) === m.slug);
+                    if (cuantos === 0) return null;
+                    const prendida = marcaElegida?.slug === m.slug;
+                    return (
+                      <li key={m.slug} className="shrink-0">
+                        <Pastilla
+                          href={aca({ marca: prendida ? null : m.slug })}
+                          activa={prendida}
+                          texto={m.nombre}
+                          cuantos={cuantos}
+                        />
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                <ul className="flex flex-wrap gap-2">
+                  {ORDENES.map((o) => (
+                    <li key={o.slug}>
+                      <Pastilla
+                        href={aca({ orden: o.slug === "rutina" ? null : o.slug })}
+                        activa={orden === o.slug}
+                        texto={o.texto}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </details>
           </nav>
 
-          {marcaElegida && (
-            <Link
-              href={
-                categoriaElegida
-                  ? `/productos?categoria=${aSlug(categoriaElegida)}`
-                  : "/productos"
-              }
-              className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-full border border-borde bg-papel px-4 text-base text-tinta transition-colors hover:border-vino hover:text-vino"
-            >
-              <IconoFlecha className="h-4 w-4 rotate-180" />
-              Ver las {marcas(productos).length} marcas
-            </Link>
+          {/*
+            Lo que esta prendido, y como salir.
+
+            Con tres dimensiones combinables se pierde de vista que filtro
+            esta armando la lista: "¿por que hay solo dos?". Aca se lee de
+            un vistazo y se saca todo con un toque.
+          */}
+          {hayFiltro && (
+            <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-base text-tinta-suave">
+              <span>
+                {filtrados.length} {filtrados.length === 1 ? "producto" : "productos"}
+              </span>
+              <Link href={aca({ marca: null, categoria: null, necesidad: null })} className="text-vino underline underline-offset-2">
+                Sacar filtros
+              </Link>
+            </p>
           )}
 
           {/*
-            Sin filtro se recorre por categorias, con su titulo: es el
-            orden de la rutina y sirve para mirar. Con filtro va una
-            grilla sola, porque el titulo repetiria lo que ya dice la
-            pastilla encendida.
+            EL COMBO, ARRIBA DE TODO, sin filtros ni orden.
+
+            Es la recomendacion para quien entra sin saber por donde
+            empezar. Con un filtro puesto ya sabe que busca, y el combo
+            estaria fuera de contexto: si esta mirando protectores, una
+            rutina antiedad no le habla.
           */}
-          {hayFiltro ? (
+          {!enGrilla && combos.map((c) => <ComboRecomendado key={c.id} combo={c} className="mt-8" />)}
+
+          {/*
+            Sin filtros se recorre por categoria, con su titulo: es el
+            orden de la rutina y sirve para mirar. Con filtros o con otro
+            orden va una grilla sola.
+          */}
+          {enGrilla ? (
             filtrados.length > 0 ? (
               <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                 {filtrados.map((p) => (
@@ -227,11 +333,7 @@ export default async function Productos({ searchParams }: Busqueda) {
             )
           ) : (
             grupos.map(({ categoria, items }) => (
-              <section
-                key={categoria}
-                id={aSlug(categoria)}
-                className="scroll-mt-24 pt-12"
-              >
+              <section key={categoria} id={aSlug(categoria)} className="scroll-mt-24 pt-12">
                 <h2 className="font-display text-xl font-semibold tracking-[0.1em] text-tinta uppercase">
                   {categoria}
                 </h2>
@@ -309,7 +411,8 @@ function Pastilla({
   href: string;
   activa: boolean;
   texto: string;
-  cuantos: number;
+  /* Las de orden no llevan numero: no achican la lista, la reordenan. */
+  cuantos?: number;
 }) {
   return (
     <Link
@@ -322,9 +425,11 @@ function Pastilla({
       }`}
     >
       {texto}
-      <span className={activa ? "text-white/70" : "text-tinta-suave"}>
-        <span className="tabular-nums">{cuantos}</span>
-      </span>
+      {cuantos !== undefined && (
+        <span className={activa ? "text-white/70" : "text-tinta-suave"}>
+          <span className="tabular-nums">{cuantos}</span>
+        </span>
+      )}
     </Link>
   );
 }

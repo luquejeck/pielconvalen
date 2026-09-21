@@ -57,6 +57,57 @@ export const CATEGORIAS: Categoria[] = [
   "Protector solar",
 ];
 
+/**
+ * Las necesidades de piel: como busca quien no conoce las marcas.
+ *
+ * NO SON LOS BENEFICIOS TAL CUAL. Hay 27 etiquetas de beneficio y casi
+ * todas estan en un solo producto: como filtro serian 27 pastillas, la
+ * mayoria trayendo una ficha. Y varias no son una necesidad —"Uso
+ * diario", "Tres en uno", "Textura liviana" describen el producto, no un
+ * problema de la piel—.
+ *
+ * Asi que se agrupan en cinco, que es como lo diria una clienta: "tengo
+ * los poros abiertos", "quiero algo para las arrugas". Cada una junta
+ * los beneficios que la resuelven y trae entre dos y cinco productos.
+ *
+ * Se arman desde `beneficios`, que Valen ya carga en cada producto: un
+ * producto nuevo con "Poros" entre sus beneficios aparece solo en
+ * "Poros y grasitud", sin tocar nada aca.
+ */
+export const NECESIDADES: { slug: string; texto: string; beneficios: string[] }[] = [
+  {
+    slug: "antiedad",
+    texto: "Antiedad y firmeza",
+    beneficios: ["Firmeza", "Elasticidad", "Antiedad", "Densidad", "Líneas finas", "Reparación", "Contorno"],
+  },
+  {
+    slug: "poros",
+    texto: "Poros y grasitud",
+    beneficios: ["Poros", "Piel grasa", "Grasitud", "Limpieza profunda"],
+  },
+  {
+    slug: "luminosidad",
+    texto: "Luminosidad y textura",
+    beneficios: ["Luminosidad", "Manchas", "Tono parejo", "Glass glow", "Textura", "Renovación"],
+  },
+  {
+    slug: "sensible",
+    texto: "Piel sensible",
+    beneficios: ["Calma", "Piel reactiva", "Piel sensible", "No reseca"],
+  },
+  {
+    slug: "hidratacion",
+    texto: "Hidratación",
+    beneficios: ["Hidratación", "Nutrición", "Piel seca"],
+  },
+];
+
+/** Si un producto sirve para una necesidad: comparte algun beneficio. */
+export const sirvePara = (p: Producto, slug: string) => {
+  const n = NECESIDADES.find((x) => x.slug === slug);
+  return Boolean(n && p.beneficios.some((b) => n.beneficios.includes(b)));
+};
+
 export type Producto = {
   /**
    * De los de este archivo, tambien es el nombre de la foto:

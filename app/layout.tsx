@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
 import { obtenerProductos } from "@/lib/catalogo-productos";
+import { comboComoProducto, resolverCombos } from "@/lib/combos";
 import { SITIO_URL } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
 import Carrito from "@/components/Carrito";
@@ -85,7 +86,11 @@ export default async function RootLayout({
   return (
     <html lang="es-AR" className={montserrat.variable}>
       <body>
-        <CarritoProvider catalogo={productos}>
+        {/* El carrito conoce los productos Y los combos: un combo entra
+            al pedido como un producto mas, con su precio de combo. */}
+        <CarritoProvider
+          catalogo={[...productos, ...resolverCombos(productos).map(comboComoProducto)]}
+        >
           {children}
           <Carrito whatsapp={CONSULTORIO.whatsapp} />
         </CarritoProvider>
