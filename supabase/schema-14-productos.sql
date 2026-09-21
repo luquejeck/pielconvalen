@@ -217,11 +217,9 @@ on conflict (clave) do nothing;
 -- =====================================================================
 --  LISTO.
 --
---  Falta la carga inicial de los 20 productos que hoy estan en el
---  codigo. No se hace desde aca —necesita leer lib/productos.ts y
---  generar los codigos— sino con:
---
---      npm run productos:cargar
---
---  Ese comando es idempotente: se puede correr dos veces sin duplicar.
+--  La carga inicial de los productos se hizo el 19-09-2026 con un script
+--  de una sola vez (npm run productos:cargar). Ese script se retiro el
+--  21-09-2026: desde que Valen edita los productos en el panel, volver a
+--  correrlo le pisaba las descripciones y las fotos con las del codigo.
+--  Si hace falta verlo, esta en el historial de git.
 -- =====================================================================

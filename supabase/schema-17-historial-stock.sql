@@ -79,7 +79,7 @@ create policy "historial de stock: solo la admin"
 -- EL PUNTO DE PARTIDA
 --
 -- El stock que hay hoy entro con un recuento directo (npm run
--- stock:cargar), sin movimientos. Para que el historial de cada
+-- stock:cargar, ya retirado), sin movimientos. Para que el historial de cada
 -- producto arranque en el numero correcto, se deja una linea "inicial"
 -- con lo que tiene cada uno ahora.
 --

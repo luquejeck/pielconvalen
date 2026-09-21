@@ -8,11 +8,7 @@
     "start": "next start",
     "fotos": "node scripts/preparar-fotos.mjs",
     "fotos:lista": "node scripts/preparar-fotos.mjs lista",
-    "productos:cargar": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.local scripts/cargar-productos.mjs",
-    "permisos": "node --env-file-if-exists=.env.local scripts/verificar-permisos.mjs",
-    "stock:cargar": "node --env-file-if-exists=.env.local scripts/cargar-stock.mjs",
-    "catalogo:ajustar": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.local scripts/ajustar-catalogo.mjs",
-    "nombres:corregir": "node --env-file-if-exists=.env.local scripts/acortar-nombres.mjs"
+    "permisos": "node --env-file-if-exists=.env.local scripts/verificar-permisos.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
