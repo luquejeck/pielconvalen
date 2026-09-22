@@ -264,6 +264,40 @@
   }
 
   /*
+    El segundo camino de la portada.
+
+    Mismo tamaño y misma forma que el principal —se tocan igual de
+    facil— pero dibujado en hueco: quien entro a sacar turno sigue
+    viendo un solo boton lleno, y quien entro a comprar encuentra el
+    suyo sin tener que leer la pagina entera.
+  */
+  .boton-secundario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    min-height: 3.5rem;
+    padding-inline: 2rem;
+    border-radius: 9999px;
+    background-color: var(--color-papel);
+    border: 1px solid var(--color-vino);
+    color: var(--color-vino);
+    font-size: 1.125rem;
+    font-weight: 600;
+    transition:
+      background-color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .boton-secundario:hover {
+    background-color: var(--color-vino-suave);
+  }
+
+  .boton-secundario:active {
+    transform: scale(0.985);
+  }
+
+  /*
     Variante para la barra superior. Mismo tipo y mismo peso que el boton
     grande: antes el encabezado y el hero decian los dos "Reservar turno"
     con dos tratamientos distintos, y se veian como dos cosas.

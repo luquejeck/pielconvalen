@@ -62,9 +62,29 @@ export default function Hero({
           {CONSULTORIO.queSeHace} en {CONSULTORIO.direccion.split(",")[1].trim()}
         </p>
 
-        <a href="#reservar" className="boton-principal mt-8">
-          Reservar turno
-        </a>
+        {/*
+          DOS ENTRADAS, PORQUE HAY DOS VISITAS DISTINTAS.
+
+          La que viene a atenderse y la que viene a comprar. Hasta hoy la
+          portada solo ofrecia el turno: los productos empezaban a los
+          4.981 px en celular —seis pantallas de scroll, despues del
+          consultorio, los tratamientos y todo el calendario—, asi que
+          quien entraba a comprar tenia que recorrer media web o irse.
+
+          Lleva a /productos y no al ancla de la portada: esa pagina es
+          la tienda completa, con los filtros, y se abre arriba de todo.
+
+          El turno sigue siendo el boton lleno. Este va en hueco: se ve,
+          no compite.
+        */}
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <a href="#reservar" className="boton-principal">
+            Reservar turno
+          </a>
+          <a href="/productos" className="boton-secundario">
+            Ver productos
+          </a>
+        </div>
 
         <ul className="mt-8 flex flex-col items-center gap-1.5 text-lg text-tinta-suave sm:flex-row sm:justify-center sm:gap-6">
           <li className="flex items-center gap-2">
