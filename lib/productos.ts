@@ -522,8 +522,38 @@ export const productosPublicados = (lista: Producto[] = PRODUCTOS) =>
   lista.filter((p) => !p.borrador);
 
 /** Los de la portada, en el orden de la rutina en que estan cargados. */
-export const productosDestacados = (lista: Producto[] = PRODUCTOS) =>
-  productosPublicados(lista).filter((p) => p.destacado);
+/**
+ * Cuantos productos muestra la portada como minimo.
+ *
+ * La fila del carrusel entra de a cuatro en pantalla grande, asi que con
+ * menos de cuatro queda media fila vacia y la seccion parece rota. Ocho
+ * llena la fila y deja para deslizar.
+ */
+const MINIMO_EN_PORTADA = 8;
+
+/**
+ * Los de la portada: los destacados, completados con el resto.
+ *
+ * ANTES ERA SOLO `destacado` Y QUEDABA A MERCED DE UNA TILDE.
+ * Hoy hay tres productos marcados sobre veintitres publicados: en
+ * computadora esos tres ocupaban tres cuartos de la fila y el ultimo
+ * cuarto quedaba en blanco. Y si Valen desmarcaba los tres, la seccion
+ * de productos de la portada desaparecia entera sin que nada avisara.
+ *
+ * Marcar destacados sigue sirviendo: son los que van primero. Lo que
+ * cambia es que la portada nunca queda a medias por una tilde que
+ * alguien puso o saco en el panel.
+ */
+export function productosDestacados(lista: Producto[] = PRODUCTOS): Producto[] {
+  const publicados = productosPublicados(lista);
+  const destacados = publicados.filter((p) => p.destacado);
+  if (destacados.length >= MINIMO_EN_PORTADA) return destacados;
+
+  /* El relleno respeta el orden del catalogo, que es el de la rutina:
+     limpiar, tratar, hidratar, proteger. */
+  const resto = publicados.filter((p) => !p.destacado);
+  return [...destacados, ...resto].slice(0, MINIMO_EN_PORTADA);
+}
 
 /** Agrupados por categoria, salteando las que quedaron vacias. */
 export function porCategoria(
