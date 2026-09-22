@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
 import { obtenerProductos } from "@/lib/catalogo-productos";
+import { obtenerCombos } from "@/lib/catalogo-combos";
 import { comboComoProducto, resolverCombos } from "@/lib/combos";
 import { SITIO_URL } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
@@ -78,9 +79,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [CONSULTORIO, productos] = await Promise.all([
+  const [CONSULTORIO, productos, combos] = await Promise.all([
     obtenerConfiguracion(),
     obtenerProductos(),
+    obtenerCombos(),
   ]);
 
   return (
@@ -89,7 +91,10 @@ export default async function RootLayout({
         {/* El carrito conoce los productos Y los combos: un combo entra
             al pedido como un producto mas, con su precio de combo. */}
         <CarritoProvider
-          catalogo={[...productos, ...resolverCombos(productos).map(comboComoProducto)]}
+          catalogo={[
+            ...productos,
+            ...resolverCombos(productos, combos).map(comboComoProducto),
+          ]}
         >
           {children}
           <Carrito whatsapp={CONSULTORIO.whatsapp} />

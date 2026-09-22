@@ -1,3 +1,4 @@
+import { obtenerCombos } from "@/lib/catalogo-combos";
 import { resolverCombos } from "@/lib/combos";
 import type { ConfiguracionWeb } from "@/lib/consultorio";
 import { productosDestacados, type Producto } from "@/lib/productos";
@@ -20,7 +21,7 @@ import TituloTienda from "./TituloTienda";
  * rutina —limpiar, tratar, hidratar, proteger—, asi el adelanto muestra
  * de que se trata la tienda y no cuatro cremas parecidas.
  */
-export default function Productos({
+export default async function Productos({
   consultorio: CONSULTORIO,
   productos,
 }: {
@@ -30,7 +31,9 @@ export default function Productos({
   productos: Producto[];
 }) {
   const destacados = productosDestacados(productos);
-  const combos = resolverCombos(productos);
+  /* Los combos los arma Valen en el panel. El viaje a la base lo hace
+     este componente y no la portada: es el unico que los usa aca. */
+  const combos = resolverCombos(productos, await obtenerCombos());
 
   // Sin productos cargados la seccion no existe, en vez de quedar vacia.
   if (destacados.length === 0) return null;

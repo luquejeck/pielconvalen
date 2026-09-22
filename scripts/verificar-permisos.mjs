@@ -62,6 +62,33 @@ for (const columna of ["costo", "costo_usd"]) {
 const { error: eTabla } = await anon.from("inventario").select("costo").limit(1);
 probar("leer `inventario` directo", Boolean(eTabla), eTabla ? "bloqueado" : "SE FILTRA");
 
+/*
+  Los combos: la web lee la vista y nada mas.
+
+  `combos` y `combo_productos` son del panel. La vista solo trae los
+  publicados y lo que se anuncia —nombre, codigos y descuento—, sin
+  costos ni margenes.
+*/
+const { error: eCombos } = await anon.from("combos_publicos").select("slug, descuento").limit(1);
+/* Que la vista todavia no exista no es un agujero: es schema-18 sin
+   correr. Se avisa y no se cuenta como falla. 42P01 es el codigo de
+   Postgres; PGRST205 el de PostgREST, que es el que llega por HTTP. */
+const faltaLaVista = eCombos?.code === "42P01" || eCombos?.code === "PGRST205";
+probar(
+  "leer los combos publicos",
+  !eCombos || faltaLaVista,
+  !eCombos ? "se leen" : faltaLaVista ? "falta correr schema-18-combos.sql" : eCombos.message.slice(0, 40)
+);
+
+for (const tabla of ["combos", "combo_productos"]) {
+  const { data, error } = await anon.from(tabla).select("*").limit(1);
+  probar(
+    `leer \`${tabla}\` directo`,
+    Boolean(error) || (data ?? []).length === 0,
+    error ? "bloqueado" : (data ?? []).length ? "SE FILTRA" : "no devuelve nada"
+  );
+}
+
 /* El historial de stock es solo del panel: la web no lo lee nunca. */
 const { data: hist, error: eHist } = await anon.from("movimientos_stock").select("id").limit(1);
 probar(
@@ -80,9 +107,12 @@ const MARCA = "__prueba_permisos__";
 await anon.from("productos_publicos").insert({ marca: MARCA, producto: MARCA });
 await anon.from("inventario").insert({ marca: MARCA, producto: MARCA });
 await anon.from("movimientos_stock").insert({ cantidad: 1, motivo: "ajuste", nota: MARCA });
+await anon.from("combos").insert({ slug: MARCA, nombre: MARCA, descuento: 10 });
+await anon.from("combos_publicos").insert({ slug: MARCA, nombre: MARCA, descuento: 10 });
 
 let entraron = null;
 let entraronHistorial = null;
+let entraronCombos = null;
 if (SERVICIO) {
   const svc = createClient(URL, SERVICIO, sinSesion);
   const { data } = await svc.from("inventario").select("id").eq("marca", MARCA);
@@ -92,6 +122,11 @@ if (SERVICIO) {
   }
   /* El historial no tiene update ni delete para nadie, pero la clave
      de servicio si puede limpiar lo que haya dejado la prueba. */
+  const { data: c } = await svc.from("combos").select("id").eq("slug", MARCA);
+  entraronCombos = c ?? [];
+  if (entraronCombos.length) {
+    await svc.from("combos").delete().eq("slug", MARCA);
+  }
   const { data: h } = await svc.from("movimientos_stock").select("id").eq("nota", MARCA);
   entraronHistorial = h ?? [];
   if (entraronHistorial.length) {
@@ -115,6 +150,16 @@ probar(
     ? "sin clave de servicio, no se pudo comprobar"
     : entraronHistorial.length
       ? `ENTRARON ${entraronHistorial.length} filas (se borraron)`
+      : "bloqueado"
+);
+
+probar(
+  "escribir combos",
+  entraronCombos === null ? true : entraronCombos.length === 0,
+  entraronCombos === null
+    ? "sin clave de servicio, no se pudo comprobar"
+    : entraronCombos.length
+      ? `ENTRARON ${entraronCombos.length} filas (se borraron)`
       : "bloqueado"
 );
 

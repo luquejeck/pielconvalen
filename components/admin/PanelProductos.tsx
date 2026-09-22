@@ -5,6 +5,7 @@ import { hoyEnArgentina } from "@/lib/fechas";
 import { URL_SUPABASE } from "@/lib/supabase";
 import { formatearPrecio } from "@/lib/tratamientos";
 import { MEDIOS_DE_PAGO } from "./FormularioCobro";
+import PanelCombos from "./PanelCombos";
 
 /**
  * El control de productos de Valen.
@@ -95,7 +96,7 @@ export default function PanelProductos() {
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
-  const [tab, setTab] = useState<"inventario" | "ganancia">("inventario");
+  const [tab, setTab] = useState<"inventario" | "combos" | "ganancia">("inventario");
   const [filtro, setFiltro] = useState<"todos" | "publicados" | "borrador" | "sin-stock">("todos");
   const [editando, setEditando] = useState<Producto | null>(null);
   const [creando, setCreando] = useState(false);
@@ -193,15 +194,25 @@ export default function PanelProductos() {
 
       <nav className="mb-4 -mx-5 overflow-x-auto px-5">
         <div className="segmentado" style={{ width: "max-content" }}>
-          {(["inventario", "ganancia"] as const).map((t) => (
+          {(["inventario", "combos", "ganancia"] as const).map((t) => (
             <button key={t} type="button" onClick={() => setTab(t)} data-activo={tab === t}>
-              {t === "inventario" ? "Inventario" : "Ganancia"}
+              {t === "inventario" ? "Inventario" : t === "combos" ? "Combos" : "Ganancia"}
             </button>
           ))}
         </div>
       </nav>
 
-      {tab === "inventario" ? (
+      {/*
+        LOS COMBOS VAN ACA Y NO EN UNA PAGINA APARTE.
+
+        Un combo es un puñado de productos con descuento: se arma
+        mirando el inventario —que precio tiene cada uno, cual hay en
+        stock— y se vende igual que un producto. Mandarla a otra pantalla
+        obligaba a ir y volver para cada decision.
+      */}
+      {tab === "combos" ? (
+        <PanelCombos />
+      ) : tab === "inventario" ? (
         <>
           <div className="mb-4 -mx-5 flex gap-2 overflow-x-auto px-5">
             {([
@@ -281,8 +292,9 @@ function Fila({
   onCambio: () => void;
 }) {
   const [ocupado, setOcupado] = useState(false);
-  const [panel, setPanel] = useState<null | "vender" | "reponer" | "historial" | "sumar" | "restar">(null);
+  const [panel, setPanel] = useState<null | "vender" | "oferta" | "reponer" | "historial" | "sumar" | "restar">(null);
   const margen = margenDe(p);
+  const rebaja = rebajaDe(p);
   const foto = urlFoto(p.foto);
 
   const alternar = (cual: NonNullable<typeof panel>) => setPanel((v) => (v === cual ? null : cual));
@@ -353,6 +365,12 @@ function Fila({
               <span> · sin costo</span>
             )}
           </p>
+          {/* En oferta se dice aca: es lo que la clienta esta viendo. */}
+          {rebaja != null && (
+            <p className="mt-0.5 text-sm font-semibold text-positivo tabular-nums">
+              En oferta −{rebaja}% · antes {formatearPrecio(p.precio_anterior!)}
+            </p>
+          )}
         </div>
       </div>
 
@@ -409,6 +427,18 @@ function Fila({
 
         <button
           type="button"
+          onClick={() => alternar("oferta")}
+          className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+            rebaja != null
+              ? "border-positivo bg-positivo/10 text-positivo"
+              : "border-borde text-tinta-suave hover:border-vino"
+          }`}
+        >
+          {rebaja != null ? `Oferta −${rebaja}%` : "Oferta"}
+        </button>
+
+        <button
+          type="button"
           onClick={publicar}
           disabled={ocupado}
           className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
@@ -448,6 +478,16 @@ function Fila({
 
       {panel === "vender" && (
         <Vender
+          producto={p}
+          onListo={() => {
+            setPanel(null);
+            onCambio();
+          }}
+        />
+      )}
+
+      {panel === "oferta" && (
+        <Oferta
           producto={p}
           onListo={() => {
             setPanel(null);
@@ -725,6 +765,152 @@ function Vender({ producto: p, onListo }: { producto: Producto; onListo: () => v
  * pasa casi siempre: repone al mismo precio. Si esta vez le costo
  * distinto, lo cambia y ese manda.
  */
+/** Los descuentos que se usan de verdad. Un toque y listo. */
+const REBAJAS = [10, 15, 20, 25, 30];
+
+/** El precio de lista: el tachado si hay oferta, si no el de hoy. */
+const listaDe = (p: Producto) =>
+  p.precio_anterior && p.precio_anterior > p.precio_venta ? p.precio_anterior : p.precio_venta;
+
+/** Cuanto esta rebajado hoy, en porcentaje. `null` si no esta en oferta. */
+function rebajaDe(p: Producto): number | null {
+  if (!p.precio_anterior || p.precio_anterior <= p.precio_venta) return null;
+  return Math.round((1 - p.precio_venta / p.precio_anterior) * 100);
+}
+
+/**
+ * Redondea a la centena para abajo, como los combos.
+ *
+ * $38.400 y no $38.412: un precio con decenas sueltas parece un error de
+ * cuenta. Para abajo, asi el descuento real nunca es menor al anunciado.
+ */
+const aCentena = (n: number) => Math.floor(n / 100) * 100;
+
+/**
+ * Poner y sacar una oferta, sin tocar dos precios a mano.
+ *
+ * LA WEB YA SABIA MOSTRAR OFERTAS Y NO HABIA COMO CARGARLAS.
+ * La ficha dibuja el precio tachado y el cartel "−X%" desde que existe,
+ * pero eso sale de `precio_anterior`, que no estaba en ninguna pantalla:
+ * el unico camino era que un programador lo escribiera en la base.
+ *
+ * SE ELIGE EL DESCUENTO, NO EL PRECIO NUEVO.
+ * Valen piensa "lo dejo al 20%", no "lo dejo a $38.400". El precio lo
+ * calcula esto y lo redondea a la centena para abajo.
+ *
+ * EL PRECIO DE LISTA NO SE PIERDE. Al poner la oferta, el precio de hoy
+ * pasa a `precio_anterior` —el tachado— y el rebajado a `precio_venta`.
+ * Sacarla devuelve el de lista. Por eso cambiar una oferta ya puesta no
+ * encadena descuentos sobre descuentos: siempre se calcula sobre el de
+ * lista.
+ *
+ * Y LA VENTA SE REGISTRA CON EL PRECIO REBAJADO: "Vendi" trae
+ * `precio_venta`, que ya es el de la oferta, asi que la ganancia sale
+ * con lo que de verdad entro.
+ */
+function Oferta({ producto: p, onListo }: { producto: Producto; onListo: () => void }) {
+  const lista = listaDe(p);
+  const enOferta = rebajaDe(p);
+
+  const [rebaja, setRebaja] = useState(enOferta ?? 20);
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState("");
+
+  const nuevo = aCentena(lista * (1 - rebaja / 100));
+  const margen = p.costo ? Math.round((nuevo / p.costo - 1) * 100) : null;
+
+  const guardar = async (quitar: boolean) => {
+    setGuardando(true);
+    setError("");
+    const r = await fetch(`/api/inventario?id=${p.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(
+        quitar
+          ? { precio_venta: lista, precio_anterior: null }
+          : { precio_venta: nuevo, precio_anterior: lista }
+      ),
+    });
+    setGuardando(false);
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      setError(d.error ?? "No se pudo guardar la oferta");
+      return;
+    }
+    onListo();
+  };
+
+  return (
+    <div className="mt-3 rounded-chico border border-vino/30 bg-crema p-3">
+      <p className="text-sm font-semibold text-tinta">
+        {enOferta != null ? "Cambiar la oferta" : "Poner en oferta"}
+      </p>
+      <p className="mt-1 text-sm text-tinta-suave tabular-nums">
+        Precio de lista {formatearPrecio(lista)}
+      </p>
+
+      <div className="mt-2 flex flex-wrap items-center gap-2" role="group" aria-label="Descuento">
+        {REBAJAS.map((d) => (
+          <button
+            key={d}
+            type="button"
+            onClick={() => setRebaja(d)}
+            aria-pressed={rebaja === d}
+            className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+              rebaja === d ? "border-vino bg-vino text-white" : "border-borde bg-papel text-tinta hover:border-vino"
+            }`}
+          >
+            {d}%
+          </button>
+        ))}
+        <label className="flex items-center gap-1 text-sm text-tinta-suave">
+          otro
+          <input
+            type="number"
+            min={1}
+            max={90}
+            value={rebaja}
+            onChange={(e) => setRebaja(Math.min(90, Math.max(1, Number(e.target.value))))}
+            className="w-16 rounded-xl border border-borde px-2 py-1.5 text-base outline-none focus:border-vino"
+          />
+          %
+        </label>
+      </div>
+
+      <p className="mt-3 text-sm text-tinta-suave tabular-nums">
+        La clienta ve{" "}
+        <span className="font-semibold text-tinta">{formatearPrecio(nuevo)}</span>, con{" "}
+        {formatearPrecio(lista)} tachado
+        {margen != null && (
+          <span className={claseMargen(margen)}> · te queda {margen}% de margen</span>
+        )}
+      </p>
+      {/* Un descuento que deja el precio por debajo del costo no se
+          bloquea —puede ser liquidacion— pero se avisa. */}
+      {margen != null && margen < 0 && (
+        <p className="mt-1 text-sm text-negativo">Ojo: a ese precio perdés plata en cada venta.</p>
+      )}
+      {error && <p className="mt-2 text-sm text-negativo">{error}</p>}
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button type="button" onClick={() => guardar(false)} disabled={guardando} className="boton-principal compacto disabled:opacity-60">
+          {guardando ? "Guardando…" : `Dejarlo en ${formatearPrecio(nuevo)}`}
+        </button>
+        {enOferta != null && (
+          <button
+            type="button"
+            onClick={() => guardar(true)}
+            disabled={guardando}
+            className="rounded-full border border-borde px-3 py-2 text-sm text-tinta transition-colors hover:border-vino disabled:opacity-60"
+          >
+            Sacar la oferta
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Reponer({
   producto: p,
   cotizacion,

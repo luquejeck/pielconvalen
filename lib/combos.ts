@@ -77,18 +77,31 @@ export type Combo = {
  */
 const aCentena = (n: number) => Math.floor(n / 100) * 100;
 
-/** Los combos que se pueden ofrecer hoy, con sus productos y su precio. */
-export function resolverCombos(catalogo: Producto[]): Combo[] {
+/**
+ * Los combos que se pueden ofrecer hoy, con sus productos y su precio.
+ *
+ * Las definiciones llegan de afuera —desde el 22-09-2026 las arma Valen
+ * en el panel y viven en la base— y COMBOS queda de respaldo para
+ * cuando la base no contesta, igual que el catalogo de productos.
+ */
+export function resolverCombos(
+  catalogo: Producto[],
+  definiciones: DefinicionCombo[] = COMBOS
+): Combo[] {
   const porCodigo = new Map(
     catalogo.filter((p) => p.codigo && !p.borrador).map((p) => [p.codigo!, p])
   );
 
-  return COMBOS.flatMap((d) => {
+  return definiciones.flatMap((d) => {
     const productos = d.codigos.map((c) => porCodigo.get(c));
     /* Falta uno, o alguno no tiene precio: el combo no se ofrece. */
     if (productos.some((p) => !p || !p.precio)) return [];
 
     const lista = productos as Producto[];
+    /* Un combo de un solo producto no es un combo: es ese producto con
+       descuento, y para eso esta la oferta. Puede quedar asi si Valen
+       borro un producto que lo integraba. */
+    if (lista.length < 2) return [];
     const suma = lista.reduce((n, p) => n + p.precio, 0);
     const precio = aCentena(suma * (1 - d.descuento));
     return [

@@ -6,6 +6,7 @@ import ComboRecomendado from "@/components/ComboRecomendado";
 import FichaProducto from "@/components/FichaProducto";
 import { IconoFlecha, IconoWhatsApp } from "@/components/iconos";
 import { obtenerProductos } from "@/lib/catalogo-productos";
+import { obtenerCombos } from "@/lib/catalogo-combos";
 import { resolverCombos } from "@/lib/combos";
 import { SITIO_URL } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
@@ -130,7 +131,7 @@ export default async function Productos({ searchParams }: Busqueda) {
 
   /* Los combos que se pueden armar hoy con lo publicado. Si falta
      alguno de sus productos, no aparece. */
-  const combos = resolverCombos(productos);
+  const combos = resolverCombos(productos, await obtenerCombos());
 
   /*
     La direccion con un cambio, conservando el resto.

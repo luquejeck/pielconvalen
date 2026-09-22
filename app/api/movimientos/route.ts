@@ -1,8 +1,7 @@
 import { fallo, requerirSesion } from "@/lib/api";
-import { registrarStock } from "@/lib/historial-stock";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { hoyEnArgentina } from "@/lib/fechas";
+import { registrarVentaProducto } from "@/lib/venta-producto";
 
 /**
  * "2026-02" -> "2026-03-01"
@@ -57,52 +56,6 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(data);
 }
 
-/**
- * Descuenta unidades del inventario.
- *
- * Primero intenta la funcion de la base (schema-7), que hace la resta en
- * una sola operacion atomica: `cantidad = cantidad - n` con el candado de
- * Postgres, sin leer antes. Si esa funcion todavia no esta creada, cae en
- * el metodo viejo —leer y despues escribir— para no romper la venta.
- *
- * VALEN / LUCAS: corriendo schema-7-correcciones.sql en Supabase, se usa
- * siempre el camino bueno.
- */
-async function descontarStock(
-  sb: SupabaseClient,
-  id: string,
-  unidades = 1
-): Promise<number | null> {
-  const { data, error } = await sb.rpc("descontar_stock", {
-    p_inventario_id: id,
-    p_unidades: unidades,
-  });
-
-  /* La funcion devuelve la cantidad que quedo: el historial la guarda
-     para poder leerse sin recalcular. */
-  if (!error) return typeof data === "number" ? data : null;
-
-  // 42883 = la funcion no existe todavia. PGRST202 = idem, visto por PostgREST.
-  const faltaLaFuncion = error.code === "42883" || error.code === "PGRST202";
-  if (!faltaLaFuncion) {
-    console.error("[api] descontar stock:", error.code, error.message);
-    return null;
-  }
-
-  const { data: item } = await sb
-    .from("inventario")
-    .select("cantidad")
-    .eq("id", id)
-    .single();
-
-  if (item && item.cantidad > 0) {
-    const queda = Math.max(0, item.cantidad - unidades);
-    await sb.from("inventario").update({ cantidad: queda }).eq("id", id);
-    return queda;
-  }
-  return null;
-}
-
 export async function POST(req: NextRequest) {
   const sesion = await requerirSesion();
   if (!sesion.ok) return sesion.respuesta;
@@ -113,44 +66,30 @@ export async function POST(req: NextRequest) {
     SI ES UNA VENTA DE PRODUCTO, LOS DATOS LOS PONE EL SERVIDOR.
 
     El costo, el costo en dolares, la cotizacion del dia y el nombre se
-    leen de la base y se congelan aca, no se aceptan del formulario. Asi
-    cualquier forma de registrar una venta —la pantalla de Economia hoy,
-    otra mañana— queda bien sin depender de que se acuerde de mandarlos.
-
-    Antes el formulario mandaba solo el costo en pesos y la venta
-    quedaba sin costo en dolares, sin cotizacion y sin nombre: justo lo
-    que hace falta para que la ganancia no se desfase con el dolar.
+    leen de la base y se congelan; ademas se descuenta el stock y queda
+    la linea en el historial. Todo eso vive en lib/venta-producto.ts,
+    que es lo que usa tambien la venta de un combo: una venta registrada
+    de dos maneras distintas segun por donde entre es como se desfasa la
+    ganancia sin que nadie se entere.
   */
-  let delProducto: {
-    costo: number | null;
-    costo_usd: number | null;
-    cotizacion: number | null;
-    producto_nombre: string | null;
-  } | null = null;
-
   if (body.inventario_id) {
-    const [{ data: prod }, { data: cfg }] = await Promise.all([
-      sesion.sb
-        .from("inventario")
-        .select("marca, producto, costo, costo_usd")
-        .eq("id", body.inventario_id)
-        .maybeSingle(),
-      sesion.sb
-        .from("configuracion")
-        .select("valor")
-        .eq("clave", "cotizacion_usd")
-        .maybeSingle(),
-    ]);
-    if (prod) {
-      delProducto = {
-        costo: prod.costo ?? null,
-        costo_usd: prod.costo_usd ?? null,
-        cotizacion: cfg?.valor ? Number(cfg.valor) : null,
-        producto_nombre: `${prod.marca} ${prod.producto}`.trim(),
-      };
-    }
+    const { movimiento, error } = await registrarVentaProducto(sesion.sb, {
+      inventario_id: body.inventario_id,
+      unidades: Number(body.unidades) || 1,
+      monto: body.monto,
+      descripcion: body.descripcion,
+      fecha: body.fecha || undefined,
+      medio_pago: body.medio_pago ?? null,
+      cliente_id: body.cliente_id ?? null,
+      tipo: body.tipo,
+      categoria: body.categoria,
+    });
+    if (error) return fallo("guardar el movimiento", error);
+    return NextResponse.json(movimiento, { status: 201 });
   }
 
+  /* Lo demas —cobros, gastos, compras— entra tal cual: no toca stock ni
+     tiene producto al que atarse. */
   const { data, error } = await sesion.sb
     .from("movimientos")
     .insert({
@@ -161,67 +100,17 @@ export async function POST(req: NextRequest) {
       categoria: body.categoria,
       descripcion: body.descripcion,
       monto: body.monto,
-      /*
-        El costo llega del inventario y se guarda CONGELADO en la venta.
-        Leerlo despues del inventario daria el costo de hoy, no el del
-        dia en que se vendio, y el margen historico quedaria falseado
-        cada vez que cambie un precio de compra.
-      */
-      costo: delProducto?.costo ?? body.costo ?? null,
-      /*
-        Y el costo en dolares con la cotizacion del dia, por lo mismo.
-        Sin la cotizacion guardada, el margen historico en dolares se
-        recalcularia solo cada vez que se mueve el tipo de cambio, y
-        una venta de marzo mostraria un numero distinto segun el dia en
-        que se la mire.
-      */
-      costo_usd: delProducto?.costo_usd ?? body.costo_usd ?? null,
-      cotizacion: delProducto?.cotizacion ?? body.cotizacion ?? null,
+      costo: body.costo ?? null,
+      costo_usd: body.costo_usd ?? null,
+      cotizacion: body.cotizacion ?? null,
       cliente_id: body.cliente_id ?? null,
-      /*
-        El formulario siempre lo mando y esta ruta lo tiraba: nunca
-        estuvo en este insert. No se noto porque los cobros de Valen
-        entran por /api/turnos, que si lo guarda, y ella todavia no habia
-        registrado una venta de producto desde aca. La primera vez que lo
-        hiciera, el medio de pago se perdia.
-      */
       medio_pago: body.medio_pago ?? null,
-      /*
-        QUE PRODUCTO SE VENDIO.
-
-        Antes `inventario_id` llegaba, se usaba para descontar stock y
-        se tiraba: el movimiento quedaba con una descripcion de texto y
-        nada que lo atara al producto. Por eso era imposible contestar
-        "cuanto gane con el Glow Serum".
-
-        El nombre va congelado al lado: el dia que Valen borre un
-        producto, el id queda en null y sin esto el movimiento se
-        quedaria sin decir de que fue.
-      */
-      inventario_id: body.inventario_id ?? null,
-      unidades: body.unidades ?? (body.inventario_id ? 1 : null),
-      producto_nombre: delProducto?.producto_nombre ?? body.producto_nombre ?? null,
+      producto_nombre: body.producto_nombre ?? null,
     })
     .select()
     .single();
 
   if (error) return fallo("guardar el movimiento", error);
-
-  if (body.inventario_id) {
-    const unidades = Number(body.unidades) || 1;
-    const queda = await descontarStock(sesion.sb, body.inventario_id, unidades);
-    /* La venta en el historial de stock, atada a su ingreso en la caja. */
-    await registrarStock(sesion.sb, {
-      inventario_id: body.inventario_id,
-      cantidad: -unidades,
-      motivo: "venta",
-      movimiento_id: data.id,
-      stock_resultante: queda,
-      producto_nombre: delProducto?.producto_nombre ?? null,
-      fecha: body.fecha || undefined,
-    });
-  }
-
   return NextResponse.json(data, { status: 201 });
 }
 
