@@ -22,65 +22,53 @@ function imagenDe(marca: { slug: string; foto: string }) {
 }
 
 /**
- * El mosaico de marcas: una grande y las demas chicas.
+ * La tira de marcas: todas del mismo tamaño, en una fila.
  *
  * Contesta una pregunta que la grilla de productos no contesta: "¿que
  * marcas trae?". Quien ya usa Beauty of Joseon entra buscando la marca,
  * no una crema, y sin esto tiene que recorrer catorce fichas para
  * descubrir si esta.
  *
- * LA GRANDE APARECE SOLO SI EL RESTO ES PAR.
+ * ERA UN MOSAICO Y SE COMIA UNA PANTALLA ENTERA.
  *
- * Con cinco marcas el molde cierra: una grande al lado de un cuadrado de
- * dos por dos. Con seis quedan cinco chicas en una grilla de dos
- * columnas, o sea una fila con un hueco al lado. En ese caso no hay
- * destacada y van todas iguales, que con numero par siempre cierra.
+ * Tenia una marca destacada en grande —hasta 34 rem de lado— y el resto
+ * en cuadrados de media pantalla: 871 px de alto en celular para una
+ * seccion que es un indice, no un catalogo. Pesaba mas que los propios
+ * productos, que es lo que se vende.
  *
- * El lugar grande, cuando lo hay, se lo lleva la marca con mas
- * productos, y eso se calcula, no se elige a mano: cuando Valen cargue o
- * saque productos el mosaico se reacomoda solo.
+ * Ahora son fichas iguales y chicas, en una sola fila que se desliza
+ * cuando no entran. Ocupa un cuarto de lo que ocupaba y sigue haciendo
+ * lo mismo: mostrar que marcas hay y llevar al catalogo filtrado.
+ *
+ * NINGUNA ES MAS QUE OTRA. La grande se la llevaba la marca con mas
+ * productos, que es un dato del deposito y no una decision de venta.
  *
  * LAS IMAGENES YA TRAEN EL NOMBRE
  * Las piezas que arma Lucas son todas del mismo formato: la foto de los
- * envases de fondo, desenfocada, y el logo de la marca encima. Antes las
- * imagenes eran de dos clases —unas logos sueltos sobre blanco y otras
- * fotos— y el mosaico tenia que escribir el nombre encima y decidir de
- * que color segun el caso. Ahora ese rotulo seria el nombre repetido al
- * lado del logo, asi que no va: el nombre viaja igual en el `aria-label`
- * para quien escucha la pagina.
+ * envases de fondo, desenfocada, y el logo de la marca encima. El nombre
+ * viaja igual en el `aria-label` para quien escucha la pagina.
  */
 export default function Marcas({ productos }: { productos: Producto[] }) {
   const marcas = marcasConFoto(productos);
   if (marcas.length === 0) return null;
 
-  const [principal, ...resto] = marcas;
-  const conDestacada = resto.length >= 2 && resto.length % 2 === 0;
-
   return (
-    <section
-      id="marcas"
-      className="border-t border-borde bg-crema py-16 md:py-20 xl:py-24"
-    >
+    <section id="marcas" className="seccion border-t border-borde bg-crema">
       <div className="contenedor">
         <TituloTienda titulo="Las marcas" />
 
-        {conDestacada ? (
-          <div className="mt-8 grid gap-3 sm:gap-4 lg:grid-cols-2">
-            <Tarjeta marca={principal} grande />
-
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {resto.map((m) => (
-                <Tarjeta key={m.slug} marca={m} />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-            {marcas.map((m) => (
-              <Tarjeta key={m.slug} marca={m} />
-            ))}
-          </div>
-        )}
+        {/*
+          Fila que se desliza en celular y se centra cuando entra entera.
+          `sin-barra` es la misma clase del carrusel de productos: se
+          desliza sin dibujar la barra.
+        */}
+        <ul className="sin-barra mt-6 flex gap-3 overflow-x-auto sm:flex-wrap sm:justify-center sm:gap-4">
+          {marcas.map((m) => (
+            <li key={m.slug} className="shrink-0">
+              <Tarjeta marca={m} />
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
@@ -88,15 +76,13 @@ export default function Marcas({ productos }: { productos: Producto[] }) {
 
 function Tarjeta({
   marca,
-  grande = false,
 }: {
   marca: ReturnType<typeof marcasConFoto>[number];
-  grande?: boolean;
 }) {
   return (
     <Link
       href={`/productos?marca=${marca.slug}`}
-      className="group relative block overflow-hidden rounded-chico bg-tinta"
+      className="group block w-24 sm:w-28 lg:w-32"
       aria-label={`Ver ${marca.cuantos} ${marca.cuantos === 1 ? "producto" : "productos"} de ${marca.nombre}`}
     >
       <Image
@@ -104,15 +90,17 @@ function Tarjeta({
         alt=""
         width={900}
         height={900}
-        sizes={
-          grande
-            ? "(min-width: 1024px) 34rem, 92vw"
-            : "(min-width: 1024px) 17rem, 45vw"
-        }
-        className={`w-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-          grande ? "aspect-4/3 lg:aspect-square" : "aspect-square"
-        }`}
+        sizes="8rem"
+        className="aspect-square w-full rounded-chico bg-tinta object-cover transition-transform duration-500 group-hover:scale-105"
       />
+      {/*
+        El nombre debajo, en chico.
+
+        En el mosaico grande el logo de la pieza se leia solo. A 96 px de
+        lado ya no: varias piezas son la foto de los envases con el logo
+        encima y, achicadas, el logo queda del tamaño de una letra.
+      */}
+      <p className="mt-2 text-center text-xs text-tinta-suave">{marca.nombre}</p>
     </Link>
   );
 }

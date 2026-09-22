@@ -196,6 +196,36 @@
 }
 
 @layer components {
+  /*
+    EL AIRE DE CADA SECCION, EN UN SOLO LUGAR.
+
+    Las diez secciones de la portada repetian la misma tira de clases,
+    asi que cambiar el ritmo de la pagina pedia tocar diez archivos y
+    tres de ellos ya se habian quedado atras.
+
+    BAJO DE 64 A 48 PX EN CELULAR (de 96 a 72 en monitor grande).
+    Entre dos secciones el hueco se suma: eran 128 px de nada en celular
+    —un tercio de pantalla— entre el final de una y el titulo de la
+    siguiente. Con la linea divisoria y el titulo, la separacion se lee
+    igual con menos. La pagina queda unos 300 px mas corta, que es
+    scroll que la clienta no tiene que hacer para llegar a lo de abajo.
+  */
+  .seccion {
+    padding-block: 3rem;
+  }
+
+  @media (min-width: 768px) {
+    .seccion {
+      padding-block: 4rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .seccion {
+      padding-block: 4.5rem;
+    }
+  }
+
   .contenedor {
     width: 100%;
     max-width: 64rem;

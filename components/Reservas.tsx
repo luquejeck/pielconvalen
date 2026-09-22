@@ -125,7 +125,7 @@ export default function Reservas() {
   return (
     <section
       id="reservar"
-      className="relative isolate border-t border-borde py-16 md:py-20 xl:py-24"
+      className="relative isolate border-t border-borde seccion"
     >
       <FondoImagen
         imagen="/imagenes/reservas.jpg"

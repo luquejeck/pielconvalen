@@ -38,7 +38,7 @@ export default function Productos({
   return (
     <section
       id="productos"
-      className="border-t border-borde bg-crema-oscuro py-16 md:py-20 xl:py-24"
+      className="border-t border-borde bg-crema-oscuro seccion"
     >
       <div className="contenedor">
         <TituloTienda

@@ -24,7 +24,7 @@ export default function ComoTrabajo({ agenda }: { agenda: Agenda }) {
   return (
     <section
       id="como-trabajo"
-      className="border-t border-borde bg-crema-oscuro py-16 md:py-20"
+      className="border-t border-borde bg-crema-oscuro seccion"
     >
       <div className="contenedor">
         {/* Mismo encabezado que el resto de las secciones. Antes esto

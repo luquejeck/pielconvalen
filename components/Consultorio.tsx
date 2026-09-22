@@ -34,7 +34,7 @@ export default function Consultorio({
   return (
     <section
       id="consultorio"
-      className="border-t border-borde bg-crema py-16 md:py-20 xl:py-24"
+      className="border-t border-borde bg-crema seccion"
     >
       <div className="contenedor">
         {/* El titulo sale de la columna de texto y pasa arriba, como en
