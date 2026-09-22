@@ -40,7 +40,18 @@ const COLUMNAS_PUBLICAS = [
   "foto",
   "destacado",
   "orden",
+  /* Las unidades que quedan. NO es un dato de la casa como el costo: le
+     sirve a la clienta y cualquier tienda lo muestra. */
+  "cantidad",
 ].join(", ");
+
+/* La misma lista sin `cantidad`, para las bases donde todavia no se
+   corrio schema-19: pedir una columna que no existe hace fallar la
+   consulta entera y la web se caeria al respaldo en silencio, que es
+   exactamente lo que paso con schema-14. */
+const COLUMNAS_SIN_STOCK = COLUMNAS_PUBLICAS.split(", ")
+  .filter((c) => c !== "cantidad")
+  .join(", ");
 
 type Fila = {
   id: string;
@@ -56,6 +67,7 @@ type Fila = {
   foto: string | null;
   destacado: boolean | null;
   orden: number | null;
+  cantidad?: number | null;
 };
 
 /**
@@ -85,6 +97,7 @@ const aProducto = (f: Fila): Producto => ({
   descripcion: f.descripcion ?? "",
   beneficios: f.beneficios ?? [],
   destacado: f.destacado ?? false,
+  cantidad: f.cantidad ?? undefined,
 });
 
 export async function obtenerProductos(): Promise<Producto[]> {
@@ -92,13 +105,25 @@ export async function obtenerProductos(): Promise<Producto[]> {
 
   try {
     const supabase = await clienteServidor();
-    const { data, error } = await supabase
-      .from("productos_publicos")
-      /* Sin filtrar por `publicado`: la vista ya trae solo esos. Un
-         producto en borrador existe en el deposito y no en la web, que
-         es justo para lo que sirve. */
-      .select(COLUMNAS_PUBLICAS)
-      .order("orden");
+    const pedir = (columnas: string) =>
+      supabase
+        .from("productos_publicos")
+        /* Sin filtrar por `publicado`: la vista ya trae solo esos. Un
+           producto en borrador existe en el deposito y no en la web, que
+           es justo para lo que sirve. */
+        .select(columnas)
+        .order("orden");
+
+    let { data, error } = await pedir(COLUMNAS_PUBLICAS);
+
+    /*
+      Si la vista todavia no tiene `cantidad` —schema-19 sin correr— se
+      vuelve a pedir sin ella. Sin este segundo intento, el dia que el
+      codigo llegue antes que el SQL la web entera se cae al respaldo:
+      anda, muestra productos viejos, y lo que Valen cargue en el panel
+      no aparece nunca. Ya paso una vez y fue dificil de ver.
+    */
+    if (error) ({ data, error } = await pedir(COLUMNAS_SIN_STOCK));
 
     if (error || !data?.length) return PRODUCTOS;
 

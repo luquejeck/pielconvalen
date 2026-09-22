@@ -1,4 +1,4 @@
-import type { Categoria, Producto } from "./productos";
+import { hayStock, type Categoria, type Producto } from "./productos";
 
 /**
  * Los combos: tres productos que se complementan, con descuento.
@@ -96,6 +96,16 @@ export function resolverCombos(
     const productos = d.codigos.map((c) => porCodigo.get(c));
     /* Falta uno, o alguno no tiene precio: el combo no se ofrece. */
     if (productos.some((p) => !p || !p.precio)) return [];
+
+    /*
+      Y TAMPOCO SI A UNO NO LE QUEDA STOCK.
+
+      Un combo es todo o nada: no se puede vender "la rutina antiedad
+      menos el contorno" al precio de los tres. Ofrecerlo con una parte
+      agotada termina en un pedido que Valen no puede cumplir y que hay
+      que deshacer por WhatsApp.
+    */
+    if (productos.some((p) => !hayStock(p!))) return [];
 
     const lista = productos as Producto[];
     /* Un combo de un solo producto no es un combo: es ese producto con

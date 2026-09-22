@@ -53,6 +53,22 @@ probar(
   "los borradores no salen"
 );
 
+/*
+  El stock si sale y el costo no.
+
+  `cantidad` se sumo a la vista el 22-09-2026 (schema-19) para que la
+  web deje de ofrecer lo que ya no hay. No es un dato de la casa: le
+  sirve a la clienta. El costo y el margen siguen afuera, que es la
+  linea que importa.
+*/
+const { error: eStock } = await anon.from("productos_publicos").select("cantidad").limit(1);
+const faltaStock = eStock?.code === "42703" || eStock?.code === "PGRST204";
+probar(
+  "ver cuantas unidades quedan",
+  !eStock || faltaStock,
+  !eStock ? "se ve" : faltaStock ? "falta correr schema-19-stock-en-la-web.sql" : eStock.message.slice(0, 40)
+);
+
 /* --- lo que NO tiene que poder --- */
 for (const columna of ["costo", "costo_usd"]) {
   const { error } = await anon.from("productos_publicos").select(columna).limit(1);

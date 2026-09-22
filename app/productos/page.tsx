@@ -13,6 +13,7 @@ import { obtenerConfiguracion } from "@/lib/consultorio";
 import {
   aSlug,
   CATEGORIAS,
+  descuentoDe,
   marcas,
   marcasConFoto,
   NECESIDADES,
@@ -28,6 +29,8 @@ type Busqueda = {
     categoria?: string;
     necesidad?: string;
     orden?: string;
+    /** "si" deja solo los que estan rebajados. */
+    oferta?: string;
   }>;
 };
 
@@ -92,6 +95,7 @@ export default async function Productos({ searchParams }: Busqueda) {
     categoria: categoriaPedida,
     necesidad: necesidadPedida,
     orden: ordenPedido,
+    oferta: ofertaPedida,
   } = await searchParams;
 
   /* Los filtros se validan contra lo que existe: una direccion con
@@ -101,6 +105,7 @@ export default async function Productos({ searchParams }: Busqueda) {
   const categoriaElegida = CATEGORIAS.find((c) => aSlug(c) === categoriaPedida);
   const necesidadElegida = NECESIDADES.find((n) => n.slug === necesidadPedida);
   const orden: Orden = ORDENES.some((o) => o.slug === ordenPedido) ? (ordenPedido as Orden) : "rutina";
+  const soloOfertas = ofertaPedida === "si";
 
   const grupos = porCategoria(productos);
 
@@ -115,16 +120,20 @@ export default async function Productos({ searchParams }: Busqueda) {
     Los cuatro se combinan: marca, categoria, necesidad y orden.
   */
   const publicados = productosPublicados(productos);
-  const cumple = (p: (typeof publicados)[number], ignorar?: "marca" | "categoria" | "necesidad") =>
+  const cumple = (
+    p: (typeof publicados)[number],
+    ignorar?: "marca" | "categoria" | "necesidad" | "oferta"
+  ) =>
     (ignorar === "marca" || !marcaElegida || aSlug(p.marca) === marcaElegida.slug) &&
     (ignorar === "categoria" || !categoriaElegida || p.categoria === categoriaElegida) &&
-    (ignorar === "necesidad" || !necesidadElegida || sirvePara(p, necesidadElegida.slug));
+    (ignorar === "necesidad" || !necesidadElegida || sirvePara(p, necesidadElegida.slug)) &&
+    (ignorar === "oferta" || !soloOfertas || descuentoDe(p) !== null);
 
   const filtrados = publicados.filter((p) => cumple(p));
   if (orden === "precio-menor") filtrados.sort((a, b) => a.precio - b.precio);
   if (orden === "precio-mayor") filtrados.sort((a, b) => b.precio - a.precio);
 
-  const hayFiltro = Boolean(marcaElegida || categoriaElegida || necesidadElegida);
+  const hayFiltro = Boolean(marcaElegida || categoriaElegida || necesidadElegida || soloOfertas);
   /* Ordenar por precio tambien aplana la grilla: agrupar por paso de la
      rutina y ordenar por precio se contradicen. */
   const enGrilla = hayFiltro || orden !== "rutina";
@@ -145,6 +154,7 @@ export default async function Productos({ searchParams }: Busqueda) {
     categoria: categoriaElegida ? aSlug(categoriaElegida) : undefined,
     necesidad: necesidadElegida?.slug,
     orden: orden === "rutina" ? undefined : orden,
+    oferta: soloOfertas ? "si" : undefined,
   };
   const aca = (cambios: Partial<Record<keyof typeof actual, string | null>>) => {
     const p = new URLSearchParams();
@@ -157,8 +167,14 @@ export default async function Productos({ searchParams }: Busqueda) {
 
   /* Cuantos quedarian con una pastilla prendida: la que da cero no se
      dibuja, para no ofrecer un filtro que no trae nada. */
-  const cuantosCon = (campo: "marca" | "categoria" | "necesidad", prueba: (p: (typeof publicados)[number]) => boolean) =>
-    publicados.filter((p) => cumple(p, campo) && prueba(p)).length;
+  const cuantosCon = (
+    campo: "marca" | "categoria" | "necesidad" | "oferta",
+    prueba: (p: (typeof publicados)[number]) => boolean
+  ) => publicados.filter((p) => cumple(p, campo) && prueba(p)).length;
+
+  /* Cuantas ofertas hay ahora mismo: sin ninguna, la pastilla no se
+     dibuja. Un filtro que siempre da cero es ruido. */
+  const cuantasOfertas = cuantosCon("oferta", (p) => descuentoDe(p) !== null);
 
   return (
     <>
@@ -224,6 +240,25 @@ export default async function Productos({ searchParams }: Busqueda) {
             <div>
               <p className="mb-1.5 text-sm text-tinta-suave">¿Qué buscás para tu piel?</p>
               <ul className="sin-barra -mx-5 flex gap-2 overflow-x-auto px-5">
+                {/*
+                  LAS OFERTAS VAN PRIMERAS Y APARECEN SOLO SI LAS HAY.
+
+                  Valen puede poner un producto en oferta desde el panel,
+                  pero sin esto la clienta tendria que descubrirla
+                  mirando ficha por ficha: una rebaja que nadie encuentra
+                  no vende. Va en esta fila —la de "que buscás"— porque
+                  es la primera que se lee.
+                */}
+                {cuantasOfertas > 0 && (
+                  <li className="shrink-0">
+                    <Pastilla
+                      href={aca({ oferta: soloOfertas ? null : "si" })}
+                      activa={soloOfertas}
+                      texto="En oferta"
+                      cuantos={cuantasOfertas}
+                    />
+                  </li>
+                )}
                 {NECESIDADES.map((n) => {
                   const cuantos = cuantosCon("necesidad", (p) => sirvePara(p, n.slug));
                   if (cuantos === 0) return null;
@@ -294,7 +329,7 @@ export default async function Productos({ searchParams }: Busqueda) {
               <span>
                 {filtrados.length} {filtrados.length === 1 ? "producto" : "productos"}
               </span>
-              <Link href={aca({ marca: null, categoria: null, necesidad: null })} className="text-vino underline underline-offset-2">
+              <Link href={aca({ marca: null, categoria: null, necesidad: null, oferta: null })} className="text-vino underline underline-offset-2">
                 Sacar filtros
               </Link>
             </p>

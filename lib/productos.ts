@@ -110,6 +110,15 @@ export const sirvePara = (p: Producto, slug: string) => {
 
 export type Producto = {
   /**
+   * Cuantas unidades quedan. `undefined` = no se sabe.
+   *
+   * Sale de la base. Los de este archivo son el respaldo y no llevan
+   * stock: si la base no contesta, la web no puede saber que hay en el
+   * estante y no tiene por que inventar un "sin stock" que espante una
+   * venta. Por eso "no se sabe" y "no queda" son dos cosas distintas.
+   */
+  cantidad?: number;
+  /**
    * De los de este archivo, tambien es el nombre de la foto:
    * public/imagenes/productos/<id>.webp. De los que vienen de la base,
    * es el uuid de la fila y la foto va aparte, en `foto`.
@@ -554,6 +563,22 @@ export function productosDestacados(lista: Producto[] = PRODUCTOS): Producto[] {
   const resto = publicados.filter((p) => !p.destacado);
   return [...destacados, ...resto].slice(0, MINIMO_EN_PORTADA);
 }
+
+/**
+ * Si se puede pedir. Sin dato de stock, si.
+ *
+ * "No se sabe" pasa cuando la base no contesta y la web usa el respaldo
+ * de este archivo. Ahi no se puede afirmar que no queda, y frenar una
+ * venta por no saber es peor que la venta que despues hay que avisar.
+ */
+export const hayStock = (p: Producto) => p.cantidad === undefined || p.cantidad > 0;
+
+/** El ultimo: es cierto y apura la decision. */
+export const ultimaUnidad = (p: Producto) => p.cantidad === 1;
+
+/** Los que estan en oferta hoy, con su precio de antes tachado. */
+export const productosEnOferta = (lista: Producto[] = PRODUCTOS) =>
+  productosPublicados(lista).filter((p) => descuentoDe(p) !== null && hayStock(p));
 
 /** Agrupados por categoria, salteando las que quedaron vacias. */
 export function porCategoria(

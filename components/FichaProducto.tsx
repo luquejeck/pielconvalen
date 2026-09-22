@@ -3,7 +3,9 @@ import Image from "next/image";
 import {
   descuentoDe,
   fotoDe,
+  hayStock,
   precioDe,
+  ultimaUnidad,
   type Producto,
 } from "@/lib/productos";
 import { formatearPrecio } from "@/lib/tratamientos";
@@ -71,6 +73,7 @@ const FONDOS: Record<string, string> = (() => {
 
 export default function FichaProducto({ producto: p }: { producto: Producto }) {
   const descuento = descuentoDe(p);
+  const disponible = hayStock(p);
   const claro = FONDOS[p.id] === "claro";
   const subtitulo = [p.medida, ...p.beneficios].filter(Boolean).join(" · ");
 
@@ -89,14 +92,28 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
             width={640}
             height={640}
             sizes="(min-width: 1024px) 18rem, (min-width: 640px) 30vw, 45vw"
-            className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className={`aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105 ${
+              disponible ? "" : "opacity-55 grayscale"
+            }`}
           />
 
-          {/* Solo cuando hay precio anterior cargado. Hoy no hay ninguno. */}
-          {descuento !== null && (
-            <span className="absolute top-0 left-0 bg-vino px-2 py-1 font-display text-sm font-semibold text-white tabular-nums">
-              −{descuento}%
+          {/*
+            AGOTADO MANDA SOBRE EL DESCUENTO.
+
+            Los dos carteles van en la misma esquina y un "−20%" sobre
+            algo que no se puede comprar es una promesa que la clienta
+            descubre rota al final. Si no hay stock, ese es el dato.
+          */}
+          {!disponible ? (
+            <span className="absolute top-0 left-0 bg-tinta px-2 py-1 font-display text-sm font-semibold text-white">
+              Sin stock
             </span>
+          ) : (
+            descuento !== null && (
+              <span className="absolute top-0 left-0 bg-vino px-2 py-1 font-display text-sm font-semibold text-white tabular-nums">
+                −{descuento}%
+              </span>
+            )
           )}
 
         </div>
@@ -176,7 +193,30 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
               </p>
             )}
 
-            <ControlCarrito id={p.id} nombre={p.nombre} />
+            {/*
+              UNO SOLO SE DICE, porque es cierto y porque apura la
+              decision: al 22-09-2026 ocho de los productos publicados
+              tienen una sola unidad.
+            */}
+            {disponible && ultimaUnidad(p) && (
+              <p className="mt-1 text-[0.8125rem] font-semibold text-vino">Queda 1</p>
+            )}
+
+            {disponible ? (
+              <ControlCarrito id={p.id} nombre={p.nombre} />
+            ) : (
+              /*
+                Sin stock NO se puede agregar al pedido.
+
+                Antes la web no sabia del stock y ofrecia igual lo que no
+                estaba: la clienta lo pedia por WhatsApp y se enteraba
+                ahi. Se deja visible —sirve para saber que Valen lo
+                trabaja y se puede encargar— pero sin boton que prometa.
+              */
+              <p className="mt-3 rounded-full border border-borde px-3 py-2 text-center text-sm text-tinta-suave">
+                Sin stock · consultala
+              </p>
+            )}
           </div>
         </div>
     </li>
