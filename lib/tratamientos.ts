@@ -24,6 +24,27 @@ export const GLOSARIO: Record<string, string> = {
 };
 
 /**
+ * Que es cada tecnica, en cinco o seis palabras: lo que muestra la
+ * pagina de cada tratamiento debajo de cada tilde.
+ *
+ * Sale del glosario que Valen escribe en /admin/web ("retira células
+ * muertas y vello facial", "estimulan el colágeno y la elastina"),
+ * dicho en castellano de todos los dias. El suyo es de dos renglones y
+ * tecnico —"hoja de bisturí", "microlesiones"— y en la web asustaba mas
+ * de lo que explicaba.
+ *
+ * "Radiofrecuencia" no esta en su glosario: la frase es la descripcion
+ * habitual del tratamiento y hay que confirmarla con ella.
+ */
+export const EN_POCAS_PALABRAS: Record<string, string> = {
+  "Limpieza profunda": "Limpia a fondo y destapa los poros",
+  Ácidos: "Renuevan la piel de a poco",
+  Dermaplaning: "Saca el vello fino y la piel muerta",
+  Microneedling: "Estimula el colágeno y la elasticidad",
+  Radiofrecuencia: "Calor suave que tensa y reafirma",
+};
+
+/**
  * Como entra TODO turno pedido desde la web.
  *
  * Antes era una opcion mas, para quien no sabia cual elegir. Hoy es la

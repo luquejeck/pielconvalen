@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { esConsulta, formatearPrecio, type Tratamiento } from "@/lib/tratamientos";
 import Carrusel from "./Carrusel";
-import { IconoCheck, IconoReloj } from "./iconos";
+import { IconoBillete, IconoCheck, IconoReloj } from "./iconos";
 import { useReserva } from "./ReservaContext";
 import TituloSeccion from "./TituloSeccion";
 
@@ -82,41 +83,45 @@ export default function Tratamientos() {
           si la seccion se lee como parte de la misma web. Antes era una
           lista de precios adentro de una sola tarjeta.
 
-          Toda la tarjeta se toca y lleva a reservar, como las de Mercado
-          Libre llevan al producto. No elige el tratamiento: el turno se
-          saca como consulta —lo dice el aviso de arriba— y se define en el
-          consultorio.
+          Toda la tarjeta se toca y abre la pagina de ese tratamiento, como
+          las fichas de producto: el detalle —que es cada tecnica— vive
+          ahi y no en la portada, que no tiene que crecer. Para reservar
+          estan el boton del encabezado y el calendario, justo debajo.
         */}
         <div className="mt-8">
           <Carrusel etiqueta="Tratamientos" tipo="combos">
             {porPrecio.map((t) => (
-              <TarjetaTratamiento
-                key={t.id}
-                tratamiento={t}
-                extras={ordenar(t.extras)}
-                onReservar={irAReservar}
-              />
+              <TarjetaTratamiento key={t.id} tratamiento={t} extras={ordenar(t.extras)} />
             ))}
           </Carrusel>
         </div>
 
-        {/* Como se paga, una sola vez y en gris: es igual para todos. En
-            verde y repetido en cada tarjeta competia con el precio. */}
-        <p className="mt-5 text-center text-base leading-snug text-balance text-tinta-suave">
-          {consultorio.mediosDePago}
-        </p>
-
         {/*
-          EL CIERRE, UNA FRASE Y SIN BOTON.
+          EL CIERRE: UN SOLO BOTON, Y DEBAJO COMO SE PAGA.
 
-          Hubo un "Reservar turno" grande aca abajo. Desde que cada
-          tarjeta tiene el suyo, en el celular se veian tres a la vez —el
-          del encabezado, el de la tarjeta y este— y el tercero no sumaba
-          nada. Queda la frase que contesta "¿cual pido?".
+          Las tarjetas dicen "Ver detalle" y llevan a la pagina de cada
+          tratamiento, asi que el unico "Reservar turno" de la seccion es
+          este.
+
+          La forma de pago va pegada debajo del boton, chica y con su
+          icono, como las cuotas debajo del precio en Mercado Libre: se lee
+          como una aclaracion del boton. Antes eran dos renglones grises
+          sueltos —el pago y "Cuál te corresponde lo deciden al llegar"—
+          y el segundo repetia lo que ya dice el aviso de arriba.
         */}
-        <p className="mx-auto mt-8 max-w-xl text-center text-lg leading-snug text-balance text-tinta-suave">
-          Cuál te corresponde lo deciden al llegar, mirando tu piel.
-        </p>
+        <div className="mx-auto mt-8 flex max-w-xl flex-col items-center">
+          <button
+            type="button"
+            onClick={irAReservar}
+            className="boton-principal w-full sm:w-auto sm:px-9"
+          >
+            Reservar turno
+          </button>
+          <p className="mt-3 flex items-center gap-2 text-base text-tinta-suave">
+            <IconoBillete className="h-5 w-5 shrink-0" />
+            {consultorio.mediosDePago}
+          </p>
+        </div>
       </div>
     </section>
   );
@@ -143,11 +148,11 @@ export default function Tratamientos() {
  * el principio de cada tarjeta con un solo detalle de color, y los
  * tildes y el boton en vino la terminan de atar a la marca.
  *
- * TODA LA TARJETA SE TOCA. El boton del pie estira su `::after` sobre la
- * tarjeta entera, como el nombre en la ficha de producto: un boton no
- * puede envolver un titulo y una lista, pero asi se toca en cualquier
- * parte. El boton a la vista dice que se puede tocar: a una clienta de
- * sesenta no se le ocurre sola.
+ * TODA LA TARJETA SE TOCA y abre la pagina del tratamiento. El "Ver
+ * detalle" del pie estira su `::after` sobre la tarjeta entera, como el
+ * nombre en la ficha de producto: un link no puede envolver un titulo y
+ * una lista, pero asi se toca en cualquier parte. El boton a la vista
+ * dice que se puede tocar: a una clienta de sesenta no se le ocurre sola.
  *
  * Cada tratamiento dice su propia duracion: si Valen carga uno de media
  * hora, lo dice solo ese.
@@ -155,11 +160,9 @@ export default function Tratamientos() {
 function TarjetaTratamiento({
   tratamiento: t,
   extras,
-  onReservar,
 }: {
   tratamiento: Tratamiento;
   extras: string[];
-  onReservar: () => void;
 }) {
   return (
     <li className="flex">
@@ -202,14 +205,13 @@ function TarjetaTratamiento({
               tarjetas miden lo que la mas larga, y asi los botones quedan
               alineados. El `pt-5` es el aire minimo con la lista. */}
           <div className="mt-auto pt-5">
-            <button
-              type="button"
-              onClick={onReservar}
+            <Link
+              href={`/tratamientos/${t.id}`}
               className="flex min-h-12 w-full items-center justify-center rounded-full border border-vino bg-papel font-display text-base font-semibold text-vino transition-colors after:absolute after:inset-0 after:rounded-suave group-hover:bg-vino group-hover:text-white"
             >
-              Reservar turno
-              <span className="sr-only">: {t.nombre}, se confirma en la consulta</span>
-            </button>
+              Ver detalle
+              <span className="sr-only">: {t.nombre}</span>
+            </Link>
           </div>
         </div>
       </article>

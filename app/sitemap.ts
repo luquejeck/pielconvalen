@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { obtenerTratamientos } from "@/lib/catalogo";
 import { obtenerProductos } from "@/lib/catalogo-productos";
 import { SITIO_URL } from "@/lib/config";
 import { productosPublicados, slugDe } from "@/lib/productos";
@@ -19,7 +20,10 @@ import { productosPublicados, slugDe } from "@/lib/productos";
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ahora = new Date();
-  const productos = productosPublicados(await obtenerProductos());
+  const [productos, tratamientos] = await Promise.all([
+    obtenerProductos().then(productosPublicados),
+    obtenerTratamientos(),
+  ]);
 
   return [
     {
@@ -34,6 +38,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.7,
     },
+    /* Cada tratamiento con su pagina: "dermaplaning Caballito" tiene
+       que caer en la de dermaplaning. */
+    ...tratamientos
+      .filter((t) => t.precio > 0)
+      .map((t) => ({
+        url: `${SITIO_URL}/tratamientos/${t.id}`,
+        lastModified: ahora,
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+      })),
     ...productos.map((p) => ({
       url: `${SITIO_URL}/productos/${slugDe(p)}`,
       lastModified: ahora,
