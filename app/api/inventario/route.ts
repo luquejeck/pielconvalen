@@ -24,6 +24,8 @@ const camposDe = (body: Record<string, unknown>) => {
     medida: body.medida || null,
     descripcion: body.descripcion ?? "",
     beneficios: Array.isArray(body.beneficios) ? body.beneficios : [],
+    /* schema-20. Vacio se guarda como nulo: la pagina no muestra nada. */
+    modo_uso: typeof body.modo_uso === "string" && body.modo_uso.trim() ? body.modo_uso.trim() : null,
     foto: body.foto || null,
     costo: Number(body.costo) || 0,
     precio_venta: Number(body.precio_venta) || 0,

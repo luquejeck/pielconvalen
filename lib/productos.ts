@@ -159,6 +159,11 @@ export type Producto = {
   descripcion: string;
   /** Para que sirve, en dos o tres palabras. Son las etiquetas de la ficha. */
   beneficios: string[];
+  /**
+   * Como se usa, en una o dos frases: cuando, en que paso y si se
+   * enjuaga. Lo muestra la pagina del producto. Vacio, no se muestra.
+   */
+  modoDeUso?: string;
   /** Los cuatro que salen en la portada, uno por paso de la rutina. */
   destacado?: boolean;
   /** Se esconde sin borrarlo: falta confirmar precio o descripcion. */

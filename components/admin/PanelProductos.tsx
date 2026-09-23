@@ -31,6 +31,8 @@ type Producto = {
   medida: string | null;
   descripcion: string;
   beneficios: string[] | null;
+  /** schema-20: "Cómo se usa", lo muestra la pagina del producto. */
+  modo_uso?: string | null;
   foto: string | null;
   costo: number;
   costo_usd: number | null;
@@ -1106,6 +1108,7 @@ function Editor({
     medida: "",
     descripcion: "",
     beneficios: "",
+    modo_uso: "",
     costo_usd: "",
     costo: 0,
     precio_venta: 0,
@@ -1126,6 +1129,7 @@ function Editor({
           medida: producto.medida ?? "",
           descripcion: producto.descripcion ?? "",
           beneficios: (producto.beneficios ?? []).join(", "),
+          modo_uso: producto.modo_uso ?? "",
           costo_usd: producto.costo_usd == null ? "" : String(producto.costo_usd),
           costo: producto.costo,
           precio_venta: producto.precio_venta,
@@ -1289,6 +1293,18 @@ function Editor({
           <label className="block sm:col-span-2">
             <span className="text-sm text-tinta-suave">Beneficios, separados por coma</span>
             <input className={campo} placeholder="Poros, Uso diario" value={f.beneficios} onChange={(e) => setF({ ...f, beneficios: e.target.value })} />
+          </label>
+          {/* Una o dos frases: cuando, en que paso y si se enjuaga. Sale
+              en la pagina del producto; vacio, no se muestra. */}
+          <label className="block sm:col-span-2">
+            <span className="text-sm text-tinta-suave">Cómo se usa</span>
+            <textarea
+              rows={2}
+              className={campo}
+              placeholder="Mañana y noche, después del tónico: 2 o 3 gotas en cara y cuello."
+              value={f.modo_uso}
+              onChange={(e) => setF({ ...f, modo_uso: e.target.value })}
+            />
           </label>
           {/*
             LA FOTO SE SUBE, NO SE ESCRIBE.

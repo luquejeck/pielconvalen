@@ -43,15 +43,21 @@ const COLUMNAS_PUBLICAS = [
   /* Las unidades que quedan. NO es un dato de la casa como el costo: le
      sirve a la clienta y cualquier tienda lo muestra. */
   "cantidad",
+  /* "Como se usa", de schema-20. */
+  "modo_uso",
 ].join(", ");
 
-/* La misma lista sin `cantidad`, para las bases donde todavia no se
-   corrio schema-19: pedir una columna que no existe hace fallar la
-   consulta entera y la web se caeria al respaldo en silencio, que es
-   exactamente lo que paso con schema-14. */
-const COLUMNAS_SIN_STOCK = COLUMNAS_PUBLICAS.split(", ")
-  .filter((c) => c !== "cantidad")
-  .join(", ");
+/* Las mismas listas sin las columnas mas nuevas, para las bases donde
+   todavia no se corrio su schema: pedir una columna que no existe hace
+   fallar la consulta entera y la web se caeria al respaldo en silencio,
+   que es exactamente lo que paso con schema-14. Se prueba de la mas
+   completa a la mas vieja. */
+const sin = (...fuera: string[]) =>
+  COLUMNAS_PUBLICAS.split(", ")
+    .filter((c) => !fuera.includes(c))
+    .join(", ");
+const COLUMNAS_SIN_MODO_USO = sin("modo_uso");
+const COLUMNAS_SIN_STOCK = sin("modo_uso", "cantidad");
 
 type Fila = {
   id: string;
@@ -68,6 +74,7 @@ type Fila = {
   destacado: boolean | null;
   orden: number | null;
   cantidad?: number | null;
+  modo_uso?: string | null;
 };
 
 /**
@@ -98,6 +105,7 @@ const aProducto = (f: Fila): Producto => ({
   beneficios: f.beneficios ?? [],
   destacado: f.destacado ?? false,
   cantidad: f.cantidad ?? undefined,
+  modoDeUso: f.modo_uso?.trim() || undefined,
 });
 
 export async function obtenerProductos(): Promise<Producto[]> {
@@ -123,6 +131,7 @@ export async function obtenerProductos(): Promise<Producto[]> {
       anda, muestra productos viejos, y lo que Valen cargue en el panel
       no aparece nunca. Ya paso una vez y fue dificil de ver.
     */
+    if (error) ({ data, error } = await pedir(COLUMNAS_SIN_MODO_USO));
     if (error) ({ data, error } = await pedir(COLUMNAS_SIN_STOCK));
 
     if (error || !data?.length) return PRODUCTOS;

@@ -1,0 +1,111 @@
+[
+  {
+    "codigo": "ARL-SMOO-80ML",
+    "modo_uso": "Mañana y noche. Hacé espuma con un poco de agua, masajeá la cara y enjuagá con agua tibia."
+  },
+  {
+    "codigo": "ARL-SMOO-120ML",
+    "descripcion": "Limpiador suave con ceramidas: saca la suciedad y el maquillaje sin dejar la cara tirante. Para piel sensible o seca.",
+    "modo_uso": "Mañana y noche. Hacé espuma con un poco de agua, masajeá la cara y enjuagá con agua tibia."
+  },
+  {
+    "codigo": "MDC-ZERO-120G",
+    "modo_uso": "Mañana y noche. Hacé espuma con agua, masajeá sobre todo frente, nariz y mentón, y enjuagá."
+  },
+  {
+    "codigo": "BOJ-GLOW-150ML",
+    "descripcion": "Tónico lechoso de arroz para después de limpiar. Hidrata, empareja el tono y controla el brillo sin dejar la piel pegajosa.",
+    "modo_uso": "Agitalo antes de usar. Después de limpiar, poné un poco en las manos o en un algodón y palmealo en la cara."
+  },
+  {
+    "codigo": "ANU-PEAC-150ML",
+    "categoria": "Cremas",
+    "descripcion": "Emulsión con 77% de extracto de durazno y niacinamida. Hidrata, fortalece la barrera y deja la piel suave y pareja.",
+    "modo_uso": "Mañana y noche, después del sérum: una o dos presiones en cara y cuello. Si tenés la piel seca, seguí con crema."
+  },
+  {
+    "codigo": "BOJ-GLOW-30ML",
+    "modo_uso": "Mañana y noche, después del tónico: 2 o 3 gotas en cara y cuello. De día, siempre con protector."
+  },
+  {
+    "codigo": "BOJ-REVI-30ML",
+    "modo_uso": "Mañana y noche, después del tónico: 2 o 3 gotas, dando toquecitos. Después, la crema."
+  },
+  {
+    "codigo": "ALB-PIED-100ML",
+    "modo_uso": "Agitalo y rociá 4 o 5 veces a un palmo de la cara, después de limpiar. También sirve arriba del maquillaje."
+  },
+  {
+    "codigo": "ANU-HEAR-30ML",
+    "modo_uso": "Mañana y noche, después del tónico: 2 o 3 gotas en cara y cuello. Después, la crema."
+  },
+  {
+    "codigo": "VT-CICA-50ML",
+    "marca": "VT Cosmetics",
+    "descripcion": "Sérum con microespículas de origen natural que renuevan la piel áspera y la dejan lisa. El 100 es el más suave de la línea.",
+    "modo_uso": "De noche, después del tónico, en cara y cuello sin tocar ojos ni labios. Empezá cada tres días. Un leve pinchazo es normal. De día, protector."
+  },
+  {
+    "codigo": "JMS-RETI-X10",
+    "descripcion": "Retinol y péptidos para la firmeza, con niacinamida para la luminosidad. Diez unidades, una por sesión.",
+    "beneficios": ["Firmeza", "Antiedad"],
+    "modo_uso": "De noche, sobre la piel limpia, de 10 a 20 minutos. Retirala y palmeá lo que queda, sin enjuagar."
+  },
+  {
+    "codigo": "JMS-PDRN-X10",
+    "beneficios": ["Reparación", "Calma"],
+    "modo_uso": "Sobre la piel limpia, de 10 a 20 minutos. Retirala y palmeá lo que queda, sin enjuagar."
+  },
+  {
+    "codigo": "JMS-CERA-X10",
+    "beneficios": ["Nutrición", "Piel seca"],
+    "modo_uso": "Sobre la piel limpia, de 10 a 20 minutos. Retirala y palmeá lo que queda, sin enjuagar."
+  },
+  {
+    "codigo": "JMS-BAKU-X10",
+    "beneficios": ["Firmeza", "Piel sensible"],
+    "modo_uso": "Sobre la piel limpia, de 10 a 20 minutos. Retirala y palmeá lo que queda, sin enjuagar."
+  },
+  {
+    "codigo": "JMS-CALE-X10",
+    "beneficios": ["Calma", "Piel reactiva"],
+    "modo_uso": "Sobre la piel limpia, de 10 a 20 minutos. Retirala y palmeá lo que queda, sin enjuagar."
+  },
+  {
+    "codigo": "MDC-PDRN-55G",
+    "descripcion": "Gel con cápsulas rosas de PDRN y niacinamida. Hidrata, da firmeza y deja la piel luminosa.",
+    "beneficios": ["Firmeza", "Luminosidad", "Tono parejo"],
+    "modo_uso": "Mañana y noche, como último paso. Mezclá en la mano un poco de gel con las cápsulas y aplicalo en cara y cuello."
+  },
+  {
+    "codigo": "MDC-ZERO-50ML",
+    "modo_uso": "Mañana y noche, como último paso: del centro de la cara hacia afuera, dando toquecitos. De día, con protector."
+  },
+  {
+    "codigo": "MDC-TRIP-50ML",
+    "modo_uso": "Mañana y noche, como último paso: masajeá cara y cuello de abajo hacia arriba. De noche podés poner una capa más gruesa."
+  },
+  {
+    "codigo": "BOJ-DYNA-50ML",
+    "descripcion": "Crema nutritiva con 29% de agua de salvado de arroz, ginseng y escualano. Para la piel seca o que tira.",
+    "modo_uso": "Mañana y noche, como último paso: una capa fina en cara y cuello."
+  },
+  {
+    "codigo": "AHC-TIME-30ML",
+    "modo_uso": "Mañana y noche, después del tónico: toquecitos suaves alrededor del ojo. Si querés, también en toda la cara."
+  },
+  {
+    "codigo": "BOJ-REVIEYE-30ML",
+    "modo_uso": "Después del tónico, con el dedo anular, toquecitos alrededor del ojo. Empezá solo de noche; de día, siempre con protector."
+  },
+  {
+    "codigo": "BOJ-RELIAQUA-50ML",
+    "descripcion": "Protector FPS 50+ con 30% de agua de arroz y pantenol. Textura acuosa que se absorbe al instante y no deja capa blanca.",
+    "modo_uso": "Último paso de la mañana, 15 minutos antes de salir: el largo de dos dedos para toda la cara. Al sol, renovalo cada 2 o 3 horas."
+  },
+  {
+    "codigo": "BOJ-RELIPROB-50ML",
+    "descripcion": "Protector FPS 50+ con 30% de extracto de arroz y probióticos. Textura cremosa y liviana, sin marca blanca, para todos los días.",
+    "modo_uso": "Último paso de la mañana, 15 minutos antes de salir: el largo de dos dedos para toda la cara. Al sol, renovalo cada 2 o 3 horas."
+  }
+]

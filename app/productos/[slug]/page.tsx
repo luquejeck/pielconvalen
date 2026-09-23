@@ -287,6 +287,26 @@ export default async function PaginaProducto({ params }: Ruta) {
                 </section>
               )}
 
+              {/*
+                COMO SE USA, despues de para que sirve.
+
+                Es lo que pregunta quien no conoce la cosmetica
+                coreana —¿de dia o de noche?, ¿antes o despues de la
+                crema?, ¿se enjuaga?— y lo que hace que se anime a
+                llevarlo. Una o dos frases, que Valen edita en el panel.
+              */}
+              {p.modoDeUso && (
+                <section aria-labelledby="como-se-usa" className="mt-8 border-t border-borde pt-6">
+                  <h2
+                    id="como-se-usa"
+                    className="font-display text-lg font-semibold tracking-[0.1em] text-tinta uppercase"
+                  >
+                    Cómo se usa
+                  </h2>
+                  <p className="mt-3 text-lg leading-relaxed text-tinta">{p.modoDeUso}</p>
+                </section>
+              )}
+
               <a
                 href={consulta}
                 target="_blank"
