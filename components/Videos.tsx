@@ -115,18 +115,35 @@ export default function Videos({ subidos }: { subidos: VideoGaleria[] }) {
         />
 
         {/*
-          Misma tira que la galeria: scroll nativo, iman en cada tarjeta y
-          el borde de la siguiente asomando en el margen. Se arrastra con
-          el dedo sin tener que explicarlo.
+          Scroll nativo e iman en cada tarjeta, de borde a borde de la
+          pantalla.
+
+          EN EL CELULAR, EL VIDEO QUEDA CENTRADO. La tarjeta mide 72% del
+          ancho y la fila tiene 14% de relleno a cada lado: 14 + 72 + 14
+          es la pantalla justa. Asi el primero arranca en el medio y el de
+          al lado asoma lo mismo a la izquierda que a la derecha. Antes
+          arrancaba pegado al margen izquierdo y el siguiente asomaba
+          solo a la derecha. Va en `vw` y no en `%` porque el relleno
+          tiene que salir de la pantalla, no de la propia fila.
+
+          DE 640 PARA ARRIBA, ENTRAN JUSTOS: dos videos en tableta y tres
+          en pantalla grande, con el margen de la pagina a los dos lados
+          y el hueco entre ellos igual al margen, como en el carrusel de
+          productos. Antes medían 46% y 31% y el ultimo quedaba cortado
+          contra un solo borde.
+
+          En pantalla grande la fila no se estira hasta el borde, igual
+          que el carrusel: la pagina es una columna al medio, y estirada
+          asomaba una tira del cuarto video de un solo lado.
         */}
         <ul
-          className="-mx-5 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 xl:-mx-10 xl:px-10"
+          className="-mx-5 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[14vw] pb-2 sm:gap-5 sm:scroll-px-5 sm:px-5 lg:mx-0 lg:scroll-px-0 lg:px-0"
           style={{ scrollbarWidth: "none" }}
         >
           {videos.map((video, i) => (
             <li
               key={video.id}
-              className="w-[72%] shrink-0 snap-center sm:w-[46%] lg:w-[31%]"
+              className="w-[72vw] shrink-0 snap-center sm:w-[calc(50%-0.625rem)] sm:snap-start lg:w-[calc(33.333%-0.834rem)]"
             >
               <figure className="tarjeta overflow-hidden">
                 {/*

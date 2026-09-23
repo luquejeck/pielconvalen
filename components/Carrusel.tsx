@@ -15,8 +15,8 @@ import { IconoFlecha } from "./iconos";
  *
  * POR QUE CARRUSEL EN LA PORTADA Y GRILLA EN EL CATALOGO
  * Son dos preguntas distintas. En la portada la pregunta es "¿esta
- * vende productos?", y una fila que se corta a la derecha la contesta
- * mejor que una grilla: se ve que hay mas. En /productos la pregunta es
+ * vende productos?", y una fila con "1 de 4" debajo la contesta mejor
+ * que una grilla: se ve que hay mas. En /productos la pregunta es
  * "¿cual me llevo?", y ahi esconder la mitad del catalogo detras de un
  * gesto juega en contra, asi que va grilla. Los combos son la excepcion:
  * son pocos, cada uno es grande, y uno debajo del otro se comian cuatro
@@ -37,18 +37,25 @@ import { IconoFlecha } from "./iconos";
 /*
   CUANTO MIDE CADA TARJETA, segun lo que lleva la fila.
 
-  Los combos en el telefono miden 86% y no 100%: el pedazo del siguiente
-  que asoma a la derecha es lo que dice "hay mas, deslizá" sin palabras,
-  que es lo que hace Mercado Libre con sus filas.
+  EN REPOSO, SIMETRICO. Las tarjetas que se ven quedan con el mismo
+  margen a los dos lados —los 20 px de toda la pagina— y entran justas:
+  dos productos o un combo en el telefono, tres o dos en tableta, cuatro
+  o tres en pantalla grande.
+
+  Por eso el hueco entre tarjetas mide lo mismo que el margen (20 px)
+  debajo de 1024: si fuera menor, asomaria una tira de la tarjeta
+  siguiente de un solo lado. Antes pasaba a proposito —el combo medía
+  86% para que se viera el siguiente— y Lucas prefirio la simetria. Que
+  hay mas lo dicen los botones y el "1 de 4" de abajo.
 
   Van escritas enteras y no armadas con variables porque Tailwind las
   encuentra leyendo el archivo: una clase partida en pedazos no existe.
 */
 const ANCHOS = {
   productos:
-    "gap-3 sm:gap-4 [&>li]:w-[calc(50%-0.375rem)] sm:[&>li]:w-[calc(33.333%-0.667rem)] lg:[&>li]:w-[calc(25%-0.75rem)]",
+    "gap-5 lg:gap-4 [&>li]:w-[calc(50%-0.625rem)] sm:[&>li]:w-[calc(33.333%-0.834rem)] lg:[&>li]:w-[calc(25%-0.75rem)]",
   combos:
-    "gap-3 sm:gap-4 [&>li]:w-[86%] sm:[&>li]:w-[calc(50%-0.5rem)] lg:[&>li]:w-[calc(33.333%-0.667rem)]",
+    "gap-5 lg:gap-4 [&>li]:w-full sm:[&>li]:w-[calc(50%-0.625rem)] lg:[&>li]:w-[calc(33.333%-0.667rem)]",
 } as const;
 
 export default function Carrusel({
@@ -74,9 +81,13 @@ export default function Carrusel({
     /* De una tarjeta a la siguiente: el ancho mas el hueco. */
     const paso = segunda ? segunda.offsetLeft - primera.offsetLeft : primera.offsetWidth;
     const hueco = paso - primera.offsetWidth;
+    /* El ancho util es el de adentro del relleno: la fila llega al borde
+       de la pantalla, pero las tarjetas se acomodan entre los margenes. */
+    const estilo = getComputedStyle(el);
+    const util = el.clientWidth - parseFloat(estilo.paddingLeft) - parseFloat(estilo.paddingRight);
     /* El +1 absorbe el redondeo a subpixeles: dos tarjetas que entran
        justas daban 1,999 y contaban como una. */
-    const porPantalla = Math.max(1, Math.floor((el.clientWidth + hueco + 1) / paso));
+    const porPantalla = Math.max(1, Math.floor((util + hueco + 1) / paso));
     return { el, paso, porPantalla, sobra: el.scrollWidth - el.clientWidth };
   }, []);
 
@@ -142,15 +153,28 @@ export default function Carrusel({
       un hueco de 335, y eso se propagaba hasta el documento. Va `clip` y
       no `hidden` a proposito: `hidden` crea un contenedor de scroll y
       eso rompe el `position: sticky` del encabezado.
+
+      LA FILA LLEGA HASTA EL BORDE DE LA PANTALLA debajo de 1024. Antes
+      terminaba en el margen de la pagina, y al deslizar las tarjetas se
+      cortaban a 20 px del borde, con una franja de fondo vacia al lado:
+      parecia un error de armado. Ahora el envoltorio se estira sobre el
+      margen (`-mx-5`) y la fila lo devuelve como relleno (`px-5`), asi
+      que en reposo las tarjetas quedan alineadas con el resto de la
+      pagina y al moverse pasan por debajo del borde. `scroll-px-5` hace
+      que el iman las deje en el margen y no pegadas al borde.
+
+      En pantalla grande no: ahi la pagina es una columna al medio con
+      margenes anchos, y estirarse hasta el borde de la ventana seria
+      salirse del diseño.
     */
-    <div className="relative overflow-x-clip">
+    <div className="relative -mx-5 overflow-x-clip lg:mx-0">
       <ul
         ref={pista}
         onScroll={medir}
         tabIndex={0}
         role="region"
         aria-label={etiqueta}
-        className={`sin-barra flex snap-x snap-mandatory overflow-x-auto scroll-smooth motion-reduce:scroll-auto [&>li]:shrink-0 [&>li]:snap-start ${ANCHOS[tipo]}`}
+        className={`sin-barra flex snap-x snap-mandatory scroll-px-5 overflow-x-auto scroll-smooth px-5 motion-reduce:scroll-auto lg:scroll-px-0 lg:px-0 [&>li]:shrink-0 [&>li]:snap-start ${ANCHOS[tipo]}`}
       >
         {children}
       </ul>

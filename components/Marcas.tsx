@@ -36,9 +36,10 @@ function imagenDe(marca: { slug: string; foto: string }) {
  * seccion que es un indice, no un catalogo. Pesaba mas que los propios
  * productos, que es lo que se vende.
  *
- * Ahora son fichas iguales y chicas, en una sola fila que se desliza
- * cuando no entran. Ocupa un cuarto de lo que ocupaba y sigue haciendo
- * lo mismo: mostrar que marcas hay y llevar al catalogo filtrado.
+ * Ahora son fichas iguales y chicas, centradas: cuatro por fila en el
+ * celular y todas en una o dos filas en pantallas grandes. Ocupa una
+ * fraccion de lo que ocupaba y sigue haciendo lo mismo: mostrar que
+ * marcas hay y llevar al catalogo filtrado.
  *
  * NINGUNA ES MAS QUE OTRA. La grande se la llevaba la marca con mas
  * productos, que es un dato del deposito y no una decision de venta.
@@ -58,13 +59,17 @@ export default function Marcas({ productos }: { productos: Producto[] }) {
         <TituloTienda titulo="Las marcas" />
 
         {/*
-          Fila que se desliza en celular y se centra cuando entra entera.
-          `sin-barra` es la misma clase del carrusel de productos: se
-          desliza sin dibujar la barra.
+          CENTRADAS Y A LA VISTA, TAMBIEN EN EL CELULAR.
+
+          Antes en el telefono eran una fila que se deslizaba, y la ultima
+          ficha que entraba quedaba cortada a 20 px del borde, con una
+          franja vacia al lado. Son ocho marcas: en dos filas de cuatro
+          entran todas, simetricas, sin esconder ninguna detras de un
+          gesto. Si Valen suma o saca una, la fila de abajo se centra sola.
         */}
-        <ul className="sin-barra mt-6 flex gap-3 overflow-x-auto sm:flex-wrap sm:justify-center sm:gap-4">
+        <ul className="mt-6 flex flex-wrap justify-center gap-3 sm:gap-4">
           {marcas.map((m) => (
-            <li key={m.slug} className="shrink-0">
+            <li key={m.slug} className="w-[calc(25%-0.5625rem)] sm:w-auto">
               <Tarjeta marca={m} />
             </li>
           ))}
@@ -82,7 +87,7 @@ function Tarjeta({
   return (
     <Link
       href={`/productos?marca=${marca.slug}`}
-      className="group block w-24 sm:w-28 lg:w-32"
+      className="group block w-full sm:w-28 lg:w-32"
       aria-label={`Ver ${marca.cuantos} ${marca.cuantos === 1 ? "producto" : "productos"} de ${marca.nombre}`}
     >
       <Image
