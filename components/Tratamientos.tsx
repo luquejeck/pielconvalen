@@ -1,6 +1,8 @@
 "use client";
 
-import { esConsulta, formatearPrecio } from "@/lib/tratamientos";
+import { esConsulta, formatearPrecio, type Tratamiento } from "@/lib/tratamientos";
+import Carrusel from "./Carrusel";
+import { IconoCheck, IconoReloj } from "./iconos";
 import { useReserva } from "./ReservaContext";
 import TituloSeccion from "./TituloSeccion";
 
@@ -13,17 +15,6 @@ export default function Tratamientos() {
   /* De menor a mayor: la pila se recorre como una escalera. `slice`
      porque `sort` ordena en el lugar y `tratamientos` viene del contexto. */
   const porPrecio = conPrecio.slice().sort((a, b) => a.precio - b.precio);
-
-  /*
-    La duracion se muestra solo si TODOS duran lo mismo.
-
-    Es lo que la hace decible en una sola linea. Si algun dia Valen carga
-    uno de media hora, la linea deja de afirmar algo que seria falso para
-    esa fila y la duracion simplemente no aparece: mejor no decirla que
-    decirla mal.
-  */
-  const duraciones = [...new Set(conPrecio.map((t) => t.duracion))];
-  const duracionComun = duraciones.length === 1 ? duraciones[0] : null;
 
   /*
     Los extras siempre en el mismo orden, alfabetico. En la base cada
@@ -84,87 +75,144 @@ export default function Tratamientos() {
         </p>
 
         {/*
-          LA LISTA VA ADENTRO DE UNA TARJETA.
+          PRUEBA: CADA TRATAMIENTO EN SU TARJETA, EN UNA FILA QUE SE DESLIZA.
 
-          Suelta sobre el fondo se veia sin terminar: dos lineas finas al
-          aire en medio de una seccion que por lo demas esta vacia. La
-          tarjeta blanca es el mismo recurso que usa el resto de la web
-          para contener cosas, asi que la seccion deja de ser la excepcion.
+          Es el mismo carrusel de los combos y los productos —la tarjeta
+          vecina asomando igual a los dos lados, "1 de 6" abajo— para ver
+          si la seccion se lee como parte de la misma web. Antes era una
+          lista de precios adentro de una sola tarjeta.
 
-          El nombre y el precio comparten renglon y estan alineados por la
-          base, con el precio en tabular: leidos en columna, los numeros
-          se comparan sin que el ojo tenga que buscarlos.
+          Toda la tarjeta se toca y lleva a reservar, como las de Mercado
+          Libre llevan al producto. No elige el tratamiento: el turno se
+          saca como consulta —lo dice el aviso de arriba— y se define en el
+          consultorio.
         */}
-        <div className="mx-auto mt-8 max-w-2xl rounded-suave bg-papel p-5 shadow-suave sm:p-7">
-          <ul className="divide-y divide-borde">
+        <div className="mt-8">
+          <Carrusel etiqueta="Tratamientos" tipo="combos">
             {porPrecio.map((t) => (
-              <li
+              <TarjetaTratamiento
                 key={t.id}
-                className="flex items-baseline justify-between gap-4 py-4 first:pt-0 last:pb-0"
-              >
-                <div className="min-w-0">
-                  <h3 className="font-display text-lg leading-snug font-medium text-tinta">
-                    {t.nombre}
-                  </h3>
+                tratamiento={t}
+                extras={ordenar(t.extras)}
+                onReservar={irAReservar}
+              />
+            ))}
+          </Carrusel>
+        </div>
 
-                  {t.extras.length > 0 && (
-                    <p className="mt-1 text-base leading-snug text-tinta-suave">
-                      {/* Para quien escucha la pagina, "+" no se lee: la
-                          palabra va escondida y el signo queda de adorno. */}
-                      <span aria-hidden>+ </span>
-                      <span className="sr-only">Suma </span>
-                      {ordenar(t.extras).join(" · ")}
-                    </p>
-                  )}
+        {/* Como se paga, una sola vez y en gris: es igual para todos. En
+            verde y repetido en cada tarjeta competia con el precio. */}
+        <p className="mt-5 text-center text-base leading-snug text-balance text-tinta-suave">
+          {consultorio.mediosDePago}
+        </p>
 
-                </div>
+        {/*
+          EL CIERRE, UNA FRASE Y SIN BOTON.
 
-                <p className="shrink-0 font-display text-lg font-semibold text-vino tabular-nums">
-                  {formatearPrecio(t.precio)}
-                </p>
+          Hubo un "Reservar turno" grande aca abajo. Desde que cada
+          tarjeta tiene el suyo, en el celular se veian tres a la vez —el
+          del encabezado, el de la tarjeta y este— y el tercero no sumaba
+          nada. Queda la frase que contesta "¿cual pido?".
+        */}
+        <p className="mx-auto mt-8 max-w-xl text-center text-lg leading-snug text-balance text-tinta-suave">
+          Cuál te corresponde lo deciden al llegar, mirando tu piel.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Un tratamiento, con la forma de las tarjetas de planes de Mercado
+ * Pago: arriba que es y cuanto sale; abajo, que incluye; al pie, el
+ * boton.
+ *
+ *   ═════════════════════════════   <- linea vino
+ *   │ Higiene Facial Profunda    │
+ *   │ $ 40.000 por sesión        │
+ *   │ (o) 1.5 a 2 horas          │
+ *   ├───────────────────────────┤
+ *   │ ✓ Limpieza profunda        │
+ *   │ ✓ Ácidos                   │
+ *   │ [     Reservar turno     ] │
+ *   └───────────────────────────┘
+ *
+ * BLANCA ENTERA, CON UNA LINEA VINO ARRIBA. Estuvo con el encabezado en
+ * una franja vino suave y a Lucas no lo convencio: sobre el fondo
+ * rosado de la seccion, rosa sobre rosa se veia lavado. La linea marca
+ * el principio de cada tarjeta con un solo detalle de color, y los
+ * tildes y el boton en vino la terminan de atar a la marca.
+ *
+ * TODA LA TARJETA SE TOCA. El boton del pie estira su `::after` sobre la
+ * tarjeta entera, como el nombre en la ficha de producto: un boton no
+ * puede envolver un titulo y una lista, pero asi se toca en cualquier
+ * parte. El boton a la vista dice que se puede tocar: a una clienta de
+ * sesenta no se le ocurre sola.
+ *
+ * Cada tratamiento dice su propia duracion: si Valen carga uno de media
+ * hora, lo dice solo ese.
+ */
+function TarjetaTratamiento({
+  tratamiento: t,
+  extras,
+  onReservar,
+}: {
+  tratamiento: Tratamiento;
+  extras: string[];
+  onReservar: () => void;
+}) {
+  return (
+    <li className="flex">
+      <article className="group relative flex w-full flex-col overflow-hidden rounded-suave border border-borde bg-papel transition-shadow duration-200 hover:shadow-suave">
+        {/* El detalle de color: una linea vino arriba. La tarjeta es
+            blanca entera; el recorte redondeado de la tarjeta le da la
+            curva en las puntas. */}
+        <span aria-hidden className="block h-1 bg-vino" />
+        <header className="border-b border-borde px-5 pt-4 pb-4">
+          <h3 className="font-display text-lg leading-snug font-semibold text-tinta">
+            {t.nombre}
+          </h3>
+          <p className="mt-2 flex flex-wrap items-baseline gap-x-2 leading-tight">
+            <span className="font-display text-[1.75rem] font-semibold text-tinta tabular-nums">
+              {formatearPrecio(t.precio)}
+            </span>
+            <span className="text-[0.9375rem] text-tinta-suave">por sesión</span>
+          </p>
+          {t.duracion && (
+            <p className="mt-1 flex items-center gap-2 text-[0.9375rem] leading-snug text-tinta-suave">
+              <IconoReloj className="h-4.5 w-4.5 shrink-0" />
+              {t.duracion}
+            </p>
+          )}
+        </header>
+
+        <div className="flex flex-1 flex-col px-5 pt-4 pb-5">
+          {/* Todos parten de la limpieza profunda: va primera en todos, y
+              despues lo que suma cada uno. */}
+          <ul className="space-y-2 text-base leading-snug text-tinta">
+            {["Limpieza profunda", ...extras].map((x) => (
+              <li key={x} className="flex items-start gap-2.5">
+                <IconoCheck className="mt-0.5 h-5 w-5 shrink-0 text-vino" />
+                {x}
               </li>
             ))}
           </ul>
 
-          {/* La duracion y el pago, adentro de la tarjeta y separados por
-              una linea: son condiciones de todos los renglones de arriba,
-              no un dato suelto de la seccion. */}
-          <p className="mt-5 border-t border-borde pt-4 text-center text-base leading-snug text-balance text-tinta-suave">
-            {duracionComun && <>{duracionComun} por sesión · </>}
-            {consultorio.mediosDePago}
-          </p>
+          {/* `mt-auto` lleva el boton al pie: en la fila todas las
+              tarjetas miden lo que la mas larga, y asi los botones quedan
+              alineados. El `pt-5` es el aire minimo con la lista. */}
+          <div className="mt-auto pt-5">
+            <button
+              type="button"
+              onClick={onReservar}
+              className="flex min-h-12 w-full items-center justify-center rounded-full border border-vino bg-papel font-display text-base font-semibold text-vino transition-colors after:absolute after:inset-0 after:rounded-suave group-hover:bg-vino group-hover:text-white"
+            >
+              Reservar turno
+              <span className="sr-only">: {t.nombre}, se confirma en la consulta</span>
+            </button>
+          </div>
         </div>
-
-        {/*
-          EL CIERRE, EN TRES RENGLONES.
-
-          Antes eran cinco bloques: un parrafo con la duracion y los
-          medios de pago, un titulo "¿Cuál te corresponde?", otro parrafo
-          que lo contestaba, y recien ahi el boton. Cuatro textos para
-          decir una cosa —el tratamiento se elige en el consultorio— y
-          para ofrecer un boton que ya estaba arriba en el encabezado.
-
-          Queda la frase que importa, el boton, y debajo en chico los dos
-          datos que hacen falta para animarse a reservar: cuanto dura y
-          como se paga. La duracion solo aparece si TODOS duran lo mismo:
-          el dia que Valen cargue uno de media hora, la linea dejaria de
-          ser cierta y directamente no se muestra.
-        */}
-        <div className="mx-auto mt-9 max-w-xl text-center">
-          <p className="text-lg leading-snug text-balance text-tinta-suave">
-            Cuál te corresponde lo deciden al llegar, mirando tu piel.
-          </p>
-
-          <button
-            type="button"
-            onClick={irAReservar}
-            className="boton-principal mt-5 w-full sm:w-auto sm:px-9"
-          >
-            Reservar turno
-          </button>
-
-        </div>
-      </div>
-    </section>
+      </article>
+    </li>
   );
 }
