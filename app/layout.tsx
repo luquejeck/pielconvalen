@@ -88,6 +88,10 @@ export default async function RootLayout({
     obtenerCombos(),
   ]);
 
+  /* Una sola vez: los usa el catalogo del carrito y la sugerencia de
+     "armar el combo" adentro del pedido. */
+  const combosListos = resolverCombos(productos, combos);
+
   return (
     <html lang="es-AR" className={montserrat.variable}>
       <body>
@@ -96,11 +100,15 @@ export default async function RootLayout({
         <CarritoProvider
           catalogo={[
             ...productos,
-            ...resolverCombos(productos, combos).map(comboComoProducto),
+            ...combosListos.map(comboComoProducto),
           ]}
         >
           {children}
-          <Carrito whatsapp={CONSULTORIO.whatsapp} direccion={CONSULTORIO.direccion} />
+          <Carrito
+            whatsapp={CONSULTORIO.whatsapp}
+            direccion={CONSULTORIO.direccion}
+            combos={combosListos}
+          />
           <AvisoPedido />
           <BarraPedido />
           <Recorrido />

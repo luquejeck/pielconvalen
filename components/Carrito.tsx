@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { descuentoDe, fotoDe, precioDe } from "@/lib/productos";
+import type { Combo } from "@/lib/combos";
 import { PAGO_PRODUCTOS } from "@/lib/config";
 import { formatearPrecio } from "@/lib/tratamientos";
 import { linkPedido } from "@/lib/whatsapp";
@@ -28,10 +29,13 @@ import { IconoBillete, IconoPin, IconoWhatsApp } from "./iconos";
 export default function Carrito({
   whatsapp,
   direccion,
+  combos,
 }: {
   whatsapp: string;
   /** Donde se retira: sale de la configuracion que edita Valen. */
   direccion: string;
+  /** Los que se pueden ofrecer hoy, para sugerir "armar el combo". */
+  combos: Combo[];
 }) {
   const {
     detalle,
@@ -95,6 +99,42 @@ export default function Carrito({
     Libre pone en verde en el carrito, y justo antes de mandar es cuando
     mas pesa: convierte "voy a gastar $245.000" en "me ahorre $20.000".
   */
+  /*
+    "ARMÁ EL COMBO": EL "COMPRADOS JUNTOS" DE MERCADO LIBRE, EN EL PEDIDO.
+
+    Si la clienta tiene sueltos algunos productos de un combo, se le
+    ofrece completarlo. Es el mejor momento para hacerlo: ya eligio, y
+    lo que falta para el descuento es poco.
+
+    UNA SOLA SUGERENCIA, la mas facil de aceptar: primero la de un combo
+    que ya tiene completo (no le falta nada, solo pasarlo), despues la
+    que menos productos le falta, y a igualdad, la que mas ahorra. Dos o
+    tres cajas de "sumá esto" convertian el pedido en una vidriera.
+
+    El boton NO suma solo lo que falta: eso lo cobraria a precio de
+    lista y el ahorro prometido no existiria. Reemplaza los sueltos por
+    el combo —una unidad de cada uno sale, entra el combo— y ahi el
+    descuento es de verdad.
+  */
+  const enPedido = new Map(detalle.map((d) => [d.producto.id, d.cantidad]));
+  const sugerencia = combos
+    .filter((c) => !enPedido.has(c.id))
+    .map((c) => ({
+      c,
+      tiene: c.productos.filter((p) => enPedido.has(p.id)),
+      faltan: c.productos.filter((p) => !enPedido.has(p.id)),
+    }))
+    .filter((x) => x.tiene.length > 0)
+    .sort((a, b) => a.faltan.length - b.faltan.length || b.c.ahorro - a.c.ahorro)[0];
+
+  const armarCombo = () => {
+    if (!sugerencia) return;
+    /* Van por el actualizador de estado, asi que llamadas seguidas en el
+       mismo toque se suman bien. */
+    sugerencia.tiene.forEach((p) => quitar(p.id));
+    agregar(sugerencia.c.id);
+  };
+
   const ahorro = detalle.reduce(
     (n, { producto, cantidad }) =>
       descuentoDe(producto) !== null ? n + (producto.precioAnterior! - producto.precio) * cantidad : n,
@@ -247,6 +287,57 @@ export default function Carrito({
             );
           })}
         </ul>
+
+        {/*
+          La sugerencia va FUERA de la lista, pegada al total: si viviera
+          al final de la lista, con tres o cuatro productos quedaria
+          escondida debajo del scroll.
+        */}
+        {sugerencia && (
+          <div className="mx-5 mb-3 flex items-start gap-3 rounded-chico border border-positivo/25 bg-positivo-suave px-3 py-2.5">
+            {/* Lo que falta, en foto; si no falta nada, el combo entero. */}
+            <span className="flex shrink-0 -space-x-3">
+              {(sugerencia.faltan.length > 0 ? sugerencia.faltan : sugerencia.c.productos)
+                .slice(0, 3)
+                .map((p) => (
+                  <Image
+                    key={p.id}
+                    src={fotoDe(p)}
+                    alt=""
+                    width={80}
+                    height={80}
+                    className="size-11 rounded-full border-2 border-positivo-suave bg-papel object-cover"
+                  />
+                ))}
+            </span>
+
+            {/* Dos renglones: arriba que falta, a lo ancho; abajo cuanto
+                se ahorra y el boton. En uno solo, la frase quedaba
+                partida en cuatro renglones de dos palabras. */}
+            <div className="min-w-0 flex-1">
+              <p className="text-[0.9375rem] leading-snug text-tinta">
+                {sugerencia.faltan.length === 0
+                  ? "Ya tenés todo el combo."
+                  : sugerencia.faltan.length === 1
+                    ? <>Sumá <span className="font-semibold">{sugerencia.faltan[0].nombre}</span> y es combo.</>
+                    : `Sumá ${sugerencia.faltan.length} productos y es combo.`}
+              </p>
+              <div className="mt-1.5 flex items-center justify-between gap-2">
+                <span className="text-[0.9375rem] font-semibold whitespace-nowrap text-positivo tabular-nums">
+                  Ahorrás {formatearPrecio(sugerencia.c.ahorro)}
+                </span>
+                <button
+                  type="button"
+                  onClick={armarCombo}
+                  aria-label={`Armar el combo ${sugerencia.c.nombre} y ahorrar ${formatearPrecio(sugerencia.c.ahorro)}`}
+                  className="min-h-11 shrink-0 rounded-full bg-vino px-4 font-display text-[0.9375rem] font-semibold text-white transition-colors hover:bg-vino-oscuro active:scale-[0.98]"
+                >
+                  Armar combo
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <footer className="border-t border-borde px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <p className="flex items-baseline justify-between gap-3 font-display text-lg text-tinta">
