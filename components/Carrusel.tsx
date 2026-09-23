@@ -37,25 +37,32 @@ import { IconoFlecha } from "./iconos";
 /*
   CUANTO MIDE CADA TARJETA, segun lo que lleva la fila.
 
-  EN REPOSO, SIMETRICO. Las tarjetas que se ven quedan con el mismo
-  margen a los dos lados —los 20 px de toda la pagina— y entran justas:
-  dos productos o un combo en el telefono, tres o dos en tableta, cuatro
-  o tres en pantalla grande.
+  LA DE AL LADO ASOMA, Y DE LOS DOS LADOS POR IGUAL.
 
-  Por eso el hueco entre tarjetas mide lo mismo que el margen (20 px)
-  debajo de 1024: si fuera menor, asomaria una tira de la tarjeta
-  siguiente de un solo lado. Antes pasaba a proposito —el combo medía
-  86% para que se viera el siguiente— y Lucas prefirio la simetria. Que
-  hay mas lo dicen los botones y el "1 de 4" de abajo.
+  Debajo de 1024 la fila deja 28 px a cada lado de la pantalla
+  (`px-7`) y 10 px entre tarjetas: lo que queda, 18 px, es la solapa de
+  la tarjeta vecina, a la izquierda y a la derecha. Las que se ven
+  entran justas en el medio —dos productos o un combo en el telefono,
+  tres o dos en tableta—, asi que la fila en reposo es simetrica.
+
+  La solapa dice "hay mas, deslizá" sin palabras. La primera version la
+  mostraba de un solo lado (el combo medía 86% y asomaba el siguiente a
+  la derecha) y quedaba torcida; la segunda la saco para que fuera
+  simetrica y se perdio la pista. Lucas la quiere, pero pareja: esta.
+  En la primera tarjeta el lado izquierdo queda vacio del mismo ancho,
+  porque no hay nada antes.
+
+  En pantalla grande no hay solapa: entran cuatro o tres justas en la
+  columna, con los botones de abajo.
 
   Van escritas enteras y no armadas con variables porque Tailwind las
   encuentra leyendo el archivo: una clase partida en pedazos no existe.
 */
 const ANCHOS = {
   productos:
-    "gap-5 lg:gap-4 [&>li]:w-[calc(50%-0.625rem)] sm:[&>li]:w-[calc(33.333%-0.834rem)] lg:[&>li]:w-[calc(25%-0.75rem)]",
+    "gap-2.5 lg:gap-4 [&>li]:w-[calc(50%-0.3125rem)] sm:[&>li]:w-[calc(33.333%-0.4167rem)] lg:[&>li]:w-[calc(25%-0.75rem)]",
   combos:
-    "gap-5 lg:gap-4 [&>li]:w-full sm:[&>li]:w-[calc(50%-0.625rem)] lg:[&>li]:w-[calc(33.333%-0.667rem)]",
+    "gap-2.5 lg:gap-4 [&>li]:w-full sm:[&>li]:w-[calc(50%-0.3125rem)] lg:[&>li]:w-[calc(33.333%-0.667rem)]",
 } as const;
 
 export default function Carrusel({
@@ -158,10 +165,10 @@ export default function Carrusel({
       terminaba en el margen de la pagina, y al deslizar las tarjetas se
       cortaban a 20 px del borde, con una franja de fondo vacia al lado:
       parecia un error de armado. Ahora el envoltorio se estira sobre el
-      margen (`-mx-5`) y la fila lo devuelve como relleno (`px-5`), asi
-      que en reposo las tarjetas quedan alineadas con el resto de la
-      pagina y al moverse pasan por debajo del borde. `scroll-px-5` hace
-      que el iman las deje en el margen y no pegadas al borde.
+      margen (`-mx-5`) y la fila deja su propio relleno (`px-7`), donde
+      asoman las tarjetas vecinas; al moverse pasan por debajo del
+      borde. `scroll-px-7` hace que el iman deje cada tarjeta a esa
+      distancia y no pegada al borde.
 
       En pantalla grande no: ahi la pagina es una columna al medio con
       margenes anchos, y estirarse hasta el borde de la ventana seria
@@ -174,7 +181,7 @@ export default function Carrusel({
         tabIndex={0}
         role="region"
         aria-label={etiqueta}
-        className={`sin-barra flex snap-x snap-mandatory scroll-px-5 overflow-x-auto scroll-smooth px-5 motion-reduce:scroll-auto lg:scroll-px-0 lg:px-0 [&>li]:shrink-0 [&>li]:snap-start ${ANCHOS[tipo]}`}
+        className={`sin-barra flex snap-x snap-mandatory scroll-px-7 overflow-x-auto scroll-smooth px-7 motion-reduce:scroll-auto lg:scroll-px-0 lg:px-0 [&>li]:shrink-0 [&>li]:snap-start ${ANCHOS[tipo]}`}
       >
         {children}
       </ul>

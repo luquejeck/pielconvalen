@@ -126,24 +126,24 @@ export default function Videos({ subidos }: { subidos: VideoGaleria[] }) {
           solo a la derecha. Va en `vw` y no en `%` porque el relleno
           tiene que salir de la pantalla, no de la propia fila.
 
-          DE 640 PARA ARRIBA, ENTRAN JUSTOS: dos videos en tableta y tres
-          en pantalla grande, con el margen de la pagina a los dos lados
-          y el hueco entre ellos igual al margen, como en el carrusel de
-          productos. Antes medían 46% y 31% y el ultimo quedaba cortado
-          contra un solo borde.
+          EN TABLETA, DOS, con la solapa de los vecinos asomando igual
+          a los dos lados: 28 px de relleno y 10 px entre videos, como el
+          carrusel de productos. En pantalla grande, tres justos. Antes
+          medían 46% y 31% y el ultimo quedaba cortado contra un solo
+          borde.
 
           En pantalla grande la fila no se estira hasta el borde, igual
           que el carrusel: la pagina es una columna al medio, y estirada
           asomaba una tira del cuarto video de un solo lado.
         */}
         <ul
-          className="-mx-5 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[14vw] pb-2 sm:gap-5 sm:scroll-px-5 sm:px-5 lg:mx-0 lg:scroll-px-0 lg:px-0"
+          className="-mx-5 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-[14vw] pb-2 sm:gap-2.5 sm:scroll-px-7 sm:px-7 lg:mx-0 lg:gap-4 lg:scroll-px-0 lg:px-0"
           style={{ scrollbarWidth: "none" }}
         >
           {videos.map((video, i) => (
             <li
               key={video.id}
-              className="w-[72vw] shrink-0 snap-center sm:w-[calc(50%-0.625rem)] sm:snap-start lg:w-[calc(33.333%-0.834rem)]"
+              className="w-[72vw] shrink-0 snap-center sm:w-[calc(50%-0.3125rem)] sm:snap-start lg:w-[calc(33.333%-0.667rem)]"
             >
               <figure className="tarjeta overflow-hidden">
                 {/*
