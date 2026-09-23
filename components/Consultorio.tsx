@@ -43,7 +43,7 @@ export default function Consultorio({
             izquierda: de lejos, esta seccion parecia de otro sitio. */}
         <TituloSeccion titulo="Quién te va a atender" />
 
-        <div className="mx-auto mt-8 grid max-w-5xl items-center gap-8 lg:grid-cols-2 lg:gap-12 xl:max-w-6xl">
+        <div className="mx-auto mt-8 grid max-w-5xl items-center gap-6 lg:grid-cols-2 lg:gap-12 xl:max-w-6xl">
           {/*
             El retrato es cuadrado y el marco tambien.
 
@@ -62,13 +62,23 @@ export default function Consultorio({
             contenido, y ademas Next lee solo el alto y el ancho reales,
             asi que no hay numeros escritos a mano que se desactualicen.
           */}
+          {/*
+            UN RETRATO EN CIRCULO Y NO LA FOTO A TODO EL ANCHO.
+
+            A lo ancho del celular la foto media 335 x 335 px y era casi
+            toda la altura de la seccion —1134 px, la mas larga de la
+            portada despues del calendario— aunque el texto ya era corto.
+            En circulo y centrada arriba del nombre se lee como un perfil:
+            la cara sigue estando, que es lo que da confianza, y la
+            portada se acorta. El aro blanco la despega del crema.
+          */}
           {hayValen && (
             <Image
               src={fotoValen}
               alt={`${CONSULTORIO.profesional}, ${CONSULTORIO.profesion.toLowerCase()}`}
-              sizes="(min-width: 1024px) 46vw, 100vw"
+              sizes="(min-width: 1024px) 20rem, 11rem"
               placeholder="blur"
-              className="aspect-square w-full rounded-suave object-cover shadow-suave"
+              className="mx-auto aspect-square size-44 rounded-full object-cover shadow-suave ring-4 ring-papel lg:size-80"
             />
           )}
 
