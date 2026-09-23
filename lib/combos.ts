@@ -1,4 +1,4 @@
-import { hayStock, type Categoria, type Producto } from "./productos";
+import { fotoDe, hayStock, type Categoria, type Producto } from "./productos";
 
 /**
  * Los combos: tres productos que se complementan, con descuento.
@@ -149,7 +149,7 @@ export function comboComoProducto(c: Combo): Producto {
     marca: "Combo",
     nombre: c.nombre,
     medida: c.productos.map((p) => `${p.marca} ${p.nombre}`).join(" + "),
-    incluye: c.productos.map((p) => `${p.marca} ${p.nombre}`),
+    incluye: c.productos.map((p) => ({ nombre: `${p.marca} ${p.nombre}`, foto: fotoDe(p) })),
     categoria: c.productos[0].categoria as Categoria,
     precio: c.precio,
     precioAnterior: c.suma,

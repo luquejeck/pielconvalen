@@ -87,9 +87,6 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function Productos({ searchParams }: Busqueda) {
   const CONSULTORIO = await obtenerConfiguracion();
-  /* "Riglos 531, Caballito, CABA" -> "Caballito": es lo que dice el
-     tercer paso de como se compra. */
-  const barrio = CONSULTORIO.direccion.split(",")[1]?.trim() || "el consultorio";
   /* El catalogo sale de la base; lib/productos.ts queda de respaldo si
      no contesta. Se pide una sola vez y viaja a todas las cuentas de
      abajo: pedirlo en cada una serian ocho viajes por visita. */
@@ -200,33 +197,6 @@ export default async function Productos({ searchParams }: Busqueda) {
             </h1>
           </header>
 
-          {/*
-            COMO SE COMPRA, EN TRES PASOS, ANTES QUE NADA.
-
-            La web no cobra, y eso no estaba dicho en ningun lado que la
-            clienta viera: solo en la descripcion para Google. Quien
-            compra poco por internet entra buscando el "pagar" y, si no
-            entiende como sigue, no agrega nada. Tres pasos numerados se
-            leen de un vistazo y no empujan los productos mas de un
-            renglon.
-          */}
-          <ol className="mt-5 grid grid-cols-3 gap-2 rounded-chico border border-borde bg-papel p-3 text-[0.9375rem] leading-snug text-tinta sm:gap-4 sm:px-5">
-            {[
-              "Agregá lo que quieras",
-              "Enviá el pedido por WhatsApp",
-              `Retirás en ${barrio}`,
-            ].map((paso, i) => (
-              <li key={paso} className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-                <span
-                  aria-hidden
-                  className="flex size-7 shrink-0 items-center justify-center rounded-full bg-vino font-display text-sm font-bold text-white"
-                >
-                  {i + 1}
-                </span>
-                <span>{paso}</span>
-              </li>
-            ))}
-          </ol>
 
           {/*
             TRES FILAS DE FILTROS, LA PRIMERA A LA VISTA.

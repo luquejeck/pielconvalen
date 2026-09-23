@@ -20,7 +20,7 @@ import { IconoPin, IconoWhatsApp } from "./iconos";
  *
  * ES EL ULTIMO PASO ANTES DE MANDAR, asi que tiene que contestar las
  * tres preguntas que frenan a una clienta de sesenta justo ahi:
- *   - ¿que me llevo?     cada renglon, y adentro del combo lo que trae
+ *   - ¿que me llevo?     cada renglon, y el combo con sus envases
  *   - ¿cuanto ahorre?    en verde, debajo del total
  *   - ¿y despues que?    que se abre WhatsApp y donde se retira
  */
@@ -146,13 +146,44 @@ export default function Carrito({
                 key={producto.id}
                 className="flex items-start gap-3 border-b border-borde py-3 last:border-0"
               >
-                <Image
-                  src={fotoDe(producto)}
-                  alt=""
-                  width={120}
-                  height={120}
-                  className="size-16 shrink-0 rounded-chico object-cover"
-                />
+                {/*
+                  EL COMBO SE VE COMO LO QUE ES: VARIOS ENVASES JUNTOS.
+
+                  En el lugar de la foto va un mosaico con los productos
+                  que trae. Sin esto, "Rutina full" era una caja cerrada
+                  justo en el momento de confirmar. La primera version lo
+                  decia con un renglon de texto por producto, y un combo
+                  de cuatro sumaba cuatro nombres largos: el pedido se
+                  volvia una pagina para leer. Asi el renglon del combo
+                  mide lo mismo que el de un producto suelto, y los
+                  nombres quedan en el texto alternativo de cada foto.
+                */}
+                {producto.incluye ? (
+                  <span className="grid size-16 shrink-0 grid-cols-2 grid-rows-2 gap-0.5 overflow-hidden rounded-chico bg-borde">
+                    {producto.incluye.slice(0, 4).map((x, i, todos) => (
+                      <Image
+                        key={x.nombre}
+                        src={x.foto}
+                        alt={x.nombre}
+                        width={80}
+                        height={80}
+                        /* Con tres, la primera ocupa toda la columna; con
+                           dos, las dos. Asi no queda un hueco vacio. */
+                        className={`size-full bg-papel object-cover ${
+                          todos.length === 2 || (todos.length === 3 && i === 0) ? "row-span-2" : ""
+                        }`}
+                      />
+                    ))}
+                  </span>
+                ) : (
+                  <Image
+                    src={fotoDe(producto)}
+                    alt=""
+                    width={120}
+                    height={120}
+                    className="size-16 shrink-0 rounded-chico object-cover"
+                  />
+                )}
 
                 <div className="min-w-0 flex-1">
                   <p className="font-display text-xs font-semibold tracking-[0.06em] text-tinta-suave uppercase">
@@ -162,15 +193,6 @@ export default function Carrito({
                     {producto.nombre}
                   </p>
 
-                  {/* Lo que trae el combo. Sin esto, "Rutina full" era una
-                      caja cerrada justo en el momento de confirmar. */}
-                  {producto.incluye && (
-                    <ul className="mt-1 space-y-0.5 text-sm leading-snug text-tinta-suave">
-                      {producto.incluye.map((x) => (
-                        <li key={x}>· {x}</li>
-                      ))}
-                    </ul>
-                  )}
 
                   <p className="mt-0.5 text-sm text-tinta-suave tabular-nums">
                     {rebajado && (
@@ -178,7 +200,11 @@ export default function Carrito({
                         {formatearPrecio(producto.precioAnterior!)}
                       </span>
                     )}
-                    {precioDe(producto)} c/u
+                    {precioDe(producto)}
+                    {/* "c/u" solo cuando hay mas de uno: con una unidad
+                        el precio y el subtotal son el mismo numero, y la
+                        sigla partia el renglon en dos. */}
+                    {cantidad > 1 && " c/u"}
                   </p>
                 </div>
 
@@ -257,17 +283,11 @@ export default function Carrito({
           <ul className="mt-3 space-y-1.5 rounded-chico bg-papel px-3.5 py-3 text-[0.9375rem] leading-snug text-tinta-suave">
             <li className="flex gap-2.5">
               <IconoWhatsApp className="mt-0.5 h-4 w-4 shrink-0 text-vino" />
-              <span>
-                Se abre WhatsApp con tu pedido ya escrito. Solo tenés que
-                enviarlo.
-              </span>
+              <span>Se abre WhatsApp con tu pedido ya escrito.</span>
             </li>
             <li className="flex gap-2.5">
               <IconoPin className="mt-0.5 h-4 w-4 shrink-0 text-vino" />
-              <span>
-                Lo retirás en el consultorio, {direccion}. El pago lo
-                coordinás con Valen.
-              </span>
+              <span>Retirás en {direccion}. El pago lo coordinás con Valen.</span>
             </li>
           </ul>
 

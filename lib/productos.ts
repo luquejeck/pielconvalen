@@ -164,11 +164,11 @@ export type Producto = {
   /** Se esconde sin borrarlo: falta confirmar precio o descripcion. */
   borrador?: boolean;
   /**
-   * Solo los combos: lo que trae, un renglon por producto. El pedido lo
-   * muestra debajo del nombre para que "Rutina full" no sea una caja
-   * cerrada justo antes de mandarlo.
+   * Solo los combos: lo que trae. El pedido arma con estas fotos un
+   * mosaico en el lugar de la imagen, para que "Rutina full" no sea una
+   * caja cerrada justo antes de mandarlo.
    */
-  incluye?: string[];
+  incluye?: { nombre: string; foto: string }[];
 };
 
 /*
