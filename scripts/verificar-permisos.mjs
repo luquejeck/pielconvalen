@@ -179,6 +179,56 @@ probar(
       : "bloqueado"
 );
 
+/*
+  LOS PEDIDOS DE LA TIENDA (schema-21).
+
+  Al reves que el resto: la visitante SI puede registrar uno —es lo que
+  pasa al tocar "Enviar pedido por WhatsApp"—, pero no leer ninguno, ni
+  borrarlos, ni registrarlo ya marcado como recibido. Se prueba con un
+  pedido de verdad que despues se borra con la clave de servicio.
+*/
+const PEDIDO = "P-PRUEBA";
+const { error: eRegistrar } = await anon
+  .from("pedidos")
+  .insert({ codigo: PEDIDO, items: [], total: 0 });
+const faltaPedidos = eRegistrar && /pedidos|relation|schema cache/i.test(eRegistrar.message) && eRegistrar.code !== "42501";
+if (faltaPedidos) {
+  probar("pedidos de la tienda", true, "falta correr schema-21-pedidos-web.sql");
+} else {
+  probar("registrar un pedido", !eRegistrar, eRegistrar ? eRegistrar.message.slice(0, 50) : "se puede");
+
+  const { data: leidos, error: eLeerPedidos } = await anon.from("pedidos").select("codigo").limit(5);
+  probar(
+    "leer los pedidos",
+    Boolean(eLeerPedidos) || (leidos ?? []).length === 0,
+    eLeerPedidos ? "bloqueado" : (leidos ?? []).length ? "SE FILTRAN" : "no devuelve nada"
+  );
+
+  const { error: eMarcado } = await anon
+    .from("pedidos")
+    .insert({ codigo: "P-PRUEB2", items: [], total: 0, estado: "recibido" });
+  await anon.from("pedidos").delete().eq("codigo", PEDIDO);
+
+  if (SERVICIO) {
+    const svc = createClient(URL, SERVICIO, sinSesion);
+    const { data: siguen } = await svc.from("pedidos").select("codigo").in("codigo", [PEDIDO, "P-PRUEB2"]);
+    const codigos = (siguen ?? []).map((f) => f.codigo);
+    probar(
+      "borrar pedidos",
+      codigos.includes(PEDIDO) || Boolean(eRegistrar),
+      codigos.includes(PEDIDO) ? "bloqueado" : "SE PUDO BORRAR"
+    );
+    probar(
+      "registrar un pedido ya recibido",
+      Boolean(eMarcado) && !codigos.includes("P-PRUEB2"),
+      eMarcado ? "bloqueado" : "ENTRO"
+    );
+    await svc.from("pedidos").delete().in("codigo", [PEDIDO, "P-PRUEB2"]);
+  } else {
+    probar("borrar pedidos", true, "sin clave de servicio, no se pudo comprobar");
+  }
+}
+
 const fallaron = resultados.filter((r) => !r).length;
 console.log(
   fallaron

@@ -172,9 +172,16 @@ export function mensajeProducto({
  * vuelta de "¿cuanto era todo?".
  */
 export function mensajePedido(
-  lineas: { marca: string; nombre: string; medida?: string; precio: number; cantidad: number }[]
+  lineas: { marca: string; nombre: string; medida?: string; precio: number; cantidad: number }[],
+  /** El codigo con el que queda registrado en el panel: P-4K7M. */
+  codigo?: string
 ): string {
-  const partes = [`Hola Valen! Te hago un pedido 🌿`, ``];
+  /* El codigo va arriba de todo: es lo que Valen busca en el panel para
+     cruzar el mensaje con el pedido registrado. */
+  const partes = [
+    codigo ? `Hola Valen! Te hago un pedido 🌿 (Pedido ${codigo})` : `Hola Valen! Te hago un pedido 🌿`,
+    ``,
+  ];
 
   for (const l of lineas) {
     const detalle = l.medida ? ` (${l.medida})` : "";
@@ -203,10 +210,11 @@ export function mensajePedido(
 
 export function linkPedido(
   lineas: Parameters<typeof mensajePedido>[0],
-  numero?: string
+  numero?: string,
+  codigo?: string
 ): string {
   return `https://wa.me/${numero ?? CONSULTORIO.whatsapp}?text=${encodeURIComponent(
-    mensajePedido(lineas)
+    mensajePedido(lineas, codigo)
   )}`;
 }
 

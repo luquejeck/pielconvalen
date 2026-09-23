@@ -8,7 +8,28 @@ import { PAGO_PRODUCTOS } from "@/lib/config";
 import { formatearPrecio } from "@/lib/tratamientos";
 import { linkPedido } from "@/lib/whatsapp";
 import { useCarrito } from "./CarritoContext";
-import { IconoBillete, IconoPin, IconoWhatsApp } from "./iconos";
+import { IconoBillete, IconoCheck, IconoPin, IconoWhatsApp } from "./iconos";
+
+/*
+  EL CODIGO DEL PEDIDO: P- y cuatro caracteres, sin los que se confunden
+  al leerlos en voz alta o en un telefono (0 y O, 1, I y L). Lo arma el
+  navegador porque tiene que ir adentro del mensaje de WhatsApp, que se
+  abre en el mismo toque (ver app/api/pedidos/route.ts).
+*/
+const LETRAS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function nuevoCodigo() {
+  const n = new Uint32Array(4);
+  crypto.getRandomValues(n);
+  return `P-${Array.from(n, (x) => LETRAS[x % LETRAS.length]).join("")}`;
+}
+
+/** Lo que muestra el pedido despues de tocar "Enviar". */
+type Enviado = {
+  codigo: string;
+  /** El mismo link, por si WhatsApp no se abrio. */
+  link: string;
+  estado: "registrando" | "registrado" | "sin-registrar";
+};
 
 /**
  * El pedido: el panel que se abre desde la bolsa del encabezado, desde
@@ -51,19 +72,32 @@ export default function Carrito({
 
   /* "Vaciar" pide confirmacion: primer toque pregunta, segundo borra. */
   const [confirmando, setConfirmando] = useState(false);
+  const [codigo, setCodigo] = useState("");
+  const [enviado, setEnviado] = useState<Enviado | null>(null);
 
   const vacio = detalle.length === 0;
 
-  // Si se vacia con el panel abierto, el panel se cierra solo.
+  /* Si se vacia con el panel abierto, el panel se cierra solo. Menos
+     despues de enviarlo: ahi el pedido se vacia a proposito y lo que se
+     muestra es la confirmacion. */
   useEffect(() => {
-    if (vacio) cerrar();
-  }, [vacio, cerrar]);
+    if (vacio && !enviado) cerrar();
+  }, [vacio, enviado, cerrar]);
 
-  /* Cerrar el panel olvida la pregunta de "vaciar": al volver a abrirlo
-     tiene que estar como siempre, no esperando un "si" de antes. */
+  /* Cerrar el panel olvida la pregunta de "vaciar" y la confirmacion:
+     al volver a abrirlo tiene que estar como siempre. */
   useEffect(() => {
-    if (!abierto) setConfirmando(false);
+    if (!abierto) {
+      setConfirmando(false);
+      setEnviado(null);
+    }
   }, [abierto]);
+
+  /* Un codigo por pedido. Se arma al abrir y no al dibujar: tiene que
+     ser el mismo desde que se arma el link hasta que se toca. */
+  useEffect(() => {
+    if (abierto && !codigo) setCodigo(nuevoCodigo());
+  }, [abierto, codigo]);
 
   /* Con el panel abierto, la pagina de atras no se mueve: en celular,
      scrollear adentro del panel arrastraba la pagina y el pedido se iba
@@ -87,7 +121,7 @@ export default function Carrito({
     return () => window.removeEventListener("keydown", alTeclear);
   }, [abierto, cerrar]);
 
-  if (!listo || vacio || !abierto) return null;
+  if (!listo || !abierto || (vacio && !enviado)) return null;
 
   const hayAConfirmar = detalle.some((d) => d.producto.precio === 0);
 
@@ -135,6 +169,57 @@ export default function Carrito({
     agregar(sugerencia.c.id);
   };
 
+  /*
+    AL TOCAR "ENVIAR": SE REGISTRA Y SE CONFIRMA.
+
+    El link abre WhatsApp como siempre —con el codigo adentro del
+    mensaje—, y a la vez el pedido queda registrado para que Valen lo vea
+    en el panel y lo cruce con el WhatsApp: doble validacion.
+
+    Todo lo demas pasa un instante despues (`setTimeout`): si el pedido
+    se vaciara en el mismo toque, el link desapareceria de la pantalla
+    antes de que el navegador lo siga, y en algunos telefonos WhatsApp
+    no se abriria.
+
+    La confirmacion dice "quedo registrado" y no "Valen lo recibio": la
+    web sabe que se toco el boton, no si se apreto enviar adentro de
+    WhatsApp. Esa es justamente la parte que Valen valida en el panel.
+  */
+  const lineasPedido = detalle.map(({ producto, cantidad }) => ({
+    marca: producto.marca,
+    nombre: producto.nombre,
+    medida: producto.medida,
+    precio: producto.precio,
+    cantidad,
+  }));
+  const link = linkPedido(lineasPedido, whatsapp, codigo || undefined);
+
+  const enviar = () => {
+    const este = codigo;
+    const cuerpo = JSON.stringify({
+      codigo: este,
+      lineas: detalle.map(({ producto, cantidad }) => ({ id: producto.id, cantidad })),
+    });
+    setTimeout(() => {
+      setEnviado({ codigo: este, link, estado: "registrando" });
+      vaciar();
+      setCodigo(nuevoCodigo());
+      fetch("/api/pedidos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: cuerpo,
+        keepalive: true,
+      })
+        .then((r) => r.ok)
+        .catch(() => false)
+        .then((ok) =>
+          setEnviado((e) =>
+            e && e.codigo === este ? { ...e, estado: ok ? "registrado" : "sin-registrar" } : e
+          )
+        );
+    }, 0);
+  };
+
   const ahorro = detalle.reduce(
     (n, { producto, cantidad }) =>
       descuentoDe(producto) !== null ? n + (producto.precioAnterior! - producto.precio) * cantidad : n,
@@ -158,6 +243,10 @@ export default function Carrito({
         aria-label="Mi pedido"
         className="relative flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-suave bg-crema sm:max-h-[85vh] sm:rounded-suave"
       >
+        {enviado ? (
+          <Confirmacion enviado={enviado} onCerrar={cerrar} />
+        ) : (
+        <>
         <header className="flex items-center justify-between gap-3 border-b border-borde px-5 py-4">
           <div>
             <h2 className="font-display text-xl font-semibold text-tinta">
@@ -388,16 +477,8 @@ export default function Carrito({
           </ul>
 
           <a
-            href={linkPedido(
-              detalle.map(({ producto, cantidad }) => ({
-                marca: producto.marca,
-                nombre: producto.nombre,
-                medida: producto.medida,
-                precio: producto.precio,
-                cantidad,
-              })),
-              whatsapp,
-            )}
+            href={link}
+            onClick={enviar}
             target="_blank"
             rel="noopener noreferrer"
             className="boton-principal mt-4 w-full"
@@ -448,7 +529,56 @@ export default function Carrito({
             </button>
           )}
         </footer>
+        </>
+        )}
       </div>
     </div>
   );
 }
+
+/**
+ * La pantalla de despues: "listo, quedo registrado", con el codigo que
+ * tambien va en el WhatsApp y una salida por si WhatsApp no se abrio.
+ */
+function Confirmacion({ enviado, onCerrar }: { enviado: Enviado; onCerrar: () => void }) {
+  const registrado = enviado.estado !== "sin-registrar";
+  return (
+    <div className="px-6 pt-9 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-center">
+      <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-positivo-suave text-positivo">
+        <IconoCheck className="h-8 w-8" />
+      </span>
+
+      <h2 className="mt-4 font-display text-2xl font-semibold text-tinta">
+        {registrado ? "¡Listo! Tu pedido quedó registrado" : "Tu pedido salió por WhatsApp"}
+      </h2>
+
+      <p className="mt-3 text-lg text-tinta-suave">
+        Código{" "}
+        <span className="font-display font-semibold tracking-[0.08em] text-tinta">
+          {enviado.codigo}
+        </span>
+      </p>
+
+      <p className="mx-auto mt-3 max-w-sm text-base leading-snug text-tinta-suave">
+        {registrado
+          ? "Valen lo ve con este mismo código y te responde por WhatsApp para coordinar el pago y el retiro."
+          : "No lo pudimos registrar en la web, pero si enviaste el mensaje, Valen lo recibe igual."}
+      </p>
+
+      <a
+        href={enviado.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-5 inline-flex min-h-11 items-center gap-2 text-base font-semibold text-vino underline decoration-vino/30 underline-offset-4 hover:decoration-vino"
+      >
+        <IconoWhatsApp className="h-5 w-5" />
+        ¿No se abrió WhatsApp? Tocá acá
+      </a>
+
+      <button type="button" onClick={onCerrar} className="boton-principal mt-5 w-full">
+        Seguir mirando
+      </button>
+    </div>
+  );
+}
+

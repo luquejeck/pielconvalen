@@ -19,6 +19,7 @@ import {
 import BuscadorCliente from "./BuscadorCliente";
 import Hoja from "./Hoja";
 import BandejaPendientes from "./BandejaPendientes";
+import PedidosWeb from "./PedidosWeb";
 import Recordatorios from "./Recordatorios";
 import FormularioCobro, { MEDIOS_DE_PAGO } from "./FormularioCobro";
 import AvisoDuplicado from "./AvisoDuplicado";
@@ -351,6 +352,10 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
     <section>
       {/* Primero lo que tiene a alguien esperando, despues lo de mañana. */}
       <Recordatorios direccion={direccion} />
+
+      {/* Los pedidos de la tienda que entraron por la web, para cruzar
+          con el WhatsApp por su codigo. */}
+      <PedidosWeb />
 
       {/* Los pedidos sin responder, de cualquier fecha. */}
       <BandejaPendientes
