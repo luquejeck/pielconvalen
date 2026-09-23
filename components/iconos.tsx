@@ -27,6 +27,16 @@ export function IconoPin({ className = "h-5 w-5" }: Props) {
   );
 }
 
+/** Un escudo con tilde: el sello de "original". */
+export function IconoEscudo({ className = "h-5 w-5" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className={className} aria-hidden="true">
+      <path d="M12 3 5 6v5.5c0 4.3 3 8 7 9.5 4-1.5 7-5.2 7-9.5V6l-7-3Z" strokeLinejoin="round" />
+      <path d="m8.8 12.2 2.2 2.2 4.2-4.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /** Un billete: la forma de pago de los productos. */
 export function IconoBillete({ className = "h-5 w-5" }: Props) {
   return (

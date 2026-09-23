@@ -5,11 +5,11 @@ import Header from "@/components/Header";
 import Carrusel from "@/components/Carrusel";
 import FichaProducto from "@/components/FichaProducto";
 import TarjetaCombo from "@/components/TarjetaCombo";
-import { IconoFlecha, IconoWhatsApp } from "@/components/iconos";
+import { IconoEscudo, IconoFlecha, IconoWhatsApp } from "@/components/iconos";
 import { obtenerProductos } from "@/lib/catalogo-productos";
 import { obtenerCombos } from "@/lib/catalogo-combos";
 import { resolverCombos } from "@/lib/combos";
-import { SITIO_URL } from "@/lib/config";
+import { barrioDe, ORIGEN_PRODUCTOS, preguntasProductos, SITIO_URL } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
 import {
   aSlug,
@@ -55,7 +55,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: `Productos | ${CONSULTORIO.nombre}`,
-    description: `${cuantos} productos de cosmética coreana elegidos por ${CONSULTORIO.profesional}: ${marcas(productos).join(", ")}. Se compran por WhatsApp y se retiran en ${CONSULTORIO.direccion}.`,
+    description: `${cuantos} productos originales de cosmética coreana, importados y elegidos por ${CONSULTORIO.profesional}: ${marcas(productos).join(", ")}. Se compran por WhatsApp y se retiran en ${CONSULTORIO.direccion}.`,
     alternates: { canonical: `${SITIO_URL}/productos` },
     openGraph: {
       title: `Productos | ${CONSULTORIO.nombre}`,
@@ -195,6 +195,12 @@ export default async function Productos({ searchParams }: Busqueda) {
             <h1 className="text-4xl text-tinta sm:text-5xl">
               {marcaElegida ? marcaElegida.nombre : "Productos"}
             </h1>
+            {/* Una sola linea, lo primero que se lee despues del titulo:
+                la duda que frena la compra es si es original. */}
+            <p className="mt-3 flex items-center gap-2 text-lg text-tinta-suave">
+              <IconoEscudo className="h-5 w-5 shrink-0 text-vino" />
+              {ORIGEN_PRODUCTOS}
+            </p>
           </header>
 
 
@@ -415,6 +421,40 @@ export default async function Productos({ searchParams }: Busqueda) {
             cosas la respuesta honesta es verle la piel antes de venderle
             nada.
           */}
+          {/*
+            LAS DUDAS DE QUIEN COMPRA, AL PIE.
+
+            Originalidad, pago y entrega: las tres cosas que se preguntan
+            antes de animarse, contestadas corto y con el mismo formato de
+            las preguntas frecuentes de la portada, que ya se sabe usar.
+          */}
+          <section aria-labelledby="dudas" className="mx-auto mt-14 max-w-3xl">
+            <h2
+              id="dudas"
+              className="font-display text-xl font-semibold tracking-[0.1em] text-tinta uppercase"
+            >
+              Antes de comprar
+            </h2>
+            <ul className="mt-4 divide-y divide-borde border-y border-borde">
+              {preguntasProductos(barrioDe(CONSULTORIO.direccion)).map(({ pregunta, respuesta }) => (
+                <li key={pregunta}>
+                  <details className="group">
+                    <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-2 text-lg text-tinta hover:text-vino [&::-webkit-details-marker]:hidden">
+                      {pregunta}
+                      <span
+                        aria-hidden
+                        className="shrink-0 text-xl text-vino transition-transform group-open:rotate-45"
+                      >
+                        +
+                      </span>
+                    </summary>
+                    <p className="pr-8 pb-4 text-lg leading-relaxed text-tinta-suave">{respuesta}</p>
+                  </details>
+                </li>
+              ))}
+            </ul>
+          </section>
+
           <aside className="mt-14 rounded-suave border border-borde bg-papel px-6 py-10 text-center sm:px-10">
             <h2 className="font-display text-2xl font-normal text-tinta">
               ¿No sabés cuál te sirve?
@@ -431,7 +471,9 @@ export default async function Productos({ searchParams }: Busqueda) {
                 className="boton-principal w-full sm:w-auto"
               >
                 <IconoWhatsApp className="h-5 w-5" />
-                Preguntarle a {CONSULTORIO.profesional.split(" ")[0]}
+                {/* "Valen", como en el resto de la web: la respuesta de
+                    arriba y este boton decian dos nombres distintos. */}
+                Preguntarle a Valen
               </a>
 
               <Link

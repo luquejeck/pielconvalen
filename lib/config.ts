@@ -44,6 +44,37 @@ export type DatosConsultorio = {
  */
 export const PAGO_PRODUCTOS = "efectivo o transferencia";
 
+/**
+ * QUE LOS PRODUCTOS SON ORIGINALES.
+ *
+ * Es la primera duda de quien compra cosmetica coreana en Argentina:
+ * Mercado Libre esta lleno de copias de las mismas marcas que vende
+ * Valen. Lucas confirmo el 23-09-2026 que son marcas originales de
+ * Corea y que los productos son importados; si algun dia entra uno que
+ * no lo sea, este texto deja de ser cierto para ese producto.
+ *
+ * Va debajo de un titulo que ya dice "Productos", asi que no lo repite:
+ * con la palabra, en el celular partia en dos renglones.
+ */
+export const ORIGEN_PRODUCTOS = "Originales, importados de Corea";
+
+/** Las dudas de quien compra, contestadas corto. Van al pie de /productos. */
+export const preguntasProductos = (barrio: string) => [
+  {
+    pregunta: "¿Son originales?",
+    respuesta:
+      "Sí. Son marcas originales de Corea y los productos son importados. Si tenés dudas sobre alguno, preguntale a Valen.",
+  },
+  {
+    pregunta: "¿Cómo se paga?",
+    respuesta: `En ${PAGO_PRODUCTOS}, cuando coordinás el pedido con Valen por WhatsApp.`,
+  },
+  {
+    pregunta: "¿Hacen envíos?",
+    respuesta: `Se retiran en el consultorio, en ${barrio}. Si no podés ir, coordinás con Valen para entregártelo en otro lugar.`,
+  },
+];
+
 /** "Riglos 531, Caballito, CABA" -> "Caballito". */
 export const barrioDe = (direccion: string) =>
   direccion.split(",")[1]?.trim() || "el consultorio";

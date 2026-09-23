@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { obtenerCombos } from "@/lib/catalogo-combos";
 import { resolverCombos } from "@/lib/combos";
+import { ORIGEN_PRODUCTOS } from "@/lib/config";
 import type { ConfiguracionWeb } from "@/lib/consultorio";
 import { productosDestacados, productosEnOferta, type Producto } from "@/lib/productos";
 import Carrusel from "./Carrusel";
 import FichaProducto from "./FichaProducto";
+import { IconoEscudo } from "./iconos";
 import TarjetaCombo from "./TarjetaCombo";
 import TituloTienda from "./TituloTienda";
 
@@ -49,8 +51,17 @@ export default async function Productos({
       className="border-t border-borde bg-crema-oscuro seccion"
     >
       <div className="contenedor">
+        {/* Que son originales, en una linea debajo del titulo: en la
+            portada es la primera vez que la clienta ve productos, y la
+            duda aparece ahi. */}
         <TituloTienda
           titulo="Productos"
+          bajada={
+            <>
+              <IconoEscudo className="h-5 w-5 shrink-0 text-vino" />
+              {ORIGEN_PRODUCTOS}
+            </>
+          }
           verTodo={{ href: "/productos", texto: "Ver todos" }}
         />
 

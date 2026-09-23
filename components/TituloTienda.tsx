@@ -17,9 +17,12 @@ import Link from "next/link";
  */
 export default function TituloTienda({
   titulo,
+  bajada,
   verTodo,
 }: {
   titulo: string;
+  /** Una linea corta debajo del titulo, antes del link. */
+  bajada?: React.ReactNode;
   /** El link de abajo. Sin esto, el titulo va solo. */
   verTodo?: { href: string; texto: string };
 }) {
@@ -33,10 +36,16 @@ export default function TituloTienda({
         <span aria-hidden className="h-px flex-1 bg-tinta/25" />
       </div>
 
+      {bajada && (
+        <p className="mt-3 flex items-center justify-center gap-2 text-base text-tinta-suave">
+          {bajada}
+        </p>
+      )}
+
       {verTodo && (
         <Link
           href={verTodo.href}
-          className="mt-3 inline-block text-base text-tinta-suave underline decoration-tinta/30 underline-offset-[6px] transition-colors hover:text-vino hover:decoration-vino"
+          className="mt-2 inline-block text-base text-tinta-suave underline decoration-tinta/30 underline-offset-[6px] transition-colors hover:text-vino hover:decoration-vino"
         >
           {verTodo.texto}
         </Link>

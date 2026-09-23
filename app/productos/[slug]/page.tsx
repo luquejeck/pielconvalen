@@ -9,7 +9,7 @@ import FichaProducto from "@/components/FichaProducto";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import TarjetaCombo from "@/components/TarjetaCombo";
-import { IconoBillete, IconoPin, IconoWhatsApp } from "@/components/iconos";
+import { IconoBillete, IconoEscudo, IconoPin, IconoWhatsApp } from "@/components/iconos";
 import { obtenerCombos } from "@/lib/catalogo-combos";
 import { obtenerProductos } from "@/lib/catalogo-productos";
 import { PASO, resolverCombos } from "@/lib/combos";
@@ -136,6 +136,8 @@ export default async function PaginaProducto({ params }: Ruta) {
     "@type": "Product",
     name: `${p.marca} ${p.nombre}`,
     brand: { "@type": "Brand", name: p.marca },
+    /* Marcas coreanas, importadas: lo confirmo Lucas (lib/config.ts). */
+    countryOfOrigin: { "@type": "Country", name: "KR" },
     image: fotoAbsoluta(p),
     ...(p.descripcion ? { description: p.descripcion } : {}),
     ...(p.precio > 0
@@ -222,6 +224,13 @@ export default async function PaginaProducto({ params }: Ruta) {
                   sigue lo cuenta el pedido.
                 */}
                 <ul className="mt-3 space-y-1.5 text-base leading-snug font-semibold text-positivo">
+                  {/* Primero que es original: es la duda que frena la
+                      compra antes que el pago o la entrega. Va donde
+                      Mercado Libre pone "Tienda oficial". */}
+                  <li className="flex items-start gap-2">
+                    <IconoEscudo className="mt-px h-5 w-5 shrink-0" />
+                    Original, importado de Corea
+                  </li>
                   <li className="flex items-start gap-2">
                     <IconoBillete className="mt-px h-5 w-5 shrink-0" />
                     Pagás en {PAGO_PRODUCTOS}
