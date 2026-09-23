@@ -14,15 +14,34 @@ import ControlCarrito from "./ControlCarrito";
 /**
  * Una ficha de producto. La usan el carrusel de la portada y el catalogo.
  *
- * LA DISTRIBUCION ES LA DE LA TIENDA QUE PASO LUCAS DE REFERENCIA:
- * todo alineado a la izquierda, marca y nombre juntos en versalitas y en
- * gris, el precio grande abajo con el descuento al lado, y un boton
- * angosto al final.
+ * EL ORDEN DE LECTURA ES EL DE MERCADO LIBRE, que es la tienda que esta
+ * clienta ya sabe leer: arriba que es, abajo cuanto sale.
  *
- * El orden de lectura que arma es mejor que el de antes: con el nombre
- * chico y parejo, lo que salta a la vista es el precio, que es lo que se
- * compara cuando hay trece productos en pantalla. Con el nombre grande y
- * centrado, cada ficha empezaba a leerse por un texto distinto.
+ *   foto
+ *   marca y nombre            <- que es
+ *   medida y beneficios       <- para que sirve
+ *   [20% OFF] ~$ 25.000~      <- la rebaja, ARRIBA del precio
+ *   $ 20.000                  <- lo mas grande de la ficha, solo
+ *   ¡Último disponible!
+ *   [ Agregar ]               <- ancho completo
+ *
+ * Todo alineado a la izquierda. Con el nombre en un tamaño parejo y el
+ * precio mucho mas grande, lo que salta a la vista es el numero, que es
+ * lo que se compara cuando hay veinte productos en pantalla.
+ *
+ * TRES COLORES, UNO POR COSA, como en Mercado Libre:
+ *   tinta  el precio. Negro sobre blanco es lo que mejor se lee.
+ *   verde  lo que se ahorra: la etiqueta "OFF". Es el verde apagado de
+ *          la casa, lleno y con letra blanca como la de Mercado Libre.
+ *   vino   lo que se toca: el boton.
+ * Antes el precio, el descuento, la etiqueta sobre la foto y el boton
+ * iban los cuatro en vino, y cuando todo esta en el color de acento
+ * nada se destaca.
+ *
+ * EL NOMBRE YA NO VA EN MAYUSCULAS NI A 13 PX. Las mayusculas se leen
+ * peor —todas las letras tienen la misma altura y la palabra pierde su
+ * silueta— y 13 px esta por debajo de lo que lee comoda una persona de
+ * sesenta. Va en minusculas, a 15 px en el telefono y 16 en adelante.
  *
  * ES UNA TARJETA, con borde y fondo propio, como las de un marketplace.
  *
@@ -78,7 +97,7 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
   const subtitulo = [p.medida, ...p.beneficios].filter(Boolean).join(" · ");
 
   return (
-    <li className="group flex flex-col overflow-hidden rounded-chico border border-borde bg-papel">
+    <li className="group flex flex-col overflow-hidden rounded-chico border border-borde bg-papel transition-shadow duration-200 hover:shadow-suave">
         <div className={`relative ${claro ? "bg-papel" : "bg-tinta"}`}>
           {/*
             La base se pinta del mismo color al que fundio la foto
@@ -98,112 +117,100 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
           />
 
           {/*
-            AGOTADO MANDA SOBRE EL DESCUENTO.
+            SOBRE LA FOTO SOLO VA "SIN STOCK".
 
-            Los dos carteles van en la misma esquina y un "−20%" sobre
-            algo que no se puede comprar es una promesa que la clienta
-            descubre rota al final. Si no hay stock, ese es el dato.
+            Antes tambien iba el "−20%", y el mismo dato aparecia dos
+            veces en la misma ficha: arriba en la foto y abajo al lado del
+            precio. El descuento se queda donde se lo busca, pegado al
+            numero, que es lo que hace Mercado Libre. "Sin stock" si va
+            arriba: es lo primero que hay que saber, antes de leer nada.
           */}
-          {!disponible ? (
+          {!disponible && (
             <span className="absolute top-0 left-0 bg-tinta px-2 py-1 font-display text-sm font-semibold text-white">
               Sin stock
             </span>
-          ) : (
-            descuento !== null && (
-              <span className="absolute top-0 left-0 bg-vino px-2 py-1 font-display text-sm font-semibold text-white tabular-nums">
-                −{descuento}%
-              </span>
-            )
           )}
-
         </div>
 
-        <div className="flex flex-1 flex-col px-3 pt-3 pb-4">
-          {/*
-            MARCA Y NOMBRE EN UN SOLO BLOQUE, en versalitas y en gris.
-
-            Es la distribucion de la tienda que paso Lucas de referencia,
-            y el orden de lectura que arma es mejor que el anterior: el
-            nombre deja de competir con el precio —queda chico, gris y
-            parejo— y lo que salta a la vista es el numero, que es lo que
-            se compara cuando hay trece productos en pantalla.
-
-            La marca va adentro del mismo bloque pero en negrita: asi se
-            reconoce de un vistazo sin gastar un renglon propio, que era
-            lo que hacia antes.
-          */}
+        <div className="flex flex-1 flex-col px-3 pt-3 pb-3.5">
           {/*
             TRES RENGLONES EN CELULAR, DOS DE ANCHO PARA ARRIBA.
 
-            La ficha mide 161 px en un telefono y en dos renglones
-            entran unos 34 caracteres contando la marca. Diez de los
-            diecisiete productos pasaban de ahi y quedaban cortados
-            justo en la parte que los distingue: "Beauty of Joseon
-            Revive Eye Ser..." no dice si es el de ojos o el otro.
+            La ficha mide 161 px en un telefono y los nombres mas largos
+            —"Beauty of Joseon Relief Sun Probiotics"— no entran en dos:
+            quedaban cortados justo en la parte que los distingue. El
+            tercer renglon cierra el caso. De 640 para arriba la tarjeta
+            es mas ancha y dos alcanzan.
 
-            Se acortaron los nombres —fuera los nombres de linea y el
-            relleno del fabricante— y aun asi los dos Relief Sun llegan
-            a 38, porque "Beauty of Joseon" solo ya son 16. El tercer
-            renglon cierra el caso: pasa de diez cortados a ninguno, y
-            la ficha crece 18 px.
-
-            De 640 para arriba la tarjeta es mas ancha y dos alcanzan.
+            La marca va adentro del mismo bloque pero en negrita: asi se
+            reconoce de un vistazo sin gastar un renglon propio.
           */}
-          <h3 className="line-clamp-3 text-[0.8125rem] leading-snug tracking-[0.02em] text-tinta-suave uppercase sm:line-clamp-2">
-            <span className="font-semibold text-tinta">{p.marca}</span>{" "}
-            {p.nombre}
+          <h3 className="line-clamp-3 text-[0.9375rem] leading-snug text-tinta sm:line-clamp-2 sm:text-base">
+            <span className="font-semibold">{p.marca}</span> {p.nombre}
           </h3>
 
-          {/* `mt-auto` empuja el precio al piso: en una fila los nombres
-              miden distinto y sin esto los precios quedaban a distinta
-              altura en cada columna. */}
-          <div className="mt-auto pt-2">
-            <p className="flex flex-wrap items-baseline gap-x-2 font-display text-xl font-semibold text-vino tabular-nums">
-              {precioDe(p)}
-              {descuento !== null && (
-                <span className="text-sm font-semibold text-vino">
-                  −{descuento}% OFF
+          {/*
+            LA MEDIDA Y LOS BENEFICIOS, PEGADOS AL NOMBRE.
+
+            Antes iban debajo del precio. Son parte de "que es" —igual que
+            los atributos que Mercado Libre pone debajo del titulo— y
+            con el precio en el medio la ficha se leia nombre, plata,
+            nombre otra vez. Juntos, arriba se lee el producto y abajo la
+            compra.
+
+            Dos renglones: con uno solo se cortaban quince de dieciseis
+            fichas en celular, justo en los beneficios, que es lo que la
+            clienta lee para elegir.
+          */}
+          {subtitulo && (
+            <p className="mt-1 line-clamp-2 text-sm leading-snug text-tinta-suave">
+              {subtitulo}
+            </p>
+          )}
+
+          {/* `mt-auto` empuja la compra al piso: en una fila los nombres
+              miden distinto y sin esto los precios y los botones quedaban
+              a distinta altura en cada columna. */}
+          <div className="mt-auto pt-3">
+            {/*
+              LA REBAJA VA EN SU PROPIO RENGLON, ARRIBA DEL PRECIO.
+
+              Es la distribucion de Mercado Libre: la etiqueta verde y el
+              precio de antes tachado, y debajo el precio nuevo solo. Se
+              lee "antes esto, ahora esto", en ese orden, y el precio no
+              tiene que compartir el renglon con nada: en una ficha de
+              161 px, "$ 65.000 20% OFF" ya no entraba en uno.
+            */}
+            {p.precioAnterior && descuento !== null && (
+              <p className="mb-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                <span className="rounded-md bg-positivo px-1.5 py-0.5 font-display text-[0.8125rem] leading-none font-bold text-white tabular-nums">
+                  {descuento}% OFF
                 </span>
-              )}
+                <span className="text-sm text-tinta-suave line-through tabular-nums">
+                  {formatearPrecio(p.precioAnterior)}
+                </span>
+              </p>
+            )}
+
+            <p className="font-display text-[1.375rem] leading-tight font-semibold text-tinta tabular-nums">
+              {precioDe(p)}
             </p>
 
-            {p.precioAnterior && descuento !== null && (
-              <p className="mt-0.5 text-sm text-tinta-suave line-through tabular-nums">
-                {formatearPrecio(p.precioAnterior)}
-              </p>
-            )}
-
             {/*
-              DOS RENGLONES Y NO UNO.
-
-              El subtitulo es `medida + beneficios`, y con un solo renglon
-              se cortaban 15 de las 16 fichas en celular: entraba "30 ml ·
-              Luminosidad · Manch…" y los beneficios —que es lo que la
-              clienta lee para elegir— quedaban afuera. Empeoro el
-              19-09-2026, cuando se cargaron las nueve medidas que
-              faltaban: cada ficha sumo unos siete caracteres adelante.
-
-              Con dos renglones se corta una sola, la mas larga, y la
-              ficha pasa de 335 a 353 px de alto en un iPhone: 18 px por
-              catorce fichas que recuperan sus beneficios.
-            */}
-            {subtitulo && (
-              <p className="mt-1 line-clamp-2 text-[0.8125rem] leading-snug text-tinta-suave">
-                {subtitulo}
-              </p>
-            )}
-
-            {/*
-              UNO SOLO SE DICE, porque es cierto y porque apura la
+              LA ULTIMA UNIDAD SE DICE, porque es cierto y porque apura la
               decision: al 22-09-2026 ocho de los productos publicados
-              tienen una sola unidad.
+              tienen una sola.
+
+              "¡Último disponible!" y no "Queda 1": es la frase de Mercado
+              Libre, que esta clienta ya leyo mil veces y entiende sin
+              pensar. "Queda 1" se podia leer como un numero suelto.
             */}
             {disponible && ultimaUnidad(p) && (
-              <p className="mt-1 text-[0.8125rem] font-semibold text-vino">Queda 1</p>
+              <p className="mt-0.5 text-sm font-semibold text-vino">¡Último disponible!</p>
             )}
 
             {disponible ? (
-              <ControlCarrito id={p.id} nombre={p.nombre} />
+              <ControlCarrito id={p.id} nombre={`${p.marca} ${p.nombre}`} />
             ) : (
               /*
                 Sin stock NO se puede agregar al pedido.
@@ -213,7 +220,7 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
                 ahi. Se deja visible —sirve para saber que Valen lo
                 trabaja y se puede encargar— pero sin boton que prometa.
               */
-              <p className="mt-3 rounded-full border border-borde px-3 py-2 text-center text-sm text-tinta-suave">
+              <p className="mt-3 flex min-h-11 items-center justify-center rounded-full border border-borde px-3 text-center text-sm text-tinta-suave">
                 Sin stock · consultala
               </p>
             )}

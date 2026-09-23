@@ -156,3 +156,23 @@ export function comboComoProducto(c: Combo): Producto {
     beneficios: [],
   };
 }
+
+/**
+ * El paso de la rutina de cada producto, por su categoria.
+ *
+ * Es lo que explica por que esos productos van juntos: "Limpiar +
+ * Tratar + Hidratar" se entiende sin saber que es un serum.
+ */
+export const PASO: Record<string, string> = {
+  Limpiadores: "Limpiar",
+  Tónicos: "Tonificar",
+  Sérums: "Tratar",
+  Mascarillas: "Mascarilla",
+  Cremas: "Hidratar",
+  "Contorno de ojos": "Contorno",
+  "Protector solar": "Proteger",
+};
+
+/** Los pasos del combo, en el orden en que Valen los cargo. */
+export const pasosDe = (c: Combo) =>
+  c.productos.map((p) => PASO[p.categoria] ?? p.categoria);

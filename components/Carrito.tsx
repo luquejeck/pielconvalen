@@ -99,7 +99,7 @@ export default function Carrito({ whatsapp }: { whatsapp: string }) {
             type="button"
             onClick={cerrar}
             aria-label="Cerrar"
-            className="flex size-9 items-center justify-center rounded-full text-2xl leading-none text-tinta-suave transition-colors hover:bg-crema-oscuro hover:text-tinta"
+            className="flex size-11 items-center justify-center rounded-full text-2xl leading-none text-tinta-suave transition-colors hover:bg-crema-oscuro hover:text-tinta"
           >
             <span aria-hidden>×</span>
           </button>
@@ -131,19 +131,21 @@ export default function Carrito({ whatsapp }: { whatsapp: string }) {
                 </p>
               </div>
 
+              {/* Los botones miden 44 px: eran de 36, el tamaño en que un
+                  dedo de sesenta años le erra al "−" y toca el "+". */}
               <div className="flex shrink-0 flex-col items-end gap-1.5">
                 <div className="inline-flex items-center rounded-full bg-crema-oscuro">
                   <button
                     type="button"
                     onClick={() => quitar(producto.id)}
                     aria-label={`Quitar una unidad de ${producto.nombre}`}
-                    className="flex size-9 items-center justify-center rounded-full text-lg text-tinta transition-colors hover:text-vino"
+                    className="flex size-11 items-center justify-center rounded-full text-xl text-tinta transition-colors hover:text-vino"
                   >
                     <span aria-hidden>−</span>
                   </button>
                   <span
                     aria-live="polite"
-                    className="min-w-5 text-center font-display text-base font-semibold text-tinta tabular-nums"
+                    className="min-w-5 text-center font-display text-lg font-semibold text-tinta tabular-nums"
                   >
                     {cantidad}
                   </span>
@@ -151,7 +153,7 @@ export default function Carrito({ whatsapp }: { whatsapp: string }) {
                     type="button"
                     onClick={() => agregar(producto.id)}
                     aria-label={`Agregar otra unidad de ${producto.nombre}`}
-                    className="flex size-9 items-center justify-center rounded-full text-lg text-tinta transition-colors hover:text-vino"
+                    className="flex size-11 items-center justify-center rounded-full text-xl text-tinta transition-colors hover:text-vino"
                   >
                     <span aria-hidden>+</span>
                   </button>

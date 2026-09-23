@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-import ComboRecomendado from "@/components/ComboRecomendado";
+import Carrusel from "@/components/Carrusel";
 import FichaProducto from "@/components/FichaProducto";
+import TarjetaCombo from "@/components/TarjetaCombo";
 import { IconoFlecha, IconoWhatsApp } from "@/components/iconos";
 import { obtenerProductos } from "@/lib/catalogo-productos";
 import { obtenerCombos } from "@/lib/catalogo-combos";
@@ -336,14 +337,35 @@ export default async function Productos({ searchParams }: Busqueda) {
           )}
 
           {/*
-            EL COMBO, ARRIBA DE TODO, sin filtros ni orden.
+            LOS COMBOS, ARRIBA DE TODO, sin filtros ni orden.
 
-            Es la recomendacion para quien entra sin saber por donde
+            Son la recomendacion para quien entra sin saber por donde
             empezar. Con un filtro puesto ya sabe que busca, y el combo
             estaria fuera de contexto: si esta mirando protectores, una
             rutina antiedad no le habla.
+
+            En una fila que se desliza, con el mismo titulo que las
+            categorias de abajo. Apilados, los cuatro median 3400 px en el
+            celular: la clienta tenia que pasar cuatro pantallas de combos
+            para ver el primer producto suelto.
           */}
-          {!enGrilla && combos.map((c) => <ComboRecomendado key={c.id} combo={c} className="mt-8" />)}
+          {!enGrilla && combos.length > 0 && (
+            <section aria-labelledby="combos" className="pt-10">
+              <h2
+                id="combos"
+                className="font-display text-xl font-semibold tracking-[0.1em] text-tinta uppercase"
+              >
+                Combos
+              </h2>
+              <div className="mt-5">
+                <Carrusel etiqueta="Combos" tipo="combos">
+                  {combos.map((c) => (
+                    <TarjetaCombo key={c.id} combo={c} />
+                  ))}
+                </Carrusel>
+              </div>
+            </section>
+          )}
 
           {/*
             Sin filtros se recorre por categoria, con su titulo: es el
@@ -454,7 +476,7 @@ function Pastilla({
     <Link
       href={href}
       aria-current={activa ? "true" : undefined}
-      className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-base whitespace-nowrap transition-colors ${
+      className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-base whitespace-nowrap transition-colors ${
         activa
           ? "border-vino bg-vino text-white"
           : "border-borde bg-papel text-tinta hover:border-vino hover:text-vino"

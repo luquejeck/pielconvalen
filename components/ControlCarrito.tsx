@@ -16,21 +16,40 @@ import { useCarrito } from "./CarritoContext";
  * referencia, y desentonaban: eran el unico boton del sitio que no era
  * del color de la marca.
  *
- * Los botones miden 40px de alto. Es menos que los 44 que se recomiendan
- * para lo que se toca, pero estan al final de una ficha, aislados, sin
- * nada tocable alrededor a menos de 12px: el riesgo real de errarle es
- * el de un blanco mucho mas grande. Subirlos a 44 obligaba a achicar el
- * precio, que es lo que la clienta vino a leer.
+ * OCUPAN TODO EL ANCHO DE LA FICHA Y MIDEN 44 PX.
+ * Antes era una pastilla angosta de 40, pegada a la izquierda. Para una
+ * clienta de sesenta el blanco a tocar es lo que decide si la compra
+ * sale al primer intento, y ancho completo es lo que hace Mercado Libre
+ * en celular. No le quita lugar al precio: crece para los costados, que
+ * estaban vacios.
+ *
+ * YA SUMADO, CAMBIA DE PESO: fondo vino diluido en vez de vino lleno.
+ * El boton lleno quiere decir "tocame para agregar"; el claro, "esto ya
+ * esta, aca ajustas cuantos". Con los dos iguales, de lejos no se
+ * distinguia que fichas ya estaban en el pedido.
+ *
+ * EL COMBO USA ESTE MISMO CONTROL, en grande. Antes tenia su propio
+ * boton que al tocarlo abria el pedido entero encima de la pagina: dos
+ * maneras distintas de "agregar" en la misma tienda. Ahora todo lo que
+ * se agrega se comporta igual, y el aviso de abajo confirma en los dos.
  */
 export default function ControlCarrito({
   id,
   nombre,
+  texto = "Agregar",
+  grande = false,
 }: {
   id: string;
-  /** Para que el lector de pantalla diga de que producto habla. */
+  /** Marca y nombre: los canta el lector de pantalla y los dice el aviso. */
   nombre: string;
+  /** Lo que dice el boton antes de agregar. */
+  texto?: string;
+  /* La tarjeta del combo es ancha y es la compra mas grande de la
+     tienda: el boton pesa como tal, y ya sumado dice "en tu pedido"
+     con palabras, porque ahi hay lugar. */
+  grande?: boolean;
 }) {
-  const { cantidadDe, agregar, quitar, listo } = useCarrito();
+  const { cantidadDe, agregar, quitar, listo, avisar } = useCarrito();
   const cantidad = cantidadDe(id);
 
   /*
@@ -44,23 +63,34 @@ export default function ControlCarrito({
     return (
       <button
         type="button"
-        onClick={() => agregar(id)}
-        className="mt-3 inline-flex min-h-10 items-center gap-1.5 rounded-full bg-vino px-4 font-display text-sm font-medium text-white transition-colors hover:bg-vino-oscuro"
+        onClick={() => {
+          agregar(id);
+          avisar(nombre);
+        }}
+        className={`flex w-full items-center justify-center gap-1.5 rounded-full bg-vino px-3 font-display font-semibold text-white transition-colors hover:bg-vino-oscuro active:scale-[0.98] ${
+          grande ? "mt-4 min-h-13 text-base shadow-boton" : "mt-3 min-h-11 text-[0.9375rem]"
+        }`}
       >
         <span aria-hidden>+</span>
-        Agregar
-        <span className="sr-only">{nombre} al pedido</span>
+        {texto}
+        <span className="sr-only">: {nombre}</span>
       </button>
     );
   }
 
   return (
-    <div className="mt-3 inline-flex min-h-10 items-center rounded-full bg-vino text-white">
+    <div
+      className={`flex w-full items-center justify-between rounded-full bg-vino-suave text-vino ${
+        grande ? "mt-4 min-h-13" : "mt-3 min-h-11"
+      }`}
+    >
       <button
         type="button"
         onClick={() => quitar(id)}
         aria-label={`Quitar una unidad de ${nombre}`}
-        className="flex size-10 items-center justify-center rounded-full text-lg transition-colors hover:bg-vino-oscuro"
+        className={`flex items-center justify-center rounded-full text-xl transition-colors hover:bg-vino hover:text-white ${
+          grande ? "size-13" : "size-11"
+        }`}
       >
         <span aria-hidden>−</span>
       </button>
@@ -72,16 +102,19 @@ export default function ControlCarrito({
       */}
       <span
         aria-live="polite"
-        className="min-w-6 text-center font-display text-base font-semibold tabular-nums"
+        className="min-w-6 text-center font-display text-lg font-semibold tabular-nums"
       >
         {cantidad}
+        {grande && <span className="font-normal"> en tu pedido</span>}
       </span>
 
       <button
         type="button"
         onClick={() => agregar(id)}
         aria-label={`Agregar otra unidad de ${nombre}`}
-        className="flex size-10 items-center justify-center rounded-full text-lg transition-colors hover:bg-vino-oscuro"
+        className={`flex items-center justify-center rounded-full text-xl transition-colors hover:bg-vino hover:text-white ${
+          grande ? "size-13" : "size-11"
+        }`}
       >
         <span aria-hidden>+</span>
       </button>

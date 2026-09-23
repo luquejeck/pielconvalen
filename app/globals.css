@@ -44,10 +44,14 @@
   --color-borde: #dcc6ce;
 
   /*
-    COLOR CON SIGNIFICADO — solo en el panel, nunca en la web publica.
+    COLOR CON SIGNIFICADO — en el panel, y el verde tambien en la tienda.
     En una pantalla de plata el signo tiene que leerse antes que el
     numero. Son verdes y rojos apagados, elegidos para convivir con el
     crema: los saturados de planilla ensucian el conjunto.
+
+    En la tienda el verde quiere decir una sola cosa: lo que se ahorra
+    (el "20% OFF", el "Ahorrás $13.800"). Es el mismo codigo de Mercado
+    Libre, que esta clienta ya sabe leer sin que nadie se lo explique.
   */
   --color-positivo: #2f6b4f;
   --color-positivo-suave: #e4efe8;
@@ -68,9 +72,13 @@
     de la pantalla fuera el del envase. Se veia bien sola y se veia como
     otro sitio al lado de la portada, que es lo que no queria Lucas.
 
-    El vino queda como acento y no como superficie: pinta el precio de
-    oferta y la etiqueta de descuento, que es donde tiene que saltar, y
-    no el fondo de nada. Los envases —rosa, celeste, amarillo— ya no
+    UN COLOR POR COSA, como en Mercado Libre:
+      tinta  el precio, grande. Negro sobre blanco es lo que mejor se lee.
+      verde  lo que se ahorra (--color-positivo).
+      vino   lo que se toca: los botones.
+    Antes el vino pintaba el precio, el descuento y los botones a la vez,
+    y cuando todo esta en el color de acento nada se destaca. El vino
+    sigue sin ser superficie: los envases —rosa, celeste, amarillo— no
     pelean con el, porque no lo tienen al lado.
 
     La UNICA superficie oscura es la base donde se apoya el envase, y es

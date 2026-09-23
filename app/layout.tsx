@@ -5,6 +5,7 @@ import { obtenerCombos } from "@/lib/catalogo-combos";
 import { comboComoProducto, resolverCombos } from "@/lib/combos";
 import { SITIO_URL } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
+import AvisoPedido from "@/components/AvisoPedido";
 import Carrito from "@/components/Carrito";
 import { CarritoProvider } from "@/components/CarritoContext";
 import "./globals.css";
@@ -98,6 +99,7 @@ export default async function RootLayout({
         >
           {children}
           <Carrito whatsapp={CONSULTORIO.whatsapp} />
+          <AvisoPedido />
         </CarritoProvider>
       </body>
     </html>

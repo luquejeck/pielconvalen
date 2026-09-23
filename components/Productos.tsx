@@ -3,9 +3,9 @@ import { obtenerCombos } from "@/lib/catalogo-combos";
 import { resolverCombos } from "@/lib/combos";
 import type { ConfiguracionWeb } from "@/lib/consultorio";
 import { productosDestacados, productosEnOferta, type Producto } from "@/lib/productos";
-import CarruselProductos from "./CarruselProductos";
-import ComboRecomendado from "./ComboRecomendado";
+import Carrusel from "./Carrusel";
 import FichaProducto from "./FichaProducto";
+import TarjetaCombo from "./TarjetaCombo";
 import TituloTienda from "./TituloTienda";
 
 /**
@@ -78,26 +78,39 @@ export default async function Productos({
         )}
 
         <div className="mt-8">
-          <CarruselProductos etiqueta="Productos destacados">
+          <Carrusel etiqueta="Productos destacados">
             {destacados.map((p) => (
               <FichaProducto key={p.id} producto={p} />
             ))}
-          </CarruselProductos>
+          </Carrusel>
         </div>
 
         {/*
-          EL COMBO, DEBAJO DEL CARRUSEL.
+          LOS COMBOS, DEBAJO DE LOS PRODUCTOS, EN SU PROPIA FILA.
 
-          Es donde lo ponen Mercado Libre y Amazon: primero se ve que se
-          vende, y despues "llevate el conjunto" cierra la compra. Arriba
-          empujaba el adelanto de la tienda hacia abajo, y la portada no
-          puede tapar lo que muestra con una oferta.
+          Es donde los ponen Mercado Libre y Amazon: primero se ve que se
+          vende, y despues "llevate el conjunto" cierra la compra.
 
-          Si falta alguno de sus productos, no aparece.
+          Van en fila que se desliza y no uno debajo del otro: apilados,
+          cuatro combos eran tres pantallas y media de celular en el medio
+          de la portada. Con su propio titulo de estante, igual al de
+          "Productos", se leen como un segundo estante de la misma tienda.
+
+          Si a un combo le falta algun producto, no aparece; sin ninguno,
+          no aparece la fila.
         */}
-        {combos.map((c) => (
-          <ComboRecomendado key={c.id} combo={c} className="mt-10" />
-        ))}
+        {combos.length > 0 && (
+          <div className="mt-14">
+            <TituloTienda titulo="Combos" />
+            <div className="mt-6">
+              <Carrusel etiqueta="Combos" tipo="combos">
+                {combos.map((c) => (
+                  <TarjetaCombo key={c.id} combo={c} />
+                ))}
+              </Carrusel>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

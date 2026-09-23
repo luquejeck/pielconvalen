@@ -33,6 +33,14 @@ const CLAVE = "pcv-pedido";
 
 export type Linea = { id: string; cantidad: number };
 
+/** Lo que acaba de entrar al pedido, para el aviso de abajo. */
+export type Aviso = {
+  nombre: string;
+  /* Cambia en cada toque: dos "Agregar" seguidos al mismo producto
+     tienen que reiniciar el aviso, no dejarlo como estaba. */
+  vez: number;
+};
+
 type Carrito = {
   lineas: Linea[];
   /** Las lineas con el producto resuelto y el subtotal, listas para mostrar. */
@@ -50,6 +58,17 @@ type Carrito = {
   abierto: boolean;
   abrir: () => void;
   cerrar: () => void;
+  /*
+    EL AVISO DE "AGREGASTE AL PEDIDO".
+
+    Va aparte de `agregar` a proposito: el "+" del pedido abierto o el
+    de una ficha que ya estaba sumada no tienen que avisar nada, porque
+    la clienta esta mirando el numero que cambio. Avisa solo el primer
+    "Agregar" de una ficha y el boton del combo.
+  */
+  aviso: Aviso | null;
+  avisar: (nombre: string) => void;
+  cerrarAviso: () => void;
   /** Ya se leyo lo guardado. Antes de esto no hay que dibujar numeros. */
   listo: boolean;
 };
@@ -79,6 +98,7 @@ export function CarritoProvider({
   const [lineas, setLineas] = useState<Linea[]>([]);
   const [listo, setListo] = useState(false);
   const [abierto, setAbierto] = useState(false);
+  const [aviso, setAviso] = useState<Aviso | null>(null);
 
   /*
     Se lee DESPUES del primer dibujo y no durante.
@@ -160,8 +180,17 @@ export function CarritoProvider({
   );
 
   const vaciar = useCallback(() => setLineas([]), []);
-  const abrir = useCallback(() => setAbierto(true), []);
+  /* Abrir el pedido saca el aviso: ya se esta viendo lo que anunciaba. */
+  const abrir = useCallback(() => {
+    setAbierto(true);
+    setAviso(null);
+  }, []);
   const cerrar = useCallback(() => setAbierto(false), []);
+  const avisar = useCallback(
+    (nombre: string) => setAviso((antes) => ({ nombre, vez: (antes?.vez ?? 0) + 1 })),
+    []
+  );
+  const cerrarAviso = useCallback(() => setAviso(null), []);
 
   const valor = useMemo<Carrito>(() => {
     const detalle = lineas.flatMap((l) => {
@@ -190,8 +219,11 @@ export function CarritoProvider({
       abierto,
       abrir,
       cerrar,
+      aviso,
+      avisar,
+      cerrarAviso,
     };
-  }, [lineas, agregar, quitar, poner, vaciar, listo, abierto, abrir, cerrar]);
+  }, [lineas, agregar, quitar, poner, vaciar, listo, abierto, abrir, cerrar, aviso, avisar, cerrarAviso]);
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
