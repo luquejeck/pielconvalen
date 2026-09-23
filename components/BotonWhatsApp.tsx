@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { linkWhatsAppSimple } from "@/lib/whatsapp";
+import { useCarrito } from "./CarritoContext";
 import { useReserva } from "./ReservaContext";
 import { IconoWhatsApp } from "./iconos";
 
@@ -36,6 +37,10 @@ import { IconoWhatsApp } from "./iconos";
  * ---------------------------------------------------------------------- */
 export default function BotonWhatsApp() {
   const { consultorio } = useReserva();
+  /* Con algo en el pedido, en el celular aparece la barra fija de abajo
+     (components/BarraPedido.tsx) y el boton sube para no quedar encima. */
+  const { listo, unidades } = useCarrito();
+  const conBarra = listo && unidades > 0;
 
   /* Arranca expandido y visible para que el HTML del servidor y el del
      navegador coincidan. Los efectos lo ajustan despues. */
@@ -79,7 +84,7 @@ export default function BotonWhatsApp() {
       */
       className={`fixed bottom-5 right-5 z-50 flex min-h-14 items-center justify-center rounded-full bg-vino text-white ring-3 ring-white/85 shadow-xl shadow-tinta/25 transition-all duration-300 hover:bg-vino-oscuro active:scale-95 ${
         compacto ? "gap-0" : "gap-2.5"
-      } ${
+      } ${conBarra ? "max-md:bottom-24" : ""} ${
         oculto
           ? "pointer-events-none translate-y-24 opacity-0"
           : "translate-y-0 opacity-100 hover:scale-105"

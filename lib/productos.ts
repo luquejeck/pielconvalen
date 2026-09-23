@@ -163,6 +163,12 @@ export type Producto = {
   destacado?: boolean;
   /** Se esconde sin borrarlo: falta confirmar precio o descripcion. */
   borrador?: boolean;
+  /**
+   * Solo los combos: lo que trae, un renglon por producto. El pedido lo
+   * muestra debajo del nombre para que "Rutina full" no sea una caja
+   * cerrada justo antes de mandarlo.
+   */
+  incluye?: string[];
 };
 
 /*
@@ -629,6 +635,19 @@ export const aSlug = (texto: string) =>
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+
+/**
+ * La direccion de la ficha de un producto: /productos/<esto>.
+ *
+ * Sale de marca, nombre y medida y no del id: es lo que se lee cuando
+ * alguien pasa el link por WhatsApp ("/productos/anua-peach-77-...")
+ * y lo que Google muestra. La medida entra porque el mismo producto
+ * puede estar en dos tamaños, y ahi el nombre solo no alcanza.
+ *
+ * Si Valen le cambia el nombre, el link viejo deja de existir: la
+ * pagina lo manda al catalogo en vez de mostrar un error.
+ */
+export const slugDe = (p: Producto) => aSlug(`${p.marca} ${p.nombre} ${p.medida ?? ""}`);
 
 export type MarcaConFoto = {
   nombre: string;

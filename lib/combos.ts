@@ -149,6 +149,7 @@ export function comboComoProducto(c: Combo): Producto {
     marca: "Combo",
     nombre: c.nombre,
     medida: c.productos.map((p) => `${p.marca} ${p.nombre}`).join(" + "),
+    incluye: c.productos.map((p) => `${p.marca} ${p.nombre}`),
     categoria: c.productos[0].categoria as Categoria,
     precio: c.precio,
     precioAnterior: c.suma,

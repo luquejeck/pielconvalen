@@ -52,6 +52,8 @@
     En la tienda el verde quiere decir una sola cosa: lo que se ahorra
     (el "20% OFF", el "Ahorrás $13.800"). Es el mismo codigo de Mercado
     Libre, que esta clienta ya sabe leer sin que nadie se lo explique.
+    El rojo aparece una sola vez: en el "Sí, vaciar" del pedido, lo unico
+    de la tienda que borra algo.
   */
   --color-positivo: #2f6b4f;
   --color-positivo-suave: #e4efe8;

@@ -18,6 +18,11 @@ import { useCarrito } from "./CarritoContext";
  * El numero va en una pastilla pegada al icono y no adentro: adentro del
  * dibujo de la bolsa no entra un 2 de dos digitos, y con doce unidades el
  * numero se comia el icono.
+ *
+ * DE 640 PX PARA ARRIBA DICE "MI PEDIDO". Un icono solo no dice que es
+ * hasta que se lo toca; con la palabra al lado no hay que adivinar. En
+ * el celular no entra junto a "Reservar turno", y ahi el pedido lo
+ * nombra la barra de abajo (components/BarraPedido.tsx).
  */
 export default function BotonCarrito() {
   const { unidades, abrir, listo } = useCarrito();
@@ -29,14 +34,19 @@ export default function BotonCarrito() {
       type="button"
       onClick={abrir}
       aria-label={`Ver mi pedido: ${unidades} ${unidades === 1 ? "unidad" : "unidades"}`}
-      className="relative flex size-11 shrink-0 items-center justify-center rounded-full text-vino transition-colors hover:bg-vino-suave"
+      className="flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded-full text-vino transition-colors hover:bg-vino-suave sm:px-3.5"
     >
-      <IconoBolsa className="h-6 w-6" />
-      <span
-        aria-hidden
-        className="absolute -top-0.5 -right-0.5 flex min-w-5 items-center justify-center rounded-full bg-vino px-1 font-display text-xs font-semibold text-white tabular-nums"
-      >
-        {unidades}
+      <span className="relative">
+        <IconoBolsa className="h-6 w-6" />
+        <span
+          aria-hidden
+          className="absolute -top-2 -right-2.5 flex min-w-5 items-center justify-center rounded-full bg-vino px-1 font-display text-xs font-semibold text-white tabular-nums"
+        >
+          {unidades}
+        </span>
+      </span>
+      <span aria-hidden className="hidden font-display text-base font-semibold sm:inline">
+        Mi pedido
       </span>
     </button>
   );

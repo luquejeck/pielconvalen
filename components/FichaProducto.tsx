@@ -1,10 +1,12 @@
 import { readFileSync } from "node:fs";
 import Image from "next/image";
+import Link from "next/link";
 import {
   descuentoDe,
   fotoDe,
   hayStock,
   precioDe,
+  slugDe,
   ultimaUnidad,
   type Producto,
 } from "@/lib/productos";
@@ -51,17 +53,18 @@ import ControlCarrito from "./ControlCarrito";
  * sobre blanco y otras sobre fondo oscuro— no se veia donde terminaba una
  * y empezaba la otra. El borde las vuelve a separar.
  *
- * LA FICHA YA NO ES UN LINK A WHATSAPP: suma al pedido.
+ * TOCAR LA FICHA ABRE EL PRODUCTO; TOCAR "AGREGAR" LO SUMA AL PEDIDO.
  *
- * Antes cada ficha entera abria un chat con ese producto, asi que
- * llevarse tres cosas eran tres conversaciones sueltas. Ahora el unico
- * elemento que se toca es el control de unidades, y el mensaje se arma
- * una sola vez con todo junto desde el carrito.
+ * Es lo que hace Mercado Libre, y lo que la clienta ya espera: la foto
+ * y el nombre llevan a /productos/<slug>, donde esta la descripcion que
+ * Valen carga y que antes no se veia en ningun lado.
  *
- * Eso ademas destraba algo que antes no se podia hacer: con la ficha
- * entera envuelta en un <a>, no se le podia meter adentro un boton de
- * "+" y otro de "−", porque un boton adentro de un link no es HTML
- * valido y los lectores de pantalla lo anuncian dos veces.
+ * La ficha entera NO se envuelve en un <a>: un boton adentro de un link
+ * no es HTML valido y los lectores de pantalla lo anuncian dos veces. El
+ * link es el nombre, y su `::after` se estira sobre toda la tarjeta
+ * (`after:absolute after:inset-0`), asi que se toca en cualquier parte.
+ * El control del pedido va por encima con `z-10` y sigue siendo su
+ * propio boton.
  */
 /**
  * Que productos tienen la foto sobre fondo claro.
@@ -97,7 +100,7 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
   const subtitulo = [p.medida, ...p.beneficios].filter(Boolean).join(" · ");
 
   return (
-    <li className="group flex flex-col overflow-hidden rounded-chico border border-borde bg-papel transition-shadow duration-200 hover:shadow-suave">
+    <li className="group relative flex flex-col overflow-hidden rounded-chico border border-borde bg-papel transition-shadow duration-200 hover:shadow-suave">
         <div className={`relative ${claro ? "bg-papel" : "bg-tinta"}`}>
           {/*
             La base se pinta del mismo color al que fundio la foto
@@ -146,7 +149,12 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
             reconoce de un vistazo sin gastar un renglon propio.
           */}
           <h3 className="line-clamp-3 text-[0.9375rem] leading-snug text-tinta sm:line-clamp-2 sm:text-base">
-            <span className="font-semibold">{p.marca}</span> {p.nombre}
+            <Link
+              href={`/productos/${slugDe(p)}`}
+              className="after:absolute after:inset-0 group-hover:text-vino"
+            >
+              <span className="font-semibold">{p.marca}</span> {p.nombre}
+            </Link>
           </h3>
 
           {/*
@@ -210,7 +218,9 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
             )}
 
             {disponible ? (
-              <ControlCarrito id={p.id} nombre={`${p.marca} ${p.nombre}`} />
+              <div className="relative z-10">
+                <ControlCarrito id={p.id} nombre={`${p.marca} ${p.nombre}`} />
+              </div>
             ) : (
               /*
                 Sin stock NO se puede agregar al pedido.
