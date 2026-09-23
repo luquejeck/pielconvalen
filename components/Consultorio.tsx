@@ -63,22 +63,25 @@ export default function Consultorio({
             asi que no hay numeros escritos a mano que se desactualicen.
           */}
           {/*
-            UN RETRATO EN CIRCULO Y NO LA FOTO A TODO EL ANCHO.
+            EN EL CELULAR, MAS CHICA Y CENTRADA; EN PANTALLA GRANDE, COMO
+            SIEMPRE.
 
             A lo ancho del celular la foto media 335 x 335 px y era casi
             toda la altura de la seccion —1134 px, la mas larga de la
             portada despues del calendario— aunque el texto ya era corto.
-            En circulo y centrada arriba del nombre se lee como un perfil:
-            la cara sigue estando, que es lo que da confianza, y la
-            portada se acorta. El aro blanco la despega del crema.
+            Ahora mide 224 px y va centrada arriba del nombre.
+
+            Con las esquinas redondeadas de todo lo demas de la web, y no
+            en circulo: se probo un retrato redondo y parecia de otra
+            pagina, porque es la unica forma circular del sitio.
           */}
           {hayValen && (
             <Image
               src={fotoValen}
               alt={`${CONSULTORIO.profesional}, ${CONSULTORIO.profesion.toLowerCase()}`}
-              sizes="(min-width: 1024px) 20rem, 11rem"
+              sizes="(min-width: 1024px) 46vw, 14rem"
               placeholder="blur"
-              className="mx-auto aspect-square size-44 rounded-full object-cover shadow-suave ring-4 ring-papel lg:size-80"
+              className="mx-auto aspect-square w-56 rounded-suave object-cover shadow-suave lg:w-full"
             />
           )}
 
