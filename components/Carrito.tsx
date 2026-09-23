@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { descuentoDe, fotoDe, precioDe } from "@/lib/productos";
+import { PAGO_PRODUCTOS } from "@/lib/config";
 import { formatearPrecio } from "@/lib/tratamientos";
 import { linkPedido } from "@/lib/whatsapp";
 import { useCarrito } from "./CarritoContext";
-import { IconoPin, IconoWhatsApp } from "./iconos";
+import { IconoBillete, IconoPin, IconoWhatsApp } from "./iconos";
 
 /**
  * El pedido: el panel que se abre desde la bolsa del encabezado, desde
@@ -276,9 +277,9 @@ export default function Carrito({
             La web no cobra ni manda nada, y eso no estaba escrito en
             ningun lado que la clienta viera. Para quien compra poco por
             internet, "¿y ahora donde pago?" es lo que frena el ultimo
-            toque. Se dice lo que es seguro —se abre WhatsApp, se retira en
-            el consultorio— y el pago queda para hablarlo con Valen: la
-            web no promete medios de pago que no conoce.
+            toque. Tres renglones cortos: que se abre WhatsApp, como se
+            paga y donde se retira (o que la entrega se arregla con
+            Valen).
           */}
           <ul className="mt-3 space-y-1.5 rounded-chico bg-papel px-3.5 py-3 text-[0.9375rem] leading-snug text-tinta-suave">
             <li className="flex gap-2.5">
@@ -286,8 +287,12 @@ export default function Carrito({
               <span>Se abre WhatsApp con tu pedido ya escrito.</span>
             </li>
             <li className="flex gap-2.5">
+              <IconoBillete className="mt-0.5 h-4 w-4 shrink-0 text-vino" />
+              <span>Pagás en {PAGO_PRODUCTOS}.</span>
+            </li>
+            <li className="flex gap-2.5">
               <IconoPin className="mt-0.5 h-4 w-4 shrink-0 text-vino" />
-              <span>Retirás en {direccion}. El pago lo coordinás con Valen.</span>
+              <span>Retirás en {direccion}, o coordinás la entrega con Valen.</span>
             </li>
           </ul>
 

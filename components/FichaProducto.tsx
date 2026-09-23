@@ -7,7 +7,6 @@ import {
   hayStock,
   precioDe,
   slugDe,
-  ultimaUnidad,
   type Producto,
 } from "@/lib/productos";
 import { formatearPrecio } from "@/lib/tratamientos";
@@ -24,7 +23,6 @@ import ControlCarrito from "./ControlCarrito";
  *   medida y beneficios       <- para que sirve
  *   [20% OFF] ~$ 25.000~      <- la rebaja, ARRIBA del precio
  *   $ 20.000                  <- lo mas grande de la ficha, solo
- *   ¡Último disponible!
  *   [ Agregar ]               <- ancho completo
  *
  * Todo alineado a la izquierda. Con el nombre en un tamaño parejo y el
@@ -205,17 +203,15 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
             </p>
 
             {/*
-              LA ULTIMA UNIDAD SE DICE, porque es cierto y porque apura la
-              decision: al 22-09-2026 ocho de los productos publicados
-              tienen una sola.
+              "¡ULTIMO DISPONIBLE!" NO VA EN LA TARJETA, solo en la pagina
+              del producto.
 
-              "¡Último disponible!" y no "Queda 1": es la frase de Mercado
-              Libre, que esta clienta ya leyo mil veces y entiende sin
-              pensar. "Queda 1" se podia leer como un numero suelto.
+              Al 23-09-2026 salia en 16 de las 23 fichas: si casi todo es
+              "el ultimo", deja de apurar, se lee como presion, y era un
+              renglon mas en cada tarjeta. En la pagina del producto, que
+              es donde se decide, si se dice.
             */}
-            {disponible && ultimaUnidad(p) && (
-              <p className="mt-0.5 text-sm font-semibold text-vino">¡Último disponible!</p>
-            )}
+
 
             {disponible ? (
               <div className="relative z-10">

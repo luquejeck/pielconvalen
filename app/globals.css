@@ -49,9 +49,11 @@
     numero. Son verdes y rojos apagados, elegidos para convivir con el
     crema: los saturados de planilla ensucian el conjunto.
 
-    En la tienda el verde quiere decir una sola cosa: lo que se ahorra
-    (el "20% OFF", el "Ahorrás $13.800"). Es el mismo codigo de Mercado
-    Libre, que esta clienta ya sabe leer sin que nadie se lo explique.
+    En la tienda el verde quiere decir "esto te conviene": lo que se
+    ahorra (el "20% OFF", el "Ahorrás $13.800") y, en la pagina de cada
+    producto, como se paga y como llega. Es el mismo codigo de Mercado
+    Libre —el de las cuotas y el "Envio gratis"—, que esta clienta ya
+    sabe leer sin que nadie se lo explique.
     El rojo aparece una sola vez: en el "Sí, vaciar" del pedido, lo unico
     de la tienda que borra algo.
   */
@@ -76,7 +78,7 @@
 
     UN COLOR POR COSA, como en Mercado Libre:
       tinta  el precio, grande. Negro sobre blanco es lo que mejor se lee.
-      verde  lo que se ahorra (--color-positivo).
+      verde  lo que conviene: el ahorro, y el pago y la entrega.
       vino   lo que se toca: los botones.
     Antes el vino pintaba el precio, el descuento y los botones a la vez,
     y cuando todo esta en el color de acento nada se destaca. El vino

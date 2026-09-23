@@ -31,6 +31,24 @@ export type DatosConsultorio = {
 };
 
 /**
+ * COMO SE PAGAN Y SE ENTREGAN LOS PRODUCTOS.
+ *
+ * No es `mediosDePago` de abajo: ese es el de los tratamientos, lo edita
+ * Valen en /admin/web y hoy dice "Efectivo, transferencia o Mercado
+ * Pago". Los productos se cobran solo en efectivo o transferencia, y se
+ * retiran en el consultorio o se entregan donde se arregle con Valen
+ * (Lucas, 23-09-2026).
+ *
+ * Va en minuscula porque se lee dentro de una frase: "Pagás en
+ * efectivo o transferencia".
+ */
+export const PAGO_PRODUCTOS = "efectivo o transferencia";
+
+/** "Riglos 531, Caballito, CABA" -> "Caballito". */
+export const barrioDe = (direccion: string) =>
+  direccion.split(",")[1]?.trim() || "el consultorio";
+
+/**
  * Valores de arranque. Se usan mientras la base no tenga nada cargado.
  */
 export const CONSULTORIO: DatosConsultorio = {

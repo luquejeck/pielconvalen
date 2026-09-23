@@ -9,11 +9,11 @@ import FichaProducto from "@/components/FichaProducto";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import TarjetaCombo from "@/components/TarjetaCombo";
-import { IconoPin, IconoWhatsApp } from "@/components/iconos";
+import { IconoBillete, IconoPin, IconoWhatsApp } from "@/components/iconos";
 import { obtenerCombos } from "@/lib/catalogo-combos";
 import { obtenerProductos } from "@/lib/catalogo-productos";
 import { PASO, resolverCombos } from "@/lib/combos";
-import { SITIO_URL } from "@/lib/config";
+import { barrioDe, PAGO_PRODUCTOS, SITIO_URL } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
 import {
   descuentoDe,
@@ -86,10 +86,10 @@ export async function generateMetadata({ params }: Ruta): Promise<Metadata> {
  *     vista previa del mensaje trae la foto del producto.
  *   - Google la encuentra cuando alguien busca la marca y el nombre.
  *
- * EL ORDEN ES EL DE LA TARJETA, en grande: foto, que es, cuanto sale y
- * el boton. Debajo, lo que antes no tenia lugar: como se compra, para que
- * sirve, y dos filas para seguir comprando —los combos que lo traen y
- * otros productos parecidos—.
+ * EL ORDEN ES EL DE LA TARJETA, en grande: foto, que es, cuanto sale
+ * —con como se paga y como llega, en verde— y el boton. Debajo, lo que
+ * antes no tenia lugar: para que sirve, y dos filas para seguir
+ * comprando —los combos que lo traen y otros productos parecidos—.
  *
  * Si la direccion no corresponde a ningun producto publicado —Valen le
  * cambio el nombre o lo despublico— manda al catalogo en vez de mostrar
@@ -211,6 +211,26 @@ export default async function PaginaProducto({ params }: Ruta) {
                 {disponible && ultimaUnidad(p) && (
                   <p className="mt-1 text-base font-semibold text-vino">¡Último disponible!</p>
                 )}
+
+                {/*
+                  PAGO Y ENTREGA, EN VERDE, PEGADOS AL PRECIO.
+
+                  Es el lugar y el color del "Envio gratis" y las cuotas
+                  de Mercado Libre: lo que la clienta quiere saber justo
+                  despues del numero es como lo paga y como le llega. Dos
+                  renglones cortos, sin explicacion alrededor: el como
+                  sigue lo cuenta el pedido.
+                */}
+                <ul className="mt-3 space-y-1.5 text-base leading-snug font-semibold text-positivo">
+                  <li className="flex items-start gap-2">
+                    <IconoBillete className="mt-px h-5 w-5 shrink-0" />
+                    Pagás en {PAGO_PRODUCTOS}
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <IconoPin className="mt-px h-5 w-5 shrink-0" />
+                    Retiro en {barrioDe(CONSULTORIO.direccion)} o entrega a coordinar
+                  </li>
+                </ul>
               </div>
 
               {disponible ? (
@@ -234,31 +254,6 @@ export default async function PaginaProducto({ params }: Ruta) {
                 </a>
               )}
 
-              {/*
-                COMO SE COMPRA, pegado al boton.
-
-                Es lo que Mercado Libre pone debajo del precio ("Envio
-                gratis", "Retira en..."), y aca es la duda que frena la
-                compra: la web no cobra, asi que hay que decir que pasa.
-                El pago queda para hablarlo con Valen: la web no promete
-                medios de pago que no conoce.
-              */}
-              <ul className="mt-6 space-y-3 text-base leading-snug text-tinta-suave">
-                <li className="flex gap-3">
-                  <IconoPin className="mt-0.5 h-5 w-5 shrink-0 text-vino" />
-                  <span>
-                    <span className="block font-semibold text-tinta">Lo retirás en el consultorio</span>
-                    {CONSULTORIO.direccion}
-                  </span>
-                </li>
-                <li className="flex gap-3">
-                  <IconoWhatsApp className="mt-0.5 h-5 w-5 shrink-0 text-vino" />
-                  <span>
-                    <span className="block font-semibold text-tinta">Se pide por WhatsApp</span>
-                    Armás tu pedido y se lo mandás a Valen. El pago lo coordinás con ella.
-                  </span>
-                </li>
-              </ul>
 
               {(p.descripcion || p.beneficios.length > 0) && (
                 <section aria-labelledby="para-que-sirve" className="mt-8 border-t border-borde pt-6">
