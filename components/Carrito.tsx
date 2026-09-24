@@ -383,7 +383,8 @@ export default function Carrito({
           escondida debajo del scroll.
         */}
         {sugerencia && (
-          <div className="mx-5 mb-3 flex items-start gap-3 rounded-chico border border-positivo/25 bg-positivo-suave px-3 py-2.5">
+          <div className="mx-5 mb-3 rounded-chico border border-positivo/25 bg-positivo-suave px-3 py-3">
+            <div className="flex items-center gap-3">
             {/* Lo que falta, en foto; si no falta nada, el combo entero. */}
             <span className="flex shrink-0 -space-x-3">
               {(sugerencia.faltan.length > 0 ? sugerencia.faltan : sugerencia.c.productos)
@@ -400,31 +401,36 @@ export default function Carrito({
                 ))}
             </span>
 
-            {/* Dos renglones: arriba que falta, a lo ancho; abajo cuanto
-                se ahorra y el boton. En uno solo, la frase quedaba
-                partida en cuatro renglones de dos palabras. */}
-            <div className="min-w-0 flex-1">
-              <p className="text-[0.9375rem] leading-snug text-tinta">
-                {sugerencia.faltan.length === 0
-                  ? "Ya tenés todo el combo."
-                  : sugerencia.faltan.length === 1
-                    ? <>Sumá <span className="font-semibold">{sugerencia.faltan[0].nombre}</span> y es combo.</>
-                    : `Sumá ${sugerencia.faltan.length} productos y es combo.`}
-              </p>
-              <div className="mt-1.5 flex items-center justify-between gap-2">
-                <span className="text-[0.9375rem] font-semibold whitespace-nowrap text-positivo tabular-nums">
-                  Ahorrás {formatearPrecio(sugerencia.c.ahorro)}
-                </span>
-                <button
-                  type="button"
-                  onClick={armarCombo}
-                  aria-label={`Armar el combo ${sugerencia.c.nombre} y ahorrar ${formatearPrecio(sugerencia.c.ahorro)}`}
-                  className="min-h-11 shrink-0 rounded-full bg-vino px-4 font-display text-[0.9375rem] font-semibold text-white transition-colors hover:bg-vino-oscuro active:scale-[0.98]"
-                >
-                  Armar combo
-                </button>
-              </div>
+            {/* Que falta y cuanto se ahorra, al lado de las fotos. */}
+            <p className="min-w-0 flex-1 text-[0.9375rem] leading-snug text-tinta">
+              {sugerencia.faltan.length === 0
+                ? "Ya tenés todo el combo."
+                : sugerencia.faltan.length === 1
+                  ? <>Sumá <span className="font-semibold">{sugerencia.faltan[0].nombre}</span> y es combo.</>
+                  : `Sumá ${sugerencia.faltan.length} productos y es combo.`}
+              <span className="mt-0.5 block font-semibold text-positivo tabular-nums">
+                Ahorrás {formatearPrecio(sugerencia.c.ahorro)}
+              </span>
+            </p>
             </div>
+
+            {/*
+              EL BOTON VA ABAJO, A LO ANCHO DEL RECUADRO.
+
+              Estuvo en el mismo renglon que "Ahorrás $ 13.800", y en un
+              celular de 360 px, con tres fotitos a la izquierda, no
+              entraban los dos: el boton quedaba 70 px afuera del
+              recuadro, cortado por el borde de la pantalla. Abajo y a lo
+              ancho entra en cualquier telefono y es mas facil de tocar.
+            */}
+            <button
+              type="button"
+              onClick={armarCombo}
+              aria-label={`Armar el combo ${sugerencia.c.nombre} y ahorrar ${formatearPrecio(sugerencia.c.ahorro)}`}
+              className="mt-3 flex min-h-11 w-full items-center justify-center rounded-full bg-vino px-4 font-display text-[0.9375rem] font-semibold text-white transition-colors hover:bg-vino-oscuro active:scale-[0.98]"
+            >
+              Armar combo
+            </button>
           </div>
         )}
 
@@ -481,7 +487,9 @@ export default function Carrito({
             onClick={enviar}
             target="_blank"
             rel="noopener noreferrer"
-            className="boton-principal mt-4 w-full"
+            /* `px-4` y no el relleno de siempre: a 360 px "Enviar pedido
+               por WhatsApp" se partia en dos renglones. */
+            className="boton-principal mt-4 w-full px-4"
           >
             <IconoWhatsApp className="h-5 w-5" />
             Enviar pedido por WhatsApp
