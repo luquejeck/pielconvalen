@@ -136,9 +136,9 @@ export default function Carrito({
   /*
     "ARMÁ EL COMBO": EL "COMPRADOS JUNTOS" DE MERCADO LIBRE, EN EL PEDIDO.
 
-    Si la clienta tiene sueltos algunos productos de un combo, se le
-    ofrece completarlo. Es el mejor momento para hacerlo: ya eligio, y
-    lo que falta para el descuento es poco.
+    Si la clienta tiene sueltos al menos dos productos de un combo, se
+    le ofrece completarlo. Es el mejor momento para hacerlo: ya eligio,
+    y lo que falta para el descuento es poco.
 
     UNA SOLA SUGERENCIA, la mas facil de aceptar: primero la de un combo
     que ya tiene completo (no le falta nada, solo pasarlo), despues la
@@ -158,7 +158,10 @@ export default function Carrito({
       tiene: c.productos.filter((p) => enPedido.has(p.id)),
       faltan: c.productos.filter((p) => !enPedido.has(p.id)),
     }))
-    .filter((x) => x.tiene.length > 0)
+    /* Solo si ya tiene al menos dos del combo. Con uno solo, "sumá
+       dos productos mas" deja de ser completar lo que eligio y pasa a
+       ser venderle otra cosa: se sentia insistente. */
+    .filter((x) => x.tiene.length >= 2)
     .sort((a, b) => a.faltan.length - b.faltan.length || b.c.ahorro - a.c.ahorro)[0];
 
   const armarCombo = () => {
