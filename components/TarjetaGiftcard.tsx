@@ -1,17 +1,32 @@
+import { IconoRegalo } from "./iconos";
+import { LogoMarca } from "./Logo";
+
 /**
- * La giftcard, dibujada: lo que se ve mientras se arma, lo que abre
- * quien la recibe y lo que asoma en la portada.
+ * La giftcard, dibujada: lo que se ve mientras se arma y lo que abre
+ * quien la recibe.
  *
  * CON FORMA DE TARJETA DE VERDAD —la proporcion de una de credito— para
- * que se entienda sola lo que es, sin leer. Es la unica superficie vino
- * de la web: no es una seccion, es un objeto chico, como el envase de un
- * producto.
+ * que se entienda sola lo que es, sin leer.
  *
- * El logo no va: el archivo tiene fondo blanco y solo funciona sobre
- * fondos claros (ver Logo.tsx). El nombre escrito cumple el mismo papel.
+ * QUE SE SIENTA UN REGALO Y NO UN CARTEL. La primera version era un
+ * rectangulo vino liso con dos circulos, y se veia vacia (Lucas,
+ * 25-09-2026). Ahora lleva lo que tiene una giftcard cuidada:
+ *   - degrade de vino y un brillo en diagonal, como un papel metalizado
+ *   - un filete fino adentro del borde, como el marco de una tarjeta
+ *   - el monograma VG del logo de marca de agua, grande y apenas visible
+ *   - la caja de regalo, y el codigo en una pastilla, como un numero
+ *     de serie
  *
- * El mensaje tampoco: puede tener doscientas letras y en la tarjeta no
- * entra. Va debajo, en la pagina.
+ * EL FONDO VA EN SU PROPIA CAPA RECORTADA, junto con el monograma: el
+ * logo se aclara con `mix-blend-screen` (ver Logo.tsx) y solo funciona
+ * si el fondo esta en la misma capa. Y el recorte no le corta el texto
+ * a la tarjeta si un nombre largo la hace crecer.
+ *
+ * Los campos vacios muestran un texto de ejemplo mas apagado: mientras
+ * se arma, se ve que es lo que falta completar.
+ *
+ * El mensaje no va: puede tener doscientas letras y no entra. Va debajo,
+ * en la pagina.
  */
 export default function TarjetaGiftcard({
   para,
@@ -30,42 +45,55 @@ export default function TarjetaGiftcard({
   apagada?: boolean;
   className?: string;
 }) {
+  const ejemplo = "text-crema/45";
+
   return (
     <div
-      className={`relative isolate flex aspect-[1.6] w-full flex-col justify-between rounded-suave bg-vino p-5 text-crema shadow-suave sm:p-6 ${
+      className={`relative isolate flex aspect-[1.6] w-full flex-col justify-between rounded-suave p-6 text-crema shadow-[0_18px_40px_-18px_rgb(93_10_52/0.7)] sm:p-7 ${
         apagada ? "opacity-60 grayscale-[0.5]" : ""
       } ${className}`}
     >
-      {/* El adorno: dos circulos que salen del borde, como el brillo de
-          una tarjeta. Van en su propia capa recortada para que el
-          recorte no le corte el texto a la tarjeta si un nombre largo
-          la hace crecer. */}
-      <span aria-hidden className="absolute inset-0 -z-10 overflow-hidden rounded-suave">
-        <span className="absolute -top-24 -right-20 size-64 rounded-full border border-crema/15" />
-        <span className="absolute -top-12 -right-8 size-40 rounded-full bg-crema/[0.06]" />
-        <span className="absolute -bottom-28 -left-16 size-56 rounded-full bg-vino-oscuro/60" />
+      <span
+        aria-hidden
+        className="absolute inset-0 -z-10 overflow-hidden rounded-suave bg-[linear-gradient(135deg,#931656_0%,var(--color-vino)_42%,var(--color-vino-oscuro)_100%)]"
+      >
+        {/* El monograma, de marca de agua, saliendo por la esquina. */}
+        <LogoMarca alto={170} sobreOscuro tenue className="absolute -right-10 -bottom-8" />
+        {/* El brillo en diagonal. */}
+        <span className="absolute inset-0 bg-[linear-gradient(115deg,transparent_30%,rgb(255_255_255/0.09)_45%,transparent_60%)]" />
+        {/* El filete: el marco fino adentro del borde. */}
+        <span className="absolute inset-2.5 rounded-[1.05rem] border border-crema/20" />
       </span>
 
       <div className="flex items-start justify-between gap-3">
-        <p className="font-display text-base leading-tight font-semibold tracking-tight">
-          Piel con Valen
-        </p>
-        <p className="font-display text-xs leading-tight font-semibold tracking-[0.2em] text-crema/75 uppercase">
-          Giftcard
-        </p>
+        <div>
+          <LogoMarca alto={22} sobreOscuro />
+          <p className="mt-2 font-display text-[0.6875rem] leading-none font-semibold tracking-[0.3em] text-crema/70 uppercase">
+            Giftcard
+          </p>
+        </div>
+        <IconoRegalo className="h-7 w-7 shrink-0 text-crema/85" />
       </div>
 
       <div className="py-3">
-        <p className="text-[0.9375rem] leading-snug text-crema/80">Para {para}</p>
-        <p className="mt-1 font-display text-[1.625rem] leading-[1.1] font-semibold sm:text-3xl">
-          {regalo}
+        <p className={`text-[0.9375rem] leading-snug ${para ? "text-crema/80" : ejemplo}`}>
+          Para {para || "quien la recibe"}
+        </p>
+        <p
+          className={`mt-1 font-display text-[1.75rem] leading-[1.1] font-semibold sm:text-[2rem] ${
+            regalo ? "" : ejemplo
+          }`}
+        >
+          {regalo || "Tu regalo"}
         </p>
       </div>
 
-      <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1 text-[0.9375rem] leading-snug">
-        <p className="text-crema/80">De parte de {de}</p>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 text-[0.9375rem] leading-snug">
+        <p className={de ? "text-crema/80" : ejemplo}>De parte de {de || "vos"}</p>
         {codigo && (
-          <p className="font-display font-semibold tracking-[0.12em] tabular-nums">{codigo}</p>
+          <p className="rounded-full bg-crema/12 px-3 py-1 font-display text-sm font-semibold tracking-[0.12em] tabular-nums ring-1 ring-crema/20">
+            {codigo}
+          </p>
         )}
       </div>
     </div>

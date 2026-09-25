@@ -116,3 +116,14 @@ export function IconoPlay({ className = "h-6 w-6" }: Props) {
     </svg>
   );
 }
+
+/* Una caja de regalo con moño: el sello de las giftcards. */
+export function IconoRegalo({ className = "h-6 w-6" }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" className={className} aria-hidden="true">
+      <rect x="3.5" y="8.5" width="17" height="4" rx="1" />
+      <path d="M5 12.5v7a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5v-7M12 8.5V21" strokeLinejoin="round" />
+      <path d="M12 8.5C10.5 5 7.5 3.5 6.3 5.2 5.2 6.8 7.5 8.5 12 8.5zM12 8.5c1.5-3.5 4.5-5 5.7-3.3 1.1 1.6-1.2 3.3-5.7 3.3z" strokeLinejoin="round" />
+    </svg>
+  );
+}
