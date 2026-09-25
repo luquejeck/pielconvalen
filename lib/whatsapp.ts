@@ -51,15 +51,20 @@ export function mensajeReserva({
     momento, con el tratamiento ya elegido. Y ahora TODOS los turnos que
     entran por la web son consultas, asi que ese "$ 0" iba en cada
     mensaje que le llegaba a Valen.
+
+    SIN ACLARACIONES ENTRE PARENTESIS. Decia "(el precio lo definen
+    ahí)": es un mensaje que manda la clienta con su nombre, y la
+    aclaracion sonaba a la web hablando por ella (Lucas, 25-09-2026).
+    Que el precio se define en el momento ya lo leyo en la pagina.
   */
   const queTurno = esConsulta(tratamiento)
-    ? `• Turno: ${tratamiento.nombre} (el precio lo definen ahí)`
-    : `• Tratamiento: ${tratamiento.nombre} (${precio})`;
+    ? [`• Turno: ${tratamiento.nombre}`]
+    : [`• Tratamiento: ${tratamiento.nombre}`, `• Precio: ${precio}`];
 
   const lineas = [
     `Hola Valen! Quiero reservar un turno 🌿`,
     ``,
-    queTurno,
+    ...queTurno,
     `• Fecha: ${formatearFechaLarga(fecha)}`,
     `• Horario: ${hora} hs`,
   ];
@@ -138,7 +143,7 @@ export function mensajeProducto({
   const lineas = [
     `Hola Valen! Me interesa este producto 🌿`,
     ``,
-    `• ${nombre}${medida ? ` (${medida})` : ""}`,
+    `• ${nombre}${medida ? ` · ${medida}` : ""}`,
     `• Marca: ${marca}`,
   ];
 
@@ -177,14 +182,15 @@ export function mensajePedido(
   codigo?: string
 ): string {
   /* El codigo va arriba de todo: es lo que Valen busca en el panel para
-     cruzar el mensaje con el pedido registrado. */
-  const partes = [
-    codigo ? `Hola Valen! Te hago un pedido 🌿 (Pedido ${codigo})` : `Hola Valen! Te hago un pedido 🌿`,
-    ``,
-  ];
+     cruzar el mensaje con el pedido registrado. En su propio renglon y
+     no entre parentesis al lado del saludo: en los mensajes que manda
+     la clienta no va nada entre parentesis (Lucas, 25-09-2026). */
+  const partes = [`Hola Valen! Te hago un pedido 🌿`];
+  if (codigo) partes.push(`Código: ${codigo}`);
+  partes.push(``);
 
   for (const l of lineas) {
-    const detalle = l.medida ? ` (${l.medida})` : "";
+    const detalle = l.medida ? ` · ${l.medida}` : "";
     /* Sin precio cargado se pide en el renglon, en vez de mostrar un
        "$ 0" que no dice nada y ensucia el total. */
     const importe =
