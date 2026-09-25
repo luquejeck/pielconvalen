@@ -20,9 +20,20 @@ const CAJA = { izq: 0.225, arriba: 0.265, ancho: 0.5625, alto: 0.29 };
 export function LogoMarca({
   alto = 30,
   className = "",
+  sobreOscuro = false,
+  tenue = false,
 }: {
   alto?: number;
   className?: string;
+  /**
+   * Para fondos oscuros, como la giftcard. El archivo es vino sobre
+   * blanco: se pasa a grises y se invierte (fondo negro, monograma
+   * claro) y `screen` borra el negro. Queda el monograma claro sobre
+   * lo que haya detras.
+   */
+  sobreOscuro?: boolean;
+  /** Sobre oscuro, apenas insinuado: de marca de agua. */
+  tenue?: boolean;
 }) {
   const escala = alto / CAJA.alto;
 
@@ -46,8 +57,14 @@ export function LogoMarca({
           no merece precargarse antes que el titulo de la pagina.
         */
         sizes={`${Math.ceil(escala)}px`}
-        className="mix-blend-multiply"
+        className={sobreOscuro ? "mix-blend-screen" : "mix-blend-multiply"}
         style={{
+          /* La intensidad se baja con `brightness` y no con `opacity`:
+             la opacidad aislaria la imagen y `screen` dejaria de borrar
+             el fondo negro. */
+          filter: sobreOscuro
+            ? `grayscale(1) invert(1) contrast(1.6)${tenue ? " brightness(0.13)" : ""}`
+            : undefined,
           height: escala,
           width: escala,
           maxWidth: "none",

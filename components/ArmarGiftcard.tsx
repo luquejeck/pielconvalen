@@ -139,16 +139,18 @@ export default function ArmarGiftcard({
   /* "Efectivo, transferencia..." se lee dentro de una frase. */
   const comoSePaga = mediosDePago.charAt(0).toLowerCase() + mediosDePago.slice(1);
 
+  /* Lo que falta completar va vacio: la tarjeta pone un texto de ejemplo
+     mas apagado en su lugar. */
   const tarjeta = (
     <TarjetaGiftcard
-      para={para.trim() || "quien la recibe"}
-      de={de.trim() || "vos"}
+      para={para.trim()}
+      de={de.trim()}
       regalo={
         tratamiento
           ? tratamiento.nombre
           : regalo === MONTO && importe > 0
             ? formatearPrecio(importe)
-            : "Tu regalo"
+            : ""
       }
       codigo={enviado?.codigo}
     />
