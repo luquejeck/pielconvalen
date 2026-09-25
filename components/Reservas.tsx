@@ -18,7 +18,6 @@ import {
   type GiftcardEnReserva,
 } from "@/lib/giftcards";
 import { clienteNavegador, hayBaseDeDatos } from "@/lib/supabase";
-import { formatearPrecio } from "@/lib/tratamientos";
 import { CONSULTA, esConsulta } from "@/lib/tratamientos";
 import { linkWhatsApp } from "@/lib/whatsapp";
 
@@ -308,17 +307,10 @@ export default function Reservas() {
                   />
                   <Fila rotulo="Hora" valor={hora ? `${hora} hs` : null} />
                   {/* Sin precio de lista: el tratamiento se define en el
-                      momento, asi que poner un numero seria inventarlo. */}
-                  <Fila
-                    rotulo="Precio"
-                    valor={
-                      !giftcard
-                        ? "Se define en el momento"
-                        : giftcard.tratamiento
-                          ? "Lo cubre tu giftcard"
-                          : `Tu giftcard cubre ${formatearPrecio(giftcard.monto)}`
-                    }
-                  />
+                      momento, asi que poner un numero seria inventarlo.
+                      Con giftcard no va: el cartel verde de arriba ya dice
+                      que regala, y el renglon sobraba (Lucas, 25-09-2026). */}
+                  {!giftcard && <Fila rotulo="Precio" valor="Se define en el momento" />}
                 </dl>
 
                 {/*
