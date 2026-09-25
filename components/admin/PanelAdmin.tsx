@@ -26,6 +26,7 @@ import Recordatorios from "./Recordatorios";
 import FormularioCobro, { MEDIOS_DE_PAGO } from "./FormularioCobro";
 import AvisoDuplicado from "./AvisoDuplicado";
 import { IconoCheck, IconoRegalo } from "../iconos";
+import { codigoEnNotas } from "@/lib/giftcards";
 
 type EstadoTurno =
   | "pendiente"
@@ -43,7 +44,7 @@ type GiftcardDelTurno = {
   tratamiento: string | null;
   monto: number;
   estado: string;
-  turno_id: string;
+  turno_id: string | null;
 };
 
 type TurnoDB = {
@@ -59,6 +60,8 @@ type TurnoDB = {
   /* Que movimiento genero este turno al cobrarse. Sirve para no cobrar
      dos veces y para poder deshacerlo. */
   movimiento_id: string | null;
+  /* "Giftcard G-4K7M9P" si se reservo desde la tarjeta de una giftcard. */
+  notas: string | null;
 };
 
 /**
@@ -169,22 +172,34 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
     setDiaCerrado(Boolean(cerrado));
     setCargando(false);
 
-    /* Las giftcards asociadas a los turnos del dia: se muestran en el
-       turno y el cobro las trae puestas. Sin la tabla (schema-22 sin
-       correr) no viene nada y el dia se ve igual. */
-    const ids = ((filas as TurnoDB[]) ?? []).map((t) => t.id);
+    /* Las giftcards de los turnos del dia: se muestran en el turno y el
+       cobro las trae puestas. Las busca por las dos puntas: las que
+       tienen el turno asociado, y las que el turno trae en sus notas
+       (se reservo desde la tarjeta y todavia nadie abrio Giftcards).
+       Sin la tabla (schema-22 sin correr) no viene nada y el dia se ve
+       igual. */
+    const delDia = (filas as TurnoDB[]) ?? [];
+    const ids = delDia.map((t) => t.id);
+    const codigos = delDia.map((t) => codigoEnNotas(t.notas)).filter((c): c is string => Boolean(c));
     if (ids.length === 0) {
       setGiftcards({});
       return;
     }
-    const { data: gcs } = await supabase
-      .from("giftcards")
-      .select("codigo, tratamiento, monto, estado, turno_id")
-      .in("turno_id", ids)
-      .in("estado", ["vigente", "usada"]);
-    setGiftcards(
-      Object.fromEntries(((gcs as GiftcardDelTurno[]) ?? []).map((g) => [g.turno_id, g]))
-    );
+    const campos = "codigo, tratamiento, monto, estado, turno_id";
+    const [{ data: porTurno }, { data: porCodigo }] = await Promise.all([
+      supabase.from("giftcards").select(campos).in("turno_id", ids).in("estado", ["vigente", "usada"]),
+      codigos.length
+        ? supabase.from("giftcards").select(campos).in("codigo", codigos).in("estado", ["vigente", "usada"])
+        : Promise.resolve({ data: [] }),
+    ]);
+    const mapa: Record<string, GiftcardDelTurno> = {};
+    for (const t of delDia) {
+      const c = codigoEnNotas(t.notas);
+      const g = ((porCodigo as GiftcardDelTurno[]) ?? []).find((x) => x.codigo === c);
+      if (g) mapa[t.id] = g;
+    }
+    for (const g of (porTurno as GiftcardDelTurno[]) ?? []) if (g.turno_id) mapa[g.turno_id] = g;
+    setGiftcards(mapa);
   }, [fecha, supabase]);
 
   const cargarSemana = useCallback(async () => {

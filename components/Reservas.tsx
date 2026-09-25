@@ -99,7 +99,7 @@ export default function Reservas() {
       const res = await fetch("/api/turnos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fecha, hora, nombre }),
+        body: JSON.stringify({ fecha, hora, nombre, giftcard }),
         keepalive: true,
       });
 
