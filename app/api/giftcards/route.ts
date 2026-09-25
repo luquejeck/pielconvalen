@@ -85,6 +85,9 @@ export async function GET(request: NextRequest) {
  *                                  turno (se lo anoto en otro lado).
  *   anular    nueva o vigente -> anulada
  *   deshacer  el paso de antes, por si se toco sin querer.
+ *   asociar   vigente, con { turnoId }: el turno que saco quien la
+ *             recibe. Al cobrarlo, la giftcard ya viene puesta.
+ *   desasociar  le saca el turno.
  *
  * Cada cambio pide el estado de origen en el mismo `update`: si dos
  * pestañas del panel tocan a la vez, la segunda no pisa a la primera.
@@ -94,9 +97,10 @@ export async function PATCH(request: NextRequest) {
   if (!sesion.ok) return sesion.respuesta;
 
   const id = request.nextUrl.searchParams.get("id");
-  const { accion, medioPago } = (await request.json().catch(() => ({}))) as {
+  const { accion, medioPago, turnoId } = (await request.json().catch(() => ({}))) as {
     accion?: string;
     medioPago?: string;
+    turnoId?: string;
   };
   if (!id) return NextResponse.json({ error: "Falta la giftcard." }, { status: 400 });
 
@@ -125,6 +129,20 @@ export async function PATCH(request: NextRequest) {
         vence_el: sumarMeses(hoy, GIFTCARD.vigenciaMeses),
       };
       break;
+    case "asociar": {
+      /* El turno que saco quien la recibe. La giftcard sigue vigente: se
+         usa recien al cobrar ese turno, que ya la trae puesta. */
+      if (!turnoId) return NextResponse.json({ error: "Falta el turno." }, { status: 400 });
+      const { data: turno } = await sesion.sb.from("turnos").select("id").eq("id", turnoId).maybeSingle();
+      if (!turno) return NextResponse.json({ error: "Ese turno ya no existe." }, { status: 404 });
+      desde = ["vigente"];
+      cambios = { turno_id: turnoId };
+      break;
+    }
+    case "desasociar":
+      desde = ["vigente"];
+      cambios = { turno_id: null };
+      break;
     case "usar":
       desde = ["vigente"];
       cambios = { estado: "usada", usada_el: hoy };
@@ -148,7 +166,7 @@ export async function PATCH(request: NextRequest) {
         g.estado === "usada"
           ? { estado: "vigente", usada_el: null }
           : g.estado === "vigente"
-            ? { estado: "nueva", medio_pago: null, cobrada_el: null, vence_el: null }
+            ? { estado: "nueva", medio_pago: null, cobrada_el: null, vence_el: null, turno_id: null }
             : g.estado === "anulada"
               ? { estado: g.cobrada_el ? "vigente" : "nueva" }
               : {};
@@ -174,4 +192,35 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "La giftcard ya cambió. Actualizá la página." }, { status: 409 });
   }
   return NextResponse.json(cambiada);
+}
+
+/**
+ * DELETE /api/giftcards?id= — borra una giftcard para siempre.
+ *
+ * Solo las que nunca sirvieron: sin cobrar o anuladas. Es para las de
+ * prueba y las que se pidieron y nunca se pagaron. Una vigente o usada
+ * es plata: primero se anula, y recien ahi se puede borrar.
+ */
+export async function DELETE(request: NextRequest) {
+  const sesion = await requerirSesion();
+  if (!sesion.ok) return sesion.respuesta;
+
+  const id = request.nextUrl.searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Falta la giftcard." }, { status: 400 });
+
+  const { data, error } = await sesion.sb
+    .from("giftcards")
+    .delete()
+    .eq("id", id)
+    .in("estado", ["nueva", "anulada"])
+    .select("id");
+
+  if (error) return fallo("borrar la giftcard", error);
+  if (!data?.length) {
+    return NextResponse.json(
+      { error: "Solo se pueden borrar las anuladas o las que nunca se cobraron. Anulala primero." },
+      { status: 409 }
+    );
+  }
+  return NextResponse.json({ ok: true });
 }

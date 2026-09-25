@@ -8,13 +8,15 @@ import {
   queRegala,
   type Giftcard,
 } from "@/lib/giftcards";
-import { hoyEnArgentina } from "@/lib/fechas";
+import { formatearFechaLarga, hoyEnArgentina } from "@/lib/fechas";
+import { clienteNavegador } from "@/lib/supabase";
 import { formatearPrecio, type Tratamiento } from "@/lib/tratamientos";
 import { linkGiftcardLista } from "@/lib/whatsapp";
 import { IconoCheck, IconoWhatsApp } from "../iconos";
 import { MEDIOS_DE_PAGO } from "./FormularioCobro";
 
-type Accion = "cobrar" | "usar" | "anular" | "deshacer";
+type Accion = "cobrar" | "usar" | "anular" | "deshacer" | "asociar" | "desasociar";
+type Extra = { medioPago?: string; turnoId?: string };
 
 const campo =
   "mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino";
@@ -72,13 +74,13 @@ export default function PanelGiftcards({ tratamientos }: { tratamientos: Tratami
     void cargar();
   }, [cargar]);
 
-  const actuar = async (id: string, accion: Accion, medioPago?: string) => {
+  const actuar = async (id: string, accion: Accion, extra: Extra = {}) => {
     setTrabajando(id);
     setError(null);
     const res = await fetch(`/api/giftcards?id=${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accion, medioPago }),
+      body: JSON.stringify({ accion, ...extra }),
     });
     setTrabajando(null);
     const data = await res.json().catch(() => null);
@@ -87,6 +89,20 @@ export default function PanelGiftcards({ tratamientos }: { tratamientos: Tratami
       return;
     }
     setGiftcards((antes) => (antes ?? []).map((g) => (g.id === id ? data : g)));
+  };
+
+  /* Para siempre: solo las de prueba o las que nunca se pagaron. */
+  const borrar = async (id: string) => {
+    setTrabajando(id);
+    setError(null);
+    const res = await fetch(`/api/giftcards?id=${id}`, { method: "DELETE" });
+    setTrabajando(null);
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      setError(data?.error ?? "No se pudo borrar. Probá de nuevo.");
+      return;
+    }
+    setGiftcards((antes) => (antes ?? []).filter((g) => g.id !== id));
   };
 
   if (giftcards === null) {
@@ -109,7 +125,7 @@ export default function PanelGiftcards({ tratamientos }: { tratamientos: Tratami
   const plataSinUsar = sinUsar.reduce((n, g) => n + g.monto, 0);
 
   const linkDe = (g: Giftcard) => `${origen}/giftcard/${g.codigo}`;
-  const props = { hoy, trabajando, linkDe, onActuar: actuar };
+  const props = { hoy, trabajando, linkDe, onActuar: actuar, onBorrar: borrar };
 
   return (
     <div>
@@ -228,17 +244,20 @@ function Fila({
   trabajando,
   linkDe,
   onActuar,
+  onBorrar,
   destacada = false,
 }: {
   g: Giftcard;
   hoy: string;
   trabajando: string | null;
   linkDe: (g: Giftcard) => string;
-  onActuar: (id: string, accion: Accion, medioPago?: string) => void;
+  onActuar: (id: string, accion: Accion, extra?: Extra) => void;
+  onBorrar: (id: string) => void;
   destacada?: boolean;
 }) {
-  /* Cobrar y anular piden un segundo toque: son plata. */
-  const [paso, setPaso] = useState<"cobrar" | "anular" | null>(null);
+  /* Cobrar, anular y borrar piden un segundo toque: son plata, o no
+     tienen vuelta atras. */
+  const [paso, setPaso] = useState<"cobrar" | "anular" | "borrar" | "turno" | null>(null);
   const [copiado, setCopiado] = useState(false);
   const ocupada = trabajando === g.id;
   const vencida = estaVencida(g, hoy);
@@ -305,6 +324,61 @@ function Fila({
         </p>
       )}
 
+      {/*
+        EL TURNO DE QUIEN LA RECIBE.
+
+        Cuando confirma dia y hora, Valen se lo asocia. Asi la giftcard
+        figura en ese turno en Turnos, y al cobrarlo ya viene puesta como
+        medio de pago con su codigo.
+      */}
+      {g.estado === "vigente" &&
+        (paso === "turno" ? (
+          <ElegirTurno
+            para={g.para}
+            actual={g.turno_id}
+            ocupada={ocupada}
+            onElegir={(turnoId) => {
+              onActuar(g.id, "asociar", { turnoId });
+              setPaso(null);
+            }}
+            onCancelar={() => setPaso(null)}
+          />
+        ) : g.turno ? (
+          <div className="mt-3 rounded-chico bg-vino-suave px-3.5 py-2.5">
+            <p className="text-base text-tinta">
+              <span className="font-semibold">Turno:</span> {formatearFechaLarga(g.turno.fecha)} ·{" "}
+              {g.turno.hora} hs
+              {g.turno.estado === "pendiente" && <span className="text-tinta-suave"> · a confirmar</span>}
+              {g.turno.estado === "no_vino" && <span className="text-negativo"> · no vino</span>}
+            </p>
+            <div className="mt-1 flex gap-4 text-sm">
+              <button
+                type="button"
+                onClick={() => setPaso("turno")}
+                className="min-h-9 text-tinta-suave underline"
+              >
+                Cambiar
+              </button>
+              <button
+                type="button"
+                disabled={ocupada}
+                onClick={() => onActuar(g.id, "desasociar")}
+                className="min-h-9 text-tinta-suave underline disabled:opacity-50"
+              >
+                Quitar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setPaso("turno")}
+            className="mt-3 min-h-11 rounded-full border border-vino bg-white px-5 text-base font-semibold text-vino hover:bg-vino-suave"
+          >
+            Asociar turno
+          </button>
+        ))}
+
       {/* ---- Para cobrar ---- */}
       {g.estado === "nueva" &&
         (paso === "cobrar" ? (
@@ -316,7 +390,7 @@ function Fila({
                   key={m}
                   type="button"
                   disabled={ocupada}
-                  onClick={() => onActuar(g.id, "cobrar", m)}
+                  onClick={() => onActuar(g.id, "cobrar", { medioPago: m })}
                   className="min-h-11 rounded-full border border-vino bg-white px-4 text-base font-semibold text-vino hover:bg-vino hover:text-white disabled:opacity-50"
                 >
                   {m}
@@ -339,6 +413,14 @@ function Fila({
             onSi={() => onActuar(g.id, "anular")}
             onNo={() => setPaso(null)}
           />
+        ) : paso === "borrar" ? (
+          <Confirmar
+            texto="¿Borrarla para siempre? No se puede deshacer."
+            si="Sí, borrar"
+            ocupada={ocupada}
+            onSi={() => onBorrar(g.id)}
+            onNo={() => setPaso(null)}
+          />
         ) : (
           <div className="mt-3 flex flex-wrap gap-2">
             <button
@@ -356,11 +438,19 @@ function Fila({
             >
               No la pagó
             </button>
+            <button
+              type="button"
+              onClick={() => setPaso("borrar")}
+              className="min-h-11 rounded-full px-2 text-base text-tinta-suave underline"
+            >
+              Borrar
+            </button>
           </div>
         ))}
 
       {/* ---- Vigente ---- */}
       {g.estado === "vigente" &&
+        paso !== "turno" &&
         (paso === "anular" ? (
           <Confirmar
             texto="¿Anular esta giftcard? Ya no se va a poder usar."
@@ -432,17 +522,127 @@ function Fila({
         <p className="mt-2 text-sm text-tinta-suave">
           Se usó al cobrar un turno. Si hay que devolverla, deshacé ese cobro en Turnos.
         </p>
+      ) : paso === "borrar" && g.estado === "anulada" ? (
+        <Confirmar
+          texto="¿Borrarla para siempre? No se puede deshacer."
+          si="Sí, borrar"
+          ocupada={ocupada}
+          onSi={() => onBorrar(g.id)}
+          onNo={() => setPaso(null)}
+        />
       ) : (g.estado === "usada" || g.estado === "anulada") && (
-        <button
-          type="button"
-          disabled={ocupada}
-          onClick={() => onActuar(g.id, "deshacer")}
-          className="mt-2 min-h-10 text-sm text-tinta-suave underline disabled:opacity-50"
-        >
-          {g.estado === "usada" ? "No se usó" : "Volver a activarla"}
-        </button>
+        <div className="mt-2 flex gap-4 text-sm">
+          <button
+            type="button"
+            disabled={ocupada}
+            onClick={() => onActuar(g.id, "deshacer")}
+            className="min-h-10 text-tinta-suave underline disabled:opacity-50"
+          >
+            {g.estado === "usada" ? "No se usó" : "Volver a activarla"}
+          </button>
+          {/* Una anulada ya no vale nada: se puede borrar. Sirve para las
+              de prueba. */}
+          {g.estado === "anulada" && (
+            <button
+              type="button"
+              onClick={() => setPaso("borrar")}
+              className="min-h-10 text-tinta-suave underline"
+            >
+              Borrar
+            </button>
+          )}
+        </div>
       )}
     </li>
+  );
+}
+
+type TurnoLibre = { id: string; fecha: string; hora: string; cliente: string | null; estado: string };
+
+/** "María José" -> "maria jose": para comparar nombres sin tildes. */
+const normal = (t: string) =>
+  t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+/**
+ * Elegir el turno que saco quien recibe la giftcard.
+ *
+ * Los reservados de hoy en adelante. Primero los que coinciden con el
+ * nombre de la tarjeta: casi siempre es uno de esos, y Valen no tiene
+ * que buscar entre todos.
+ */
+function ElegirTurno({
+  para,
+  actual,
+  ocupada,
+  onElegir,
+  onCancelar,
+}: {
+  para: string;
+  actual: string | null;
+  ocupada: boolean;
+  onElegir: (turnoId: string) => void;
+  onCancelar: () => void;
+}) {
+  const [turnos, setTurnos] = useState<TurnoLibre[] | null>(null);
+
+  useEffect(() => {
+    clienteNavegador()
+      .from("turnos")
+      .select("id, fecha, hora, cliente, estado")
+      .gte("fecha", hoyEnArgentina())
+      .in("estado", ["pendiente", "confirmado"])
+      .order("fecha")
+      .order("hora")
+      .limit(60)
+      .then(({ data }) => setTurnos((data as TurnoLibre[]) ?? []));
+  }, []);
+
+  const nombre = normal(para).split(/\s+/)[0] ?? "";
+  const coincide = (t: TurnoLibre) => Boolean(nombre && t.cliente && normal(t.cliente).includes(nombre));
+  const ordenados = (turnos ?? []).slice().sort((a, b) => Number(coincide(b)) - Number(coincide(a)));
+
+  return (
+    <div className="mt-3 rounded-chico border border-borde bg-crema p-3">
+      <p className="text-sm font-semibold text-tinta">¿Qué turno sacó {para}?</p>
+      {turnos === null ? (
+        <p className="mt-2 text-sm text-tinta-suave">Buscando turnos…</p>
+      ) : turnos.length === 0 ? (
+        <p className="mt-2 text-sm text-tinta-suave">
+          No hay turnos reservados de hoy en adelante. Cuando reserve, volvé acá.
+        </p>
+      ) : (
+        <ul className="mt-2 max-h-72 space-y-1.5 overflow-y-auto">
+          {ordenados.map((t) => (
+            <li key={t.id}>
+              <button
+                type="button"
+                disabled={ocupada || t.id === actual}
+                onClick={() => onElegir(t.id)}
+                className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left text-base transition-colors disabled:opacity-50 ${
+                  coincide(t) ? "border-vino/40 bg-white" : "border-borde bg-papel"
+                } hover:border-vino`}
+              >
+                <span className="min-w-0">
+                  <span className="text-tinta">
+                    {formatearFechaLarga(t.fecha)} · {t.hora}
+                  </span>
+                  <span className="block text-sm text-tinta-suave">
+                    {t.cliente || "Sin nombre"}
+                    {t.estado === "pendiente" && " · a confirmar"}
+                  </span>
+                </span>
+                {coincide(t) && (
+                  <span className="shrink-0 text-xs font-semibold text-vino">Mismo nombre</span>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <button type="button" onClick={onCancelar} className="mt-2 min-h-10 text-sm text-tinta-suave underline">
+        Volver
+      </button>
+    </div>
   );
 }
 

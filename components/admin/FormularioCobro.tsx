@@ -50,6 +50,7 @@ export default function FormularioCobro({
   clienteId,
   fecha,
   hayClienta,
+  giftcardInicial,
   onListo,
   onCancelar,
 }: {
@@ -63,6 +64,8 @@ export default function FormularioCobro({
   fecha: string;
   /** Si el turno no tiene clienta vinculada, no se puede crear la sesion. */
   hayClienta: boolean;
+  /** La giftcard asociada al turno: el cobro viene con ella puesta. */
+  giftcardInicial?: string;
   onListo: (datos: {
     monto: number;
     medioPago: string;
@@ -81,13 +84,13 @@ export default function FormularioCobro({
     opciones.find((t) => t.nombre === tratamientoActual)?.id ?? ""
   );
   const [monto, setMonto] = useState(String(precioSugerido || ""));
-  const [medioPago, setMedioPago] = useState(MEDIOS_DE_PAGO[0]);
+  const [medioPago, setMedioPago] = useState(giftcardInicial ? MEDIO_GIFTCARD : MEDIOS_DE_PAGO[0]);
   const [notas, setNotas] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   /* Cuantas cosas ya cargadas hay cerca de esta fecha para esta clienta. */
   const [duplicados, setDuplicados] = useState(0);
-  const [giftcard, setGiftcard] = useState("");
+  const [giftcard, setGiftcard] = useState(giftcardInicial ?? "");
   const [chequeo, setChequeo] = useState<Chequeo>(null);
 
   const conGiftcard = medioPago === MEDIO_GIFTCARD;
@@ -118,7 +121,13 @@ export default function FormularioCobro({
           return;
         }
         setChequeo({ estado: "encontrada", g: data });
-        if (data.estado === "vigente") setMonto(String(data.monto));
+        if (data.estado === "vigente") {
+          setMonto(String(data.monto));
+          /* Si regala un tratamiento del catalogo y todavia no se eligio
+             ninguno, queda elegido ese. */
+          const delCatalogo = opciones.find((t) => t.nombre === data.tratamiento);
+          if (delCatalogo) setTratamientoId((actual) => actual || delCatalogo.id);
+        }
       })
       .catch(() => vigente && setChequeo({ estado: "error", mensaje: "No se pudo buscar la giftcard." }));
     return () => {
@@ -131,7 +140,11 @@ export default function FormularioCobro({
   const elegirTratamiento = (id: string) => {
     setTratamientoId(id);
     const elegido = opciones.find((t) => t.id === id);
-    if (elegido) setMonto(String(elegido.precio));
+    /* Con una giftcard que sirve, el monto es el de la giftcard: elegir
+       el tratamiento no lo pisa. */
+    const conGiftcardValida =
+      conGiftcard && chequeo?.estado === "encontrada" && chequeo.g.estado === "vigente";
+    if (elegido && !conGiftcardValida) setMonto(String(elegido.precio));
   };
 
   const enviar = async (e: React.FormEvent) => {

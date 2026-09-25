@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TituloSeccion from "./TituloSeccion";
 import Calendario, { Horarios, useDisponibilidad } from "./Calendario";
 import FondoImagen from "./FondoImagen";
@@ -9,6 +9,7 @@ import { useReserva } from "./ReservaContext";
 import { IconoCheck, IconoWhatsApp } from "./iconos";
 import { formatearFechaLarga } from "@/lib/fechas";
 import { asomarEnEscritorio, bajarA } from "@/lib/scroll";
+import { CODIGO_GIFTCARD } from "@/lib/giftcards";
 import { CONSULTA, esConsulta } from "@/lib/tratamientos";
 import { linkWhatsApp } from "@/lib/whatsapp";
 
@@ -20,6 +21,18 @@ export default function Reservas() {
   const [resultado, setResultado] = useState<Resultado>(null);
   /** Cambiar este numero fuerza al calendario a releer la agenda. */
   const [version, setVersion] = useState(0);
+
+  /*
+    QUIEN VIENE CON UNA GIFTCARD. El "Reservar turno" de su tarjeta
+    (/giftcard/G-4K7M9P) trae ?giftcard= y el codigo va en el mensaje:
+    Valen lo ve y le asocia el turno en el panel. Se lee al montar y no
+    con useSearchParams, para que la portada siga siendo estatica.
+  */
+  const [giftcard, setGiftcard] = useState<string | undefined>();
+  useEffect(() => {
+    const codigo = new URLSearchParams(window.location.search).get("giftcard")?.toUpperCase();
+    if (codigo && CODIGO_GIFTCARD.test(codigo)) setGiftcard(codigo);
+  }, []);
 
   /**
    * Todos los turnos entran como consulta.
@@ -55,6 +68,7 @@ export default function Reservas() {
           fecha: fecha!,
           hora: hora!,
           nombre,
+          giftcard,
         },
         consultorio.whatsapp
       )
@@ -250,6 +264,7 @@ export default function Reservas() {
                   {/* Sin precio de lista: el tratamiento se define en el
                       momento, asi que poner un numero seria inventarlo. */}
                   <Fila rotulo="Precio" valor="Se define en el momento" />
+                  {giftcard && <Fila rotulo="Giftcard" valor={giftcard} />}
                 </dl>
 
                 {/*
