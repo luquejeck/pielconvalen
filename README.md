@@ -150,10 +150,13 @@ y los pasos que incluyen todos los tratamientos.
   vigente por 6 meses. En Turnos aparece un aviso mientras haya alguna.
 - **Vigentes:** *Mandar la tarjeta* abre WhatsApp con el link de la tarjeta
   para mandárselo a quien la compró, que se lo reenvía a quien la recibe.
-- **Asociar turno:** cuando quien la recibe saca turno, se le asocia desde
-  acá (aparecen primero los turnos con el mismo nombre). En Turnos, ese
-  turno muestra la giftcard y el cobro ya viene con ella puesta. Si
-  reserva desde su tarjeta, el código le llega en el mensaje de WhatsApp.
+- **Darle turno:** cuando quien la recibe arregla día y hora, se le da el
+  turno desde acá, en un horario libre de la agenda: queda confirmado, a
+  su nombre y asociado a la giftcard. Desde ahí se puede mover a otro
+  horario o cancelar. En Turnos, ese turno muestra la giftcard y el cobro
+  ya viene con ella puesta. Si reservó sola por la web (desde su tarjeta,
+  el código va en el mensaje), se elige ese turno con "Ya reservó por la
+  web".
 - **Cargar una a mano:** para las que se venden en el consultorio o por
   Instagram.
 - **Borrar:** solo las anuladas o las que nunca se cobraron (las de prueba).
