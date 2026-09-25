@@ -8,14 +8,23 @@ import {
   queRegala,
   type Giftcard,
 } from "@/lib/giftcards";
-import { formatearFechaLarga, hoyEnArgentina } from "@/lib/fechas";
+import type { Agenda } from "@/lib/config";
+import { construirMapa } from "@/lib/disponibilidad";
+import {
+  claveFecha,
+  DIAS_SEMANA,
+  desdeClave,
+  formatearFechaLarga,
+  hoyEnArgentina,
+  sumarDias,
+} from "@/lib/fechas";
 import { clienteNavegador } from "@/lib/supabase";
 import { formatearPrecio, type Tratamiento } from "@/lib/tratamientos";
 import { linkGiftcardLista } from "@/lib/whatsapp";
 import { IconoCheck, IconoWhatsApp } from "../iconos";
 import { MEDIOS_DE_PAGO } from "./FormularioCobro";
 
-type Accion = "cobrar" | "usar" | "anular" | "deshacer" | "asociar" | "desasociar";
+type Accion = "cobrar" | "usar" | "anular" | "deshacer" | "asociar" | "desasociar" | "cancelar-turno";
 type Extra = { medioPago?: string; turnoId?: string };
 
 const campo =
@@ -42,7 +51,14 @@ const campo =
  * arriba de todo esta lo cobrado y sin usar: es plata que ya tiene y
  * que todavia no aparece en la Caja.
  */
-export default function PanelGiftcards({ tratamientos }: { tratamientos: Tratamiento[] }) {
+export default function PanelGiftcards({
+  tratamientos,
+  agenda,
+}: {
+  tratamientos: Tratamiento[];
+  /** Los dias y horarios de atencion, para darle turno en uno libre. */
+  agenda: Agenda;
+}) {
   const [giftcards, setGiftcards] = useState<Giftcard[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [trabajando, setTrabajando] = useState<string | null>(null);
@@ -91,6 +107,24 @@ export default function PanelGiftcards({ tratamientos }: { tratamientos: Tratami
     setGiftcards((antes) => (antes ?? []).map((g) => (g.id === id ? data : g)));
   };
 
+  /* Darle turno (o moverlo). Devuelve el error, si hubo, para mostrarlo
+     al lado del horario elegido: un "ya esta tomado" arriba de todo de
+     la pagina no se ve. */
+  const agendar = async (id: string, fecha: string, hora: string, telefono: string) => {
+    setTrabajando(id);
+    setError(null);
+    const res = await fetch(`/api/giftcards?id=${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accion: "agendar", fecha, hora, telefono }),
+    });
+    setTrabajando(null);
+    const data = await res.json().catch(() => null);
+    if (!res.ok) return (data?.error as string) ?? "No se pudo. Probá de nuevo.";
+    setGiftcards((antes) => (antes ?? []).map((g) => (g.id === id ? data : g)));
+    return null;
+  };
+
   /* Para siempre: solo las de prueba o las que nunca se pagaron. */
   const borrar = async (id: string) => {
     setTrabajando(id);
@@ -125,7 +159,7 @@ export default function PanelGiftcards({ tratamientos }: { tratamientos: Tratami
   const plataSinUsar = sinUsar.reduce((n, g) => n + g.monto, 0);
 
   const linkDe = (g: Giftcard) => `${origen}/giftcard/${g.codigo}`;
-  const props = { hoy, trabajando, linkDe, onActuar: actuar, onBorrar: borrar };
+  const props = { hoy, trabajando, linkDe, agenda, onActuar: actuar, onAgendar: agendar, onBorrar: borrar };
 
   return (
     <div>
@@ -243,7 +277,9 @@ function Fila({
   hoy,
   trabajando,
   linkDe,
+  agenda,
   onActuar,
+  onAgendar,
   onBorrar,
   destacada = false,
 }: {
@@ -251,13 +287,17 @@ function Fila({
   hoy: string;
   trabajando: string | null;
   linkDe: (g: Giftcard) => string;
+  agenda: Agenda;
   onActuar: (id: string, accion: Accion, extra?: Extra) => void;
+  onAgendar: (id: string, fecha: string, hora: string, telefono: string) => Promise<string | null>;
   onBorrar: (id: string) => void;
   destacada?: boolean;
 }) {
   /* Cobrar, anular y borrar piden un segundo toque: son plata, o no
      tienen vuelta atras. */
-  const [paso, setPaso] = useState<"cobrar" | "anular" | "borrar" | "turno" | null>(null);
+  const [paso, setPaso] = useState<
+    "cobrar" | "anular" | "borrar" | "turno" | "agendar" | "cancelar-turno" | null
+  >(null);
   const [copiado, setCopiado] = useState(false);
   const ocupada = trabajando === g.id;
   const vencida = estaVencida(g, hoy);
@@ -327,12 +367,25 @@ function Fila({
       {/*
         EL TURNO DE QUIEN LA RECIBE.
 
-        Cuando confirma dia y hora, Valen se lo asocia. Asi la giftcard
-        figura en ese turno en Turnos, y al cobrarlo ya viene puesta como
-        medio de pago con su codigo.
+        Cuando arregla dia y hora con Valen, ella le da el turno desde
+        aca, en un horario libre: queda en la agenda a su nombre y
+        asociado a la giftcard. En Turnos se ve la giftcard y al cobrarlo
+        ya viene puesta. Si reservo sola por la web, se elige ese turno.
       */}
       {g.estado === "vigente" &&
-        (paso === "turno" ? (
+        (paso === "agendar" ? (
+          <AgendarTurno
+            agenda={agenda}
+            para={g.para}
+            moviendo={Boolean(g.turno)}
+            onElegir={async (fecha, hora, telefono) => {
+              const fallo = await onAgendar(g.id, fecha, hora, telefono);
+              if (!fallo) setPaso(null);
+              return fallo;
+            }}
+            onCancelar={() => setPaso(null)}
+          />
+        ) : paso === "turno" ? (
           <ElegirTurno
             para={g.para}
             actual={g.turno_id}
@@ -343,6 +396,17 @@ function Fila({
             }}
             onCancelar={() => setPaso(null)}
           />
+        ) : paso === "cancelar-turno" ? (
+          <Confirmar
+            texto="¿Cancelar el turno? Se borra de la agenda y el horario queda libre."
+            si="Sí, cancelar"
+            ocupada={ocupada}
+            onSi={() => {
+              onActuar(g.id, "cancelar-turno");
+              setPaso(null);
+            }}
+            onNo={() => setPaso(null)}
+          />
         ) : g.turno ? (
           <div className="mt-3 rounded-chico bg-vino-suave px-3.5 py-2.5">
             <p className="text-base text-tinta">
@@ -351,32 +415,40 @@ function Fila({
               {g.turno.estado === "pendiente" && <span className="text-tinta-suave"> · a confirmar</span>}
               {g.turno.estado === "no_vino" && <span className="text-negativo"> · no vino</span>}
             </p>
-            <div className="mt-1 flex gap-4 text-sm">
+            <div className="mt-1 flex flex-wrap gap-x-4 text-sm">
               <button
                 type="button"
-                onClick={() => setPaso("turno")}
+                onClick={() => setPaso("agendar")}
                 className="min-h-9 text-tinta-suave underline"
               >
-                Cambiar
+                Cambiar día u hora
               </button>
               <button
                 type="button"
-                disabled={ocupada}
-                onClick={() => onActuar(g.id, "desasociar")}
-                className="min-h-9 text-tinta-suave underline disabled:opacity-50"
+                onClick={() => setPaso("cancelar-turno")}
+                className="min-h-9 text-tinta-suave underline"
               >
-                Quitar
+                Cancelar turno
               </button>
             </div>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => setPaso("turno")}
-            className="mt-3 min-h-11 rounded-full border border-vino bg-white px-5 text-base font-semibold text-vino hover:bg-vino-suave"
-          >
-            Asociar turno
-          </button>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+            <button
+              type="button"
+              onClick={() => setPaso("agendar")}
+              className="min-h-11 rounded-full border border-vino bg-white px-5 text-base font-semibold text-vino hover:bg-vino-suave"
+            >
+              Darle turno
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaso("turno")}
+              className="min-h-10 text-sm text-tinta-suave underline"
+            >
+              Ya reservó por la web
+            </button>
+          </div>
         ))}
 
       {/* ---- Para cobrar ---- */}
@@ -451,6 +523,7 @@ function Fila({
       {/* ---- Vigente ---- */}
       {g.estado === "vigente" &&
         paso !== "turno" &&
+        paso !== "agendar" &&
         (paso === "anular" ? (
           <Confirmar
             texto="¿Anular esta giftcard? Ya no se va a poder usar."
@@ -554,6 +627,190 @@ function Fila({
         </div>
       )}
     </li>
+  );
+}
+
+/**
+ * Darle turno a quien recibio la giftcard: los dias con lugar y, al
+ * elegir uno, sus horarios libres. Es la misma cuenta que hace la web
+ * para la clienta —la agenda de cada dia, menos lo ocupado y los dias
+ * cerrados—, pero sin la anticipacion minima: Valen puede dar un turno
+ * para dentro de una hora si quiere.
+ *
+ * Si ya tiene turno, esto lo mueve: la persona cambio de dia.
+ */
+function AgendarTurno({
+  agenda,
+  para,
+  moviendo,
+  onElegir,
+  onCancelar,
+}: {
+  agenda: Agenda;
+  para: string;
+  moviendo: boolean;
+  onElegir: (fecha: string, hora: string, telefono: string) => Promise<string | null>;
+  onCancelar: () => void;
+}) {
+  const hoy = hoyEnArgentina();
+  const hasta = claveFecha(sumarDias(desdeClave(hoy), agenda.ventanaDias));
+  const [ocupado, setOcupado] = useState<{ turnos: Set<string>; cerrados: Set<string> } | null>(null);
+  const [dia, setDia] = useState<string | null>(null);
+  const [hora, setHora] = useState<string | null>(null);
+  const [telefono, setTelefono] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const sb = clienteNavegador();
+    Promise.all([
+      sb.from("turnos").select("fecha, hora").gte("fecha", hoy).lte("fecha", hasta),
+      sb.from("dias_cerrados").select("fecha").gte("fecha", hoy).lte("fecha", hasta),
+    ]).then(([t, c]) =>
+      setOcupado({
+        turnos: new Set(((t.data as { fecha: string; hora: string }[]) ?? []).map((x) => `${x.fecha}|${x.hora}`)),
+        cerrados: new Set(((c.data as { fecha: string }[]) ?? []).map((x) => x.fecha)),
+      })
+    );
+  }, [hoy, hasta]);
+
+  /* La hora de ahora en Argentina: hoy no se ofrece lo que ya paso. */
+  const ahora = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date());
+
+  const dias = ocupado
+    ? Object.entries(
+        construirMapa(
+          desdeClave(hoy),
+          agenda.ventanaDias,
+          agenda,
+          (clave, h) => ocupado.turnos.has(`${clave}|${h}`) || (clave === hoy && h <= ahora),
+          (clave) => ocupado.cerrados.has(clave)
+        )
+      )
+        .map(([clave, horas]) => ({
+          clave,
+          libres: horas.filter((h) => h.estado === "libre").map((h) => h.hora),
+        }))
+        .filter((d) => d.libres.length > 0)
+    : [];
+
+  const elegido = dias.find((d) => d.clave === dia);
+  const corto = (clave: string) => {
+    const d = desdeClave(clave);
+    return `${DIAS_SEMANA[(d.getDay() + 6) % 7]} ${d.getDate()}/${d.getMonth() + 1}`;
+  };
+
+  const confirmar = async () => {
+    if (!dia || !hora) return;
+    setGuardando(true);
+    setError(null);
+    const fallo = await onElegir(dia, hora, telefono);
+    setGuardando(false);
+    if (fallo) {
+      setError(fallo);
+      /* Si se lo ganaron, ese horario deja de ofrecerse. */
+      if (/tomado/i.test(fallo) && ocupado) {
+        setOcupado({ ...ocupado, turnos: new Set(ocupado.turnos).add(`${dia}|${hora}`) });
+        setHora(null);
+      }
+    }
+  };
+
+  return (
+    <div className="mt-3 rounded-chico border border-borde bg-crema p-3">
+      <p className="text-sm font-semibold text-tinta">
+        {moviendo ? `¿A qué día y hora pasamos a ${para}?` : `¿Qué día y hora le das a ${para}?`}
+      </p>
+
+      {ocupado === null ? (
+        <p className="mt-2 text-sm text-tinta-suave">Buscando horarios libres…</p>
+      ) : dias.length === 0 ? (
+        <p className="mt-2 text-sm text-tinta-suave">No quedan horarios libres en tu agenda.</p>
+      ) : (
+        <>
+          {/* Los dias con lugar, en una fila que se desliza. */}
+          <div className="-mx-3 mt-2 flex gap-2 overflow-x-auto px-3 pb-1">
+            {dias.map((d) => (
+              <button
+                key={d.clave}
+                type="button"
+                onClick={() => {
+                  setDia(d.clave);
+                  setHora(null);
+                  setError(null);
+                }}
+                aria-pressed={dia === d.clave}
+                className={`flex shrink-0 flex-col items-center rounded-xl border px-3 py-1.5 transition-colors ${
+                  dia === d.clave ? "border-vino bg-vino text-white" : "border-borde bg-papel text-tinta hover:border-vino"
+                }`}
+              >
+                <span className="text-sm font-semibold whitespace-nowrap">{corto(d.clave)}</span>
+                <span className={`text-xs ${dia === d.clave ? "text-white/80" : "text-tinta-suave"}`}>
+                  {d.libres.length} {d.libres.length === 1 ? "libre" : "libres"}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {elegido && (
+            <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Horarios libres">
+              {elegido.libres.map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  onClick={() => {
+                    setHora(h);
+                    setError(null);
+                  }}
+                  aria-pressed={hora === h}
+                  className={`min-h-10 rounded-full border px-4 text-base tabular-nums transition-colors ${
+                    hora === h ? "border-vino bg-vino text-white" : "border-borde bg-papel text-tinta hover:border-vino"
+                  }`}
+                >
+                  {h}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {dia && hora && (
+            <>
+              <label className="mt-3 block">
+                <span className="text-sm text-tinta-suave">Su teléfono, si lo tenés (opcional)</span>
+                <input
+                  type="tel"
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                  placeholder="11 2294-3672"
+                  className="mt-1 w-full rounded-xl border border-borde px-3 py-2 text-base outline-none focus:border-vino"
+                />
+              </label>
+              <button
+                type="button"
+                disabled={guardando}
+                onClick={confirmar}
+                className="mt-3 min-h-11 w-full rounded-full bg-vino px-5 text-base font-semibold text-crema disabled:opacity-60"
+              >
+                {guardando
+                  ? "Guardando…"
+                  : `${moviendo ? "Moverlo a" : "Darle turno ·"} ${corto(dia)} · ${hora}`}
+              </button>
+            </>
+          )}
+        </>
+      )}
+
+      {error && <p className="mt-2 text-sm font-semibold text-negativo">{error}</p>}
+
+      <button type="button" onClick={onCancelar} className="mt-2 min-h-10 text-sm text-tinta-suave underline">
+        Volver
+      </button>
+    </div>
   );
 }
 

@@ -3,6 +3,7 @@ import { fallo, requerirSesion } from "@/lib/api";
 import { hoyEnArgentina } from "@/lib/fechas";
 import { CODIGO_GIFTCARD, GIFTCARD, sumarMeses } from "@/lib/giftcards";
 import { COLUMNAS_GIFTCARD as COLUMNAS, resolverRegalo, texto } from "@/lib/giftcards-servidor";
+import { agendarTurno, cancelarTurno } from "@/lib/giftcards-turno";
 import { hayBaseDeDatos } from "@/lib/supabase";
 import { clienteServidor } from "@/lib/supabase-servidor";
 
@@ -85,9 +86,13 @@ export async function GET(request: NextRequest) {
  *                                  turno (se lo anoto en otro lado).
  *   anular    nueva o vigente -> anulada
  *   deshacer  el paso de antes, por si se toco sin querer.
- *   asociar   vigente, con { turnoId }: el turno que saco quien la
- *             recibe. Al cobrarlo, la giftcard ya viene puesta.
- *   desasociar  le saca el turno.
+ *   agendar   vigente, con { fecha, hora, telefono? }: le da turno a
+ *             quien la recibe en un horario libre, o le mueve el que
+ *             tiene. Al cobrarlo, la giftcard ya viene puesta.
+ *   cancelar-turno  borra ese turno de la agenda.
+ *   asociar   vigente, con { turnoId }: un turno que ya reservo sola,
+ *             desde la web.
+ *   desasociar  le saca el turno sin borrarlo.
  *
  * Cada cambio pide el estado de origen en el mismo `update`: si dos
  * pestañas del panel tocan a la vez, la segunda no pisa a la primera.
@@ -97,20 +102,41 @@ export async function PATCH(request: NextRequest) {
   if (!sesion.ok) return sesion.respuesta;
 
   const id = request.nextUrl.searchParams.get("id");
-  const { accion, medioPago, turnoId } = (await request.json().catch(() => ({}))) as {
+  const cuerpo = (await request.json().catch(() => ({}))) as {
     accion?: string;
     medioPago?: string;
     turnoId?: string;
+    fecha?: string;
+    hora?: string;
+    telefono?: string;
   };
+  const { accion, medioPago, turnoId } = cuerpo;
   if (!id) return NextResponse.json({ error: "Falta la giftcard." }, { status: 400 });
 
   const { data: g, error: eLeer } = await sesion.sb
     .from("giftcards")
-    .select("estado, cobrada_el, turno_id")
+    .select("estado, cobrada_el, turno_id, para, tratamiento, monto")
     .eq("id", id)
     .maybeSingle();
   if (eLeer) return fallo("buscar la giftcard", eLeer);
   if (!g) return NextResponse.json({ error: "Esa giftcard ya no existe." }, { status: 404 });
+
+  /*
+    DARLE TURNO, MOVERLO O CANCELARLO: tocan la agenda, no solo la
+    giftcard. Ver lib/giftcards-turno.ts.
+  */
+  if (accion === "agendar" || accion === "cancelar-turno") {
+    if (g.estado !== "vigente") {
+      return NextResponse.json({ error: "Solo una giftcard cobrada y sin usar puede tener turno." }, { status: 409 });
+    }
+    const hecho =
+      accion === "agendar" ? await agendarTurno(sesion.sb, id, g, cuerpo) : await cancelarTurno(sesion.sb, g);
+    if (!hecho.ok) return hecho.respuesta;
+
+    const { data: actualizada, error } = await sesion.sb.from("giftcards").select(COLUMNAS).eq("id", id).single();
+    if (error) return fallo("traer la giftcard", error);
+    return NextResponse.json(actualizada);
+  }
 
   const hoy = hoyEnArgentina();
   let desde: string[];
