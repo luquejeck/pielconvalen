@@ -6,6 +6,7 @@ import { fallo } from "./api";
 import { obtenerAgenda } from "./catalogo";
 import { horariosDelDia } from "./config";
 import { desdeClave, hoyEnArgentina } from "./fechas";
+import { codigoEnNotas } from "./giftcards";
 import { CONSULTA } from "./tratamientos";
 
 type Resultado = { ok: true } | { ok: false; respuesta: NextResponse };
@@ -121,4 +122,34 @@ export async function cancelarTurno(sb: SupabaseClient, g: GiftcardParaTurno): P
   if (error) return { ok: false, respuesta: fallo("cancelar el turno", error) };
   if (!data?.length) return no("Ese turno ya se atendió: no se puede cancelar desde acá.", 409);
   return { ok: true };
+}
+
+/**
+ * Las reservas hechas desde la tarjeta, asociadas solas.
+ *
+ * Quien reserva desde /giftcard/G-4K7M9P deja el turno con el codigo en
+ * las notas. La web no puede tocar las giftcards (es la clave publica),
+ * asi que la asociacion se hace aca, con la sesion de Valen, cada vez
+ * que abre Turnos (el aviso de giftcards para cobrar la pide) o
+ * Giftcards. Solo si la giftcard esta vigente y todavia no tiene turno:
+ * si Valen ya le dio uno, no se pisa.
+ */
+export async function vincularReservasWeb(sb: SupabaseClient) {
+  const { data: turnos } = await sb
+    .from("turnos")
+    .select("id, notas")
+    .like("notas", "Giftcard G-%")
+    .in("estado", ["pendiente", "confirmado"])
+    .gte("fecha", hoyEnArgentina());
+
+  for (const t of turnos ?? []) {
+    const codigo = codigoEnNotas(t.notas);
+    if (!codigo) continue;
+    await sb
+      .from("giftcards")
+      .update({ turno_id: t.id })
+      .eq("codigo", codigo)
+      .eq("estado", "vigente")
+      .is("turno_id", null);
+  }
 }

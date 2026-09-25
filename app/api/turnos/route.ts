@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { obtenerAgenda } from "@/lib/catalogo";
 import { horariosDelDia } from "@/lib/config";
 import { desdeClave } from "@/lib/fechas";
+import { CODIGO_GIFTCARD, notaGiftcard } from "@/lib/giftcards";
 import { CONSULTA } from "@/lib/tratamientos";
 import { hayBaseDeDatos } from "@/lib/supabase";
 import { clienteServidor } from "@/lib/supabase-servidor";
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Cuerpo invalido" }, { status: 400 });
   }
 
-  const { fecha, hora, nombre } = (cuerpo ?? {}) as Record<
+  const { fecha, hora, nombre, giftcard } = (cuerpo ?? {}) as Record<
     string,
     string | undefined
   >;
@@ -89,6 +90,9 @@ export async function POST(request: Request) {
     /* La consulta no tiene precio de lista: el importe sale cuando Valen
        cobra y elige el tratamiento que hizo. */
     precio: tratamiento.precio || null,
+    /* Viene con giftcard (reservo desde su tarjeta): el turno la lleva
+       en las notas y el panel la asocia solo. Ver lib/giftcards.ts. */
+    notas: giftcard && CODIGO_GIFTCARD.test(giftcard) ? notaGiftcard(giftcard) : null,
   });
 
   if (error) {

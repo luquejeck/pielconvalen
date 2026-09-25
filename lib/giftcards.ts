@@ -94,3 +94,16 @@ export const fechaConAnio = (clave: string) =>
  * productos y los combos no se pagan con giftcard.
  */
 export const MEDIO_GIFTCARD = "Giftcard";
+
+/*
+  LA GIFTCARD EN LAS NOTAS DEL TURNO.
+
+  Quien reserva desde su tarjeta deja el turno con "Giftcard G-4K7M9P"
+  en `turnos.notas`. Asi el turno la trae consigo desde que nace: Turnos
+  la muestra, el cobro la pone, y Giftcards la asocia sola. Valen no
+  tiene que hacer nada.
+*/
+export const notaGiftcard = (codigo: string) => `Giftcard ${codigo}`;
+
+export const codigoEnNotas = (notas: string | null | undefined) =>
+  notas?.match(/G-[A-Z0-9]{6}/)?.[0] ?? null;

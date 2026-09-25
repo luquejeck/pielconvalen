@@ -24,8 +24,8 @@ import { linkGiftcardLista } from "@/lib/whatsapp";
 import { IconoCheck, IconoWhatsApp } from "../iconos";
 import { MEDIOS_DE_PAGO } from "./FormularioCobro";
 
-type Accion = "cobrar" | "usar" | "anular" | "deshacer" | "asociar" | "desasociar" | "cancelar-turno";
-type Extra = { medioPago?: string; turnoId?: string };
+type Accion = "cobrar" | "usar" | "anular" | "deshacer" | "cancelar-turno";
+type Extra = { medioPago?: string };
 
 const campo =
   "mt-1 w-full rounded-xl border border-borde px-3 py-2.5 text-base outline-none focus:border-vino";
@@ -296,7 +296,7 @@ function Fila({
   /* Cobrar, anular y borrar piden un segundo toque: son plata, o no
      tienen vuelta atras. */
   const [paso, setPaso] = useState<
-    "cobrar" | "anular" | "borrar" | "turno" | "agendar" | "cancelar-turno" | null
+    "cobrar" | "anular" | "borrar" | "agendar" | "cancelar-turno" | null
   >(null);
   const [copiado, setCopiado] = useState(false);
   const ocupada = trabajando === g.id;
@@ -365,12 +365,13 @@ function Fila({
       )}
 
       {/*
-        EL TURNO DE QUIEN LA RECIBE.
+        EL TURNO DE QUIEN LA RECIBE. Dos caminos, y ninguno suma trabajo:
 
-        Cuando arregla dia y hora con Valen, ella le da el turno desde
-        aca, en un horario libre: queda en la agenda a su nombre y
-        asociado a la giftcard. En Turnos se ve la giftcard y al cobrarlo
-        ya viene puesta. Si reservo sola por la web, se elige ese turno.
+        - Reserva sola desde su tarjeta: el turno se asocia solo (ver
+          lib/giftcards-turno.ts). Aca aparece ya con su turno.
+        - Le escribe a Valen por WhatsApp: "Darle turno", dia, hora, listo.
+
+        En Turnos se ve la giftcard y al cobrarlo ya viene puesta.
       */}
       {g.estado === "vigente" &&
         (paso === "agendar" ? (
@@ -382,17 +383,6 @@ function Fila({
               const fallo = await onAgendar(g.id, fecha, hora, telefono);
               if (!fallo) setPaso(null);
               return fallo;
-            }}
-            onCancelar={() => setPaso(null)}
-          />
-        ) : paso === "turno" ? (
-          <ElegirTurno
-            para={g.para}
-            actual={g.turno_id}
-            ocupada={ocupada}
-            onElegir={(turnoId) => {
-              onActuar(g.id, "asociar", { turnoId });
-              setPaso(null);
             }}
             onCancelar={() => setPaso(null)}
           />
@@ -433,22 +423,13 @@ function Fila({
             </div>
           </div>
         ) : (
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
-            <button
-              type="button"
-              onClick={() => setPaso("agendar")}
-              className="min-h-11 rounded-full border border-vino bg-white px-5 text-base font-semibold text-vino hover:bg-vino-suave"
-            >
-              Darle turno
-            </button>
-            <button
-              type="button"
-              onClick={() => setPaso("turno")}
-              className="min-h-10 text-sm text-tinta-suave underline"
-            >
-              Ya reservó por la web
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setPaso("agendar")}
+            className="mt-3 min-h-11 rounded-full border border-vino bg-white px-5 text-base font-semibold text-vino hover:bg-vino-suave"
+          >
+            Darle turno
+          </button>
         ))}
 
       {/* ---- Para cobrar ---- */}
@@ -522,7 +503,6 @@ function Fila({
 
       {/* ---- Vigente ---- */}
       {g.estado === "vigente" &&
-        paso !== "turno" &&
         paso !== "agendar" &&
         (paso === "anular" ? (
           <Confirmar
@@ -807,95 +787,6 @@ function AgendarTurno({
 
       {error && <p className="mt-2 text-sm font-semibold text-negativo">{error}</p>}
 
-      <button type="button" onClick={onCancelar} className="mt-2 min-h-10 text-sm text-tinta-suave underline">
-        Volver
-      </button>
-    </div>
-  );
-}
-
-type TurnoLibre = { id: string; fecha: string; hora: string; cliente: string | null; estado: string };
-
-/** "María José" -> "maria jose": para comparar nombres sin tildes. */
-const normal = (t: string) =>
-  t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-
-/**
- * Elegir el turno que saco quien recibe la giftcard.
- *
- * Los reservados de hoy en adelante. Primero los que coinciden con el
- * nombre de la tarjeta: casi siempre es uno de esos, y Valen no tiene
- * que buscar entre todos.
- */
-function ElegirTurno({
-  para,
-  actual,
-  ocupada,
-  onElegir,
-  onCancelar,
-}: {
-  para: string;
-  actual: string | null;
-  ocupada: boolean;
-  onElegir: (turnoId: string) => void;
-  onCancelar: () => void;
-}) {
-  const [turnos, setTurnos] = useState<TurnoLibre[] | null>(null);
-
-  useEffect(() => {
-    clienteNavegador()
-      .from("turnos")
-      .select("id, fecha, hora, cliente, estado")
-      .gte("fecha", hoyEnArgentina())
-      .in("estado", ["pendiente", "confirmado"])
-      .order("fecha")
-      .order("hora")
-      .limit(60)
-      .then(({ data }) => setTurnos((data as TurnoLibre[]) ?? []));
-  }, []);
-
-  const nombre = normal(para).split(/\s+/)[0] ?? "";
-  const coincide = (t: TurnoLibre) => Boolean(nombre && t.cliente && normal(t.cliente).includes(nombre));
-  const ordenados = (turnos ?? []).slice().sort((a, b) => Number(coincide(b)) - Number(coincide(a)));
-
-  return (
-    <div className="mt-3 rounded-chico border border-borde bg-crema p-3">
-      <p className="text-sm font-semibold text-tinta">¿Qué turno sacó {para}?</p>
-      {turnos === null ? (
-        <p className="mt-2 text-sm text-tinta-suave">Buscando turnos…</p>
-      ) : turnos.length === 0 ? (
-        <p className="mt-2 text-sm text-tinta-suave">
-          No hay turnos reservados de hoy en adelante. Cuando reserve, volvé acá.
-        </p>
-      ) : (
-        <ul className="mt-2 max-h-72 space-y-1.5 overflow-y-auto">
-          {ordenados.map((t) => (
-            <li key={t.id}>
-              <button
-                type="button"
-                disabled={ocupada || t.id === actual}
-                onClick={() => onElegir(t.id)}
-                className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left text-base transition-colors disabled:opacity-50 ${
-                  coincide(t) ? "border-vino/40 bg-white" : "border-borde bg-papel"
-                } hover:border-vino`}
-              >
-                <span className="min-w-0">
-                  <span className="text-tinta">
-                    {formatearFechaLarga(t.fecha)} · {t.hora}
-                  </span>
-                  <span className="block text-sm text-tinta-suave">
-                    {t.cliente || "Sin nombre"}
-                    {t.estado === "pendiente" && " · a confirmar"}
-                  </span>
-                </span>
-                {coincide(t) && (
-                  <span className="shrink-0 text-xs font-semibold text-vino">Mismo nombre</span>
-                )}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
       <button type="button" onClick={onCancelar} className="mt-2 min-h-10 text-sm text-tinta-suave underline">
         Volver
       </button>
