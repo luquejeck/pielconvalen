@@ -9,7 +9,16 @@ import { useReserva } from "./ReservaContext";
 import { IconoCheck, IconoWhatsApp } from "./iconos";
 import { formatearFechaLarga } from "@/lib/fechas";
 import { asomarEnEscritorio, bajarA } from "@/lib/scroll";
-import { CODIGO_GIFTCARD } from "@/lib/giftcards";
+import { hoyEnArgentina } from "@/lib/fechas";
+import {
+  CODIGO_GIFTCARD,
+  estaVencida,
+  queRegala,
+  type Giftcard,
+  type GiftcardEnReserva,
+} from "@/lib/giftcards";
+import { clienteNavegador, hayBaseDeDatos } from "@/lib/supabase";
+import { formatearPrecio } from "@/lib/tratamientos";
 import { CONSULTA, esConsulta } from "@/lib/tratamientos";
 import { linkWhatsApp } from "@/lib/whatsapp";
 
@@ -24,14 +33,26 @@ export default function Reservas() {
 
   /*
     QUIEN VIENE CON UNA GIFTCARD. El "Reservar turno" de su tarjeta
-    (/giftcard/G-4K7M9P) trae ?giftcard= y el codigo va en el mensaje:
-    Valen lo ve y le asocia el turno en el panel. Se lee al montar y no
-    con useSearchParams, para que la portada siga siendo estatica.
+    (/giftcard/G-4K7M9P) trae ?giftcard=. Se lee al montar y no con
+    useSearchParams, para que la portada siga siendo estatica.
+
+    Se pregunta a la base si sirve —vigente y sin vencer— antes de
+    decir "reservás con tu giftcard": una usada o sin pagar no puede
+    aparecer en verde. Y trae que regala, para que el resumen diga
+    "Full Glow" y no "Consulta".
   */
-  const [giftcard, setGiftcard] = useState<string | undefined>();
+  const [giftcard, setGiftcard] = useState<GiftcardEnReserva | null>(null);
   useEffect(() => {
     const codigo = new URLSearchParams(window.location.search).get("giftcard")?.toUpperCase();
-    if (codigo && CODIGO_GIFTCARD.test(codigo)) setGiftcard(codigo);
+    if (!codigo || !CODIGO_GIFTCARD.test(codigo) || !hayBaseDeDatos) return;
+    clienteNavegador()
+      .rpc("giftcard_publica", { p_codigo: codigo })
+      .then(({ data }) => {
+        const g = (data as Pick<Giftcard, "codigo" | "estado" | "tratamiento" | "monto" | "de" | "vence_el">[] | null)?.[0];
+        if (g?.estado === "vigente" && !estaVencida(g, hoyEnArgentina())) {
+          setGiftcard({ codigo: g.codigo, tratamiento: g.tratamiento, monto: g.monto, de: g.de });
+        }
+      });
   }, []);
 
   /**
@@ -99,7 +120,7 @@ export default function Reservas() {
       const res = await fetch("/api/turnos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fecha, hora, nombre, giftcard }),
+        body: JSON.stringify({ fecha, hora, nombre, giftcard: giftcard?.codigo }),
         keepalive: true,
       });
 
@@ -245,7 +266,7 @@ export default function Reservas() {
                 calendario={
                   fecha && hora
                     ? `/api/turnos/calendario?fecha=${fecha}&hora=${hora}&tratamiento=${encodeURIComponent(
-                        tratamiento.nombre
+                        giftcard?.tratamiento ?? tratamiento.nombre
                       )}`
                     : null
                 }
@@ -254,8 +275,33 @@ export default function Reservas() {
               />
             ) : (
               <div className="mt-3 rounded-suave border border-borde bg-vino-suave px-5 py-5 shadow-suave">
+                {/*
+                  LA GIFTCARD, EN VERDE Y ARRIBA DE TODO.
+
+                  Es lo primero que tiene que ver quien viene desde su
+                  tarjeta: que el regalo se esta tomando en cuenta y para
+                  que tratamiento es. Verde con tilde, el mismo codigo del
+                  "Ahorrás" de la tienda: esto te conviene, ya esta.
+                */}
+                {giftcard && (
+                  <div className="mb-4 flex items-start gap-3 rounded-chico border border-positivo/30 bg-positivo-suave px-4 py-3">
+                    <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-positivo text-white">
+                      <IconoCheck className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-lg leading-snug font-semibold text-positivo">
+                        Reservás con tu giftcard
+                      </p>
+                      <p className="text-base leading-snug text-tinta">
+                        <b className="font-semibold">{queRegala(giftcard)}</b>
+                        {giftcard.de && <> · de parte de {giftcard.de}</>}
+                      </p>
+                      <p className="mt-0.5 text-sm tracking-[0.06em] text-tinta-suave">{giftcard.codigo}</p>
+                    </div>
+                  </div>
+                )}
                 <dl className="space-y-2 text-lg">
-                  <Fila rotulo="Turno" valor={tratamiento.nombre} />
+                  <Fila rotulo="Turno" valor={giftcard?.tratamiento ?? tratamiento.nombre} />
                   <Fila
                     rotulo="Día"
                     valor={fecha ? formatearFechaLarga(fecha) : null}
@@ -263,8 +309,16 @@ export default function Reservas() {
                   <Fila rotulo="Hora" valor={hora ? `${hora} hs` : null} />
                   {/* Sin precio de lista: el tratamiento se define en el
                       momento, asi que poner un numero seria inventarlo. */}
-                  <Fila rotulo="Precio" valor="Se define en el momento" />
-                  {giftcard && <Fila rotulo="Giftcard" valor={giftcard} />}
+                  <Fila
+                    rotulo="Precio"
+                    valor={
+                      !giftcard
+                        ? "Se define en el momento"
+                        : giftcard.tratamiento
+                          ? "Lo cubre tu giftcard"
+                          : `Tu giftcard cubre ${formatearPrecio(giftcard.monto)}`
+                    }
+                  />
                 </dl>
 
                 {/*
