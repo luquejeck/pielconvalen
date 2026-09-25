@@ -17,10 +17,9 @@ import { LogoMarca } from "./Logo";
  *   - la caja de regalo, y el codigo en una pastilla, como un numero
  *     de serie
  *
- * EL FONDO VA EN SU PROPIA CAPA RECORTADA, junto con el monograma: el
- * logo se aclara con `mix-blend-screen` (ver Logo.tsx) y solo funciona
- * si el fondo esta en la misma capa. Y el recorte no le corta el texto
- * a la tarjeta si un nombre largo la hace crecer.
+ * EL FONDO VA EN SU PROPIA CAPA RECORTADA, junto con la marca de agua:
+ * asi el recorte no le corta el texto a la tarjeta si un nombre largo la
+ * hace crecer.
  *
  * Los campos vacios muestran un texto de ejemplo mas apagado: mientras
  * se arma, se ve que es lo que falta completar.
