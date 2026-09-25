@@ -1,5 +1,6 @@
 import { CONSULTORIO } from "./config";
 import { formatearFechaLarga } from "./fechas";
+import type { GiftcardEnReserva } from "./giftcards";
 import { esConsulta, formatearPrecio, type Tratamiento } from "./tratamientos";
 
 /**
@@ -33,8 +34,8 @@ type DatosReserva = {
   fecha: string; // "YYYY-MM-DD"
   hora: string; // "HH:mm"
   nombre?: string;
-  /** Si viene a usar una giftcard: el codigo, para que Valen la asocie. */
-  giftcard?: string;
+  /** Si viene a usar una giftcard: el turno es para lo que regala. */
+  giftcard?: GiftcardEnReserva | null;
 };
 
 /** Arma el mensaje que va prellenado en WhatsApp. */
@@ -46,7 +47,7 @@ export function mensajeReserva({
   giftcard,
 }: DatosReserva): string {
   // Intl usa espacio duro ( ) entre el simbolo y el numero: en WhatsApp queda feo.
-  const precio = formatearPrecio(tratamiento.precio).replace(/ /g, " ");
+  const precio = formatearPrecio(tratamiento.precio).replace(/\u00a0/g, " ");
 
   /*
     La consulta no lleva precio en el mensaje. Antes salia "($ 0)", que
@@ -60,9 +61,11 @@ export function mensajeReserva({
     aclaracion sonaba a la web hablando por ella (Lucas, 25-09-2026).
     Que el precio se define en el momento ya lo leyo en la pagina.
   */
-  const queTurno = esConsulta(tratamiento)
-    ? [`• Turno: ${tratamiento.nombre}`]
-    : [`• Tratamiento: ${tratamiento.nombre}`, `• Precio: ${precio}`];
+  const queTurno = giftcard?.tratamiento
+    ? [`• Turno: ${giftcard.tratamiento}`]
+    : esConsulta(tratamiento)
+      ? [`• Turno: ${tratamiento.nombre}`]
+      : [`• Tratamiento: ${tratamiento.nombre}`, `• Precio: ${precio}`];
 
   const lineas = [
     `Hola Valen! Quiero reservar un turno 🌿`,
@@ -73,7 +76,14 @@ export function mensajeReserva({
   ];
 
   if (nombre?.trim()) lineas.push(`• Mi nombre: ${nombre.trim()}`);
-  if (giftcard) lineas.push(`• Vengo con la giftcard ${giftcard}`);
+  /* El codigo, para que Valen la asocie; y si es de un monto, cuanto. */
+  if (giftcard) {
+    lineas.push(
+      giftcard.tratamiento
+        ? `• Giftcard: ${giftcard.codigo}`
+        : `• Giftcard: ${giftcard.codigo} · ${formatearPrecio(giftcard.monto).replace(/\u00a0/g, " ")}`
+    );
+  }
 
   lineas.push(``, `¿Me lo confirmás? ¡Gracias!`);
   return lineas.join("\n");
@@ -160,7 +170,7 @@ export function mensajeProducto({
   */
   lineas.push(
     precio > 0
-      ? `• Precio publicado: ${formatearPrecio(precio).replace(/ /g, " ")}`
+      ? `• Precio publicado: ${formatearPrecio(precio).replace(/\u00a0/g, " ")}`
       : `• ¿Qué precio tiene?`
   );
 
@@ -199,7 +209,7 @@ export function mensajePedido(
        "$ 0" que no dice nada y ensucia el total. */
     const importe =
       l.precio > 0
-        ? formatearPrecio(l.precio * l.cantidad).replace(/ /g, " ")
+        ? formatearPrecio(l.precio * l.cantidad).replace(/\u00a0/g, " ")
         : "a confirmar";
     partes.push(`• ${l.cantidad} × ${l.nombre}${detalle} — ${importe}`);
   }
@@ -209,7 +219,7 @@ export function mensajePedido(
 
   partes.push(``);
   partes.push(
-    `Total: ${formatearPrecio(total).replace(/ /g, " ")}${
+    `Total: ${formatearPrecio(total).replace(/\u00a0/g, " ")}${
       hayAConfirmar ? " + los que faltan confirmar" : ""
     }`
   );
@@ -316,7 +326,7 @@ type DatosGiftcard = {
  * mensaje que firma la clienta, no la web.
  */
 export function mensajeGiftcard(g: DatosGiftcard): string {
-  const precio = formatearPrecio(g.monto).replace(/ /g, " ");
+  const precio = formatearPrecio(g.monto).replace(/\u00a0/g, " ");
   const lineas = [
     `Hola Valen! Quiero regalar una giftcard 🎁`,
     `Código: ${g.codigo}`,

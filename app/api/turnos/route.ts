@@ -81,6 +81,25 @@ export async function POST(request: Request) {
 
   const supabase = await clienteServidor();
 
+  /*
+    VIENE CON GIFTCARD (reservo desde su tarjeta). Se pregunta a la base
+    si sirve: solo una vigente queda anotada. El turno lleva el codigo en
+    las notas —el panel la asocia sola, ver lib/giftcards.ts— y, si
+    regala un tratamiento, ese tratamiento y lo que vale, que es lo que
+    Valen ve en la agenda y lo que el cobro propone.
+  */
+  let conGiftcard: { notas: string; tratamiento?: string; precio?: number } | null = null;
+  if (giftcard && CODIGO_GIFTCARD.test(giftcard)) {
+    const { data } = await supabase.rpc("giftcard_publica", { p_codigo: giftcard });
+    const g = (data as { estado: string; tratamiento: string | null; monto: number | null }[] | null)?.[0];
+    if (g?.estado === "vigente") {
+      conGiftcard = {
+        notas: notaGiftcard(giftcard),
+        ...(g.tratamiento ? { tratamiento: g.tratamiento, precio: g.monto ?? undefined } : {}),
+      };
+    }
+  }
+
   const { error } = await supabase.from("turnos").insert({
     fecha,
     hora,
@@ -90,9 +109,8 @@ export async function POST(request: Request) {
     /* La consulta no tiene precio de lista: el importe sale cuando Valen
        cobra y elige el tratamiento que hizo. */
     precio: tratamiento.precio || null,
-    /* Viene con giftcard (reservo desde su tarjeta): el turno la lleva
-       en las notas y el panel la asocia solo. Ver lib/giftcards.ts. */
-    notas: giftcard && CODIGO_GIFTCARD.test(giftcard) ? notaGiftcard(giftcard) : null,
+    notas: null as string | null,
+    ...conGiftcard,
   });
 
   if (error) {

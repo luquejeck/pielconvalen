@@ -105,5 +105,13 @@ export const MEDIO_GIFTCARD = "Giftcard";
 */
 export const notaGiftcard = (codigo: string) => `Giftcard ${codigo}`;
 
+/** La giftcard con la que se esta reservando, tal como la ve la web. */
+export type GiftcardEnReserva = {
+  codigo: string;
+  tratamiento: string | null;
+  monto: number;
+  de: string | null;
+};
+
 export const codigoEnNotas = (notas: string | null | undefined) =>
   notas?.match(/G-[A-Z0-9]{6}/)?.[0] ?? null;

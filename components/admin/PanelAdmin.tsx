@@ -25,7 +25,7 @@ import PedidosWeb from "./PedidosWeb";
 import Recordatorios from "./Recordatorios";
 import FormularioCobro, { MEDIOS_DE_PAGO } from "./FormularioCobro";
 import AvisoDuplicado from "./AvisoDuplicado";
-import { IconoCheck, IconoRegalo } from "../iconos";
+import { IconoCheck } from "../iconos";
 import { codigoEnNotas } from "@/lib/giftcards";
 
 type EstadoTurno =
@@ -612,12 +612,18 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                 {turno?.cliente && (
                   <p className="mt-2 text-lg">{turno.cliente}</p>
                 )}
-                {/* Viene con giftcard: se ve antes de atenderla. */}
+                {/* Viene con giftcard: se ve antes de atenderla, en verde
+                    y con tilde, como en la reserva de la clienta. Va en
+                    una pastilla propia para que se lea igual sobre el
+                    vino pleno de un turno pendiente. */}
                 {turno && giftcards[turno.id] && (
-                  <p className="mt-1 flex items-center gap-1.5 text-base font-semibold">
-                    <IconoRegalo className="h-4.5 w-4.5 shrink-0" />
-                    Giftcard {giftcards[turno.id].codigo} ·{" "}
-                    {giftcards[turno.id].tratamiento ?? formatearPrecio(giftcards[turno.id].monto)}
+                  <p className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-positivo-suave px-3 py-1 text-base font-semibold text-positivo">
+                    <IconoCheck className="h-4 w-4 shrink-0" />
+                    <span className="min-w-0">
+                      Giftcard ·{" "}
+                      {giftcards[turno.id].tratamiento ?? formatearPrecio(giftcards[turno.id].monto)}
+                      <span className="font-normal"> · {giftcards[turno.id].codigo}</span>
+                    </span>
                   </p>
                 )}
                 {turno?.tratamiento && (
