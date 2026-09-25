@@ -20,6 +20,7 @@ import BuscadorCliente from "./BuscadorCliente";
 import Hoja from "./Hoja";
 import AvisoGiftcards from "./AvisoGiftcards";
 import BandejaPendientes from "./BandejaPendientes";
+import LesToca from "./LesToca";
 import PedidosWeb from "./PedidosWeb";
 import Recordatorios from "./Recordatorios";
 import FormularioCobro, { MEDIOS_DE_PAGO } from "./FormularioCobro";
@@ -371,6 +372,10 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
           if (vista === "semana") void cargarSemana();
         }}
       />
+
+      {/* Las que vinieron hace mas de un mes y no sacaron turno. Ultimo:
+          nadie esta esperando respuesta. */}
+      <LesToca />
 
       {/* Dia o semana */}
       <div className="mb-4 flex justify-center">

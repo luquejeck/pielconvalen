@@ -353,3 +353,16 @@ export const linkGiftcardLista = (g: { para: string }, url: string) =>
       `Para usarla, reserva su turno desde la web y me avisa que viene con la giftcard.`,
     ].join("\n")
   )}`;
+
+/**
+ * "Te toca tu sesion": para la clienta que vino hace mas de un mes y no
+ * saco turno. Sin fecha ni tratamiento: es una invitacion, no un turno.
+ */
+export const mensajeLesToca = (nombre: string, reservar: string) =>
+  [
+    `Hola ${nombre.trim().split(/\s+/)[0]}! ¿Cómo estás? 🌿`,
+    ``,
+    `Ya pasó más de un mes de tu última sesión, así que te toca la próxima. ¿Te guardo un turno?`,
+    ``,
+    `Si preferís, lo sacás directo desde la web: ${reservar}`,
+  ].join("\n");
