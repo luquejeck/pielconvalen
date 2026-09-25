@@ -288,3 +288,68 @@ export const mensajeTurnoRechazado = ({ fecha, hora, cliente }: DatosTurno) =>
     ``,
     `Justo ese horario no me queda disponible. ¿Buscamos otro día?`,
   ].join("\n");
+
+/* -------------------------------------------------------------------------
+ * GIFTCARDS
+ * Mismo circuito que el pedido de la tienda: la web registra la giftcard
+ * con un codigo y el mensaje lo lleva, asi Valen la cruza en el panel.
+ * ---------------------------------------------------------------------- */
+
+type DatosGiftcard = {
+  codigo: string;
+  para: string;
+  de: string;
+  mensaje?: string | null;
+  /** El tratamiento regalado. Vacio = un monto para lo que quiera. */
+  tratamiento: string | null;
+  monto: number;
+};
+
+/**
+ * El pedido de la giftcard, como lo manda quien regala.
+ *
+ * Todo en renglones con su rotulo y nada entre parentesis: es un
+ * mensaje que firma la clienta, no la web.
+ */
+export function mensajeGiftcard(g: DatosGiftcard): string {
+  const precio = formatearPrecio(g.monto).replace(/ /g, " ");
+  const lineas = [
+    `Hola Valen! Quiero regalar una giftcard 🎁`,
+    `Código: ${g.codigo}`,
+    ``,
+    g.tratamiento
+      ? `• Regalo: ${g.tratamiento} — ${precio}`
+      : `• Regalo: ${precio} para usar en un tratamiento`,
+    `• Para: ${g.para.trim()}`,
+    `• De parte de: ${g.de.trim()}`,
+  ];
+  if (g.mensaje?.trim()) lineas.push(`• Mensaje: “${g.mensaje.trim()}”`);
+
+  lineas.push(``, `¿Cómo te la pago?`);
+  return lineas.join("\n");
+}
+
+export function linkGiftcard(datos: DatosGiftcard, numero?: string): string {
+  return `https://wa.me/${numero ?? CONSULTORIO.whatsapp}?text=${encodeURIComponent(
+    mensajeGiftcard(datos)
+  )}`;
+}
+
+/**
+ * La giftcard lista, de Valen a quien la compro.
+ *
+ * Va sin telefono (wa.me/?text=): la web no guarda el de quien regala,
+ * asi que WhatsApp le pregunta a Valen a que chat mandarlo, y ella elige
+ * el de la conversacion donde se la pidieron.
+ */
+export const linkGiftcardLista = (g: { para: string }, url: string) =>
+  `https://wa.me/?text=${encodeURIComponent(
+    [
+      `¡Listo! Ya está activa la giftcard para ${g.para.trim()} 🎁`,
+      ``,
+      `Acá la podés ver y reenviársela:`,
+      url,
+      ``,
+      `Para usarla, reserva su turno desde la web y me avisa que viene con la giftcard.`,
+    ].join("\n")
+  )}`;

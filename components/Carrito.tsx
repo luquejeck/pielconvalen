@@ -4,24 +4,15 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { descuentoDe, fotoDe, precioDe } from "@/lib/productos";
 import type { Combo } from "@/lib/combos";
+import { codigoAlAzar } from "@/lib/codigos";
 import { PAGO_PRODUCTOS } from "@/lib/config";
 import { formatearPrecio } from "@/lib/tratamientos";
 import { linkPedido } from "@/lib/whatsapp";
 import { useCarrito } from "./CarritoContext";
 import { IconoBillete, IconoCheck, IconoPin, IconoWhatsApp } from "./iconos";
 
-/*
-  EL CODIGO DEL PEDIDO: P- y cuatro caracteres, sin los que se confunden
-  al leerlos en voz alta o en un telefono (0 y O, 1, I y L). Lo arma el
-  navegador porque tiene que ir adentro del mensaje de WhatsApp, que se
-  abre en el mismo toque (ver app/api/pedidos/route.ts).
-*/
-const LETRAS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-function nuevoCodigo() {
-  const n = new Uint32Array(4);
-  crypto.getRandomValues(n);
-  return `P-${Array.from(n, (x) => LETRAS[x % LETRAS.length]).join("")}`;
-}
+/* EL CODIGO DEL PEDIDO: P- y cuatro caracteres (ver lib/codigos.ts). */
+const nuevoCodigo = () => codigoAlAzar("P", 4);
 
 /** Lo que muestra el pedido despues de tocar "Enviar". */
 type Enviado = {

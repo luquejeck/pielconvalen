@@ -1,3 +1,4 @@
+import BandaGiftcard from "@/components/BandaGiftcard";
 import Beneficios from "@/components/Beneficios";
 import BotonWhatsApp from "@/components/BotonWhatsApp";
 import ComoTrabajo from "@/components/ComoTrabajo";
@@ -89,6 +90,13 @@ export default async function Home() {
       })),
   };
 
+  /* El tratamiento que se ve en la giftcard de muestra: el destacado,
+     o si no hay, el mas completo. */
+  const conPrecio = tratamientos.filter((t) => t.precio > 0);
+  const ejemploGiftcard =
+    (conPrecio.find((t) => t.destacado) ??
+      conPrecio.slice().sort((a, b) => b.precio - a.precio)[0])?.nombre ?? "Una sesión";
+
   return (
     <ReservaProvider
       tratamientos={tratamientos}
@@ -111,6 +119,7 @@ export default async function Home() {
           2. Tratamientos      — los precios ANTES del calendario: pedir un
              horario sin haber mostrado un numero es pedir a ciegas.
           3. El turno          — con el precio ya visto.
+             Y pegadas, las giftcards: lo mismo, para regalar.
           4. Productos y marcas — lo que se lleva a casa.
           5. Recien ahi: como se trabaja, que va a notar y el consultorio
              por dentro. Es material para quien todavia esta decidiendo, y
@@ -125,6 +134,7 @@ export default async function Home() {
         <Consultorio consultorio={CONSULTORIO} />
         <Tratamientos />
         <Reservas />
+        <BandaGiftcard ejemplo={ejemploGiftcard} />
         <Productos consultorio={CONSULTORIO} productos={productos} />
         <Marcas productos={productos} />
         <ComoTrabajo agenda={agenda} />

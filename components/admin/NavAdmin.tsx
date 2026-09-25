@@ -19,7 +19,8 @@ import { usePathname } from "next/navigation";
  * lo refleja, en tres grupos:
  *
  *   HOY          Turnos y Caja: lo que abre cada dia.
- *   MI NEGOCIO   Productos, Tratamientos y Clientas: lo que administra.
+ *   MI NEGOCIO   Productos, Tratamientos, Clientas y Giftcards: lo que
+ *                administra.
  *   MI WEB       Todo lo que es de la pagina publica, junto, al final.
  *
  * Los grupos se separan con aire y no con titulos: en el telefono la
@@ -47,6 +48,9 @@ const GRUPOS: Seccion[][] = [
     { href: "/admin/productos", texto: "Productos" },
     { href: "/admin/tratamientos", texto: "Tratamientos" },
     { href: "/admin/clientes", texto: "Clientas" },
+    /* Al final del grupo: se vende de a rachas (cumpleaños, el Dia de
+       la Madre, fin de año) y el resto del tiempo se mira poco. */
+    { href: "/admin/giftcards", texto: "Giftcards" },
   ],
   [
     /*

@@ -1,5 +1,8 @@
 import { fallo, requerirSesion } from "@/lib/api";
 import { obtenerTratamientos } from "@/lib/catalogo";
+import { hoyEnArgentina } from "@/lib/fechas";
+import { CODIGO_GIFTCARD, fechaConAnio, MEDIO_GIFTCARD } from "@/lib/giftcards";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +23,7 @@ export async function POST(req: NextRequest) {
   const sesion = await requerirSesion();
   if (!sesion.ok) return sesion.respuesta;
 
-  const { turnoId, monto, medioPago, notas, tratamientoId } = await req.json();
+  const { turnoId, monto, medioPago, notas, tratamientoId, giftcard } = await req.json();
 
   if (!turnoId) {
     return NextResponse.json({ error: "Falta el turno." }, { status: 400 });
@@ -32,6 +35,21 @@ export async function POST(req: NextRequest) {
       { error: "El monto cobrado no es válido." },
       { status: 400 }
     );
+  }
+
+  /*
+    PAGADO CON GIFTCARD: la giftcard queda usada en este turno.
+
+    Va primero, antes de tocar el turno: si el codigo no sirve, Valen se
+    entera sin que nada haya cambiado. Y si despues el cobro falla, se
+    devuelve a vigente, para que no quede gastada en un turno que no se
+    cobro.
+  */
+  let giftcardUsada: string | null = null;
+  if (medioPago === MEDIO_GIFTCARD) {
+    const uso = await usarGiftcard(sesion.sb, giftcard, turnoId);
+    if (!uso.ok) return uso.respuesta;
+    giftcardUsada = uso.id;
   }
 
   /*
@@ -64,6 +82,7 @@ export async function POST(req: NextRequest) {
         .is("movimiento_id", null);
 
       if (falloTratamiento) {
+        await devolverGiftcard(sesion.sb, giftcardUsada);
         return fallo("guardar el tratamiento", falloTratamiento);
       }
     }
@@ -77,6 +96,8 @@ export async function POST(req: NextRequest) {
   });
 
   if (error) {
+    await devolverGiftcard(sesion.sb, giftcardUsada);
+
     // P0001 = ya estaba cobrado. Es informacion util, no un error tecnico.
     if (error.code === "P0001" || error.code === "P0002") {
       return NextResponse.json({ error: error.message }, { status: 409 });
@@ -109,5 +130,82 @@ export async function DELETE(req: NextRequest) {
   });
 
   if (error) return fallo("deshacer el cobro", error);
+
+  /* Si se pago con giftcard, vuelve a estar vigente: el turno ya no la
+     usa. Sin la tabla (schema-22 sin correr) no hay nada que devolver,
+     y el cobro ya se deshizo igual. */
+  await sesion.sb
+    .from("giftcards")
+    .update({ estado: "vigente", usada_el: null, turno_id: null })
+    .eq("turno_id", turnoId)
+    .eq("estado", "usada");
+
   return NextResponse.json({ ok: true });
+}
+
+type Uso =
+  | { ok: true; id: string }
+  | { ok: false; respuesta: NextResponse };
+
+/**
+ * Marca la giftcard como usada en este turno, en un solo `update` que
+ * pide que este vigente: dos cobros a la vez con el mismo codigo no
+ * pueden gastarla los dos.
+ *
+ * Una vencida se acepta. Que la tome o no lo decide Valen, que la tiene
+ * enfrente: el formulario ya le mostro la fecha antes de confirmar.
+ */
+async function usarGiftcard(sb: SupabaseClient, crudo: unknown, turnoId: string): Promise<Uso> {
+  const codigo = typeof crudo === "string" ? crudo.trim().toUpperCase() : "";
+  const no = (error: string, status: number): Uso => ({
+    ok: false,
+    respuesta: NextResponse.json({ error }, { status }),
+  });
+
+  if (!CODIGO_GIFTCARD.test(codigo)) {
+    return no("Poné el código de la giftcard, como G-4K7M9P.", 400);
+  }
+
+  const { data: usada, error } = await sb
+    .from("giftcards")
+    .update({ estado: "usada", usada_el: hoyEnArgentina(), turno_id: turnoId })
+    .eq("codigo", codigo)
+    .eq("estado", "vigente")
+    .select("id")
+    .maybeSingle();
+
+  // 42P01 / PGRST205 = la tabla no existe: falta correr schema-22.
+  if (error?.code === "42P01" || error?.code === "PGRST205") {
+    return no("Falta correr schema-22-giftcards.sql en Supabase.", 501);
+  }
+  if (error) return { ok: false, respuesta: fallo("usar la giftcard", error) };
+  if (usada) return { ok: true, id: usada.id };
+
+  /* No estaba vigente: se busca por que, para decirlo con palabras. */
+  const { data: g } = await sb
+    .from("giftcards")
+    .select("estado, usada_el")
+    .eq("codigo", codigo)
+    .maybeSingle();
+
+  if (!g) return no(`No hay ninguna giftcard con el código ${codigo}.`, 404);
+  if (g.estado === "nueva") {
+    return no(`La giftcard ${codigo} todavía no está cobrada. Marcala como cobrada en Giftcards.`, 409);
+  }
+  if (g.estado === "usada") {
+    return no(
+      `La giftcard ${codigo} ya se usó${g.usada_el ? ` el ${fechaConAnio(g.usada_el)}` : ""}.`,
+      409
+    );
+  }
+  return no(`La giftcard ${codigo} está anulada.`, 409);
+}
+
+/** Si el cobro no llego a entrar, la giftcard vuelve a estar vigente. */
+async function devolverGiftcard(sb: SupabaseClient, id: string | null) {
+  if (!id) return;
+  await sb
+    .from("giftcards")
+    .update({ estado: "vigente", usada_el: null, turno_id: null })
+    .eq("id", id);
 }

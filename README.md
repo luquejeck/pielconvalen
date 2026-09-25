@@ -78,8 +78,8 @@ Supabase → **SQL Editor** → *New query* → pegar todo el contenido de
 
 Los archivos `schema-3-…` en adelante son los cambios que vinieron después.
 Se corren igual, **en orden y una sola vez cada uno**. El último es
-[`supabase/schema-12-agenda-por-dia.sql`](supabase/schema-12-agenda-por-dia.sql):
-los horarios de cada día y el texto de cómo trabaja.
+[`supabase/schema-22-giftcards.sql`](supabase/schema-22-giftcards.sql):
+las giftcards.
 
 Eso crea:
 
@@ -143,6 +143,23 @@ Días que atiende, horarios de cada día (agregar o quitar turnos),
 anticipación mínima para reservar, cuántos días adelante se abre la agenda
 y los pasos que incluyen todos los tratamientos.
 
+### Giftcards (`/admin/giftcards`)
+
+- **Para cobrar:** las que se pidieron por la web, con el mismo código que
+  llega en el WhatsApp (G-4K7M9P). *Me la pagaron* → cómo pagó, y queda
+  vigente por 6 meses. En Turnos aparece un aviso mientras haya alguna.
+- **Vigentes:** *Mandar la tarjeta* abre WhatsApp con el link de la tarjeta
+  para mandárselo a quien la compró, que se lo reenvía a quien la recibe.
+- **Cargar una a mano:** para las que se venden en el consultorio o por
+  Instagram.
+- **Se usan al cobrar el turno:** en *Cómo pagó* se elige *Giftcard* y se
+  pone el código. El turno se cobra y la giftcard queda usada en el mismo
+  paso. Si se deshace el cobro, la giftcard vuelve a estar vigente.
+
+La plata de una giftcard **entra en la Caja cuando se usa**, no cuando se
+vende: es un tratamiento pagado por adelantado. Lo cobrado y sin usar se ve
+arriba de todo en Giftcards.
+
 ---
 
 ## 5. Circuito de una reserva
@@ -154,6 +171,18 @@ y los pasos que incluyen todos los tratamientos.
 4. Valen responde y marca **Confirmado** en el panel.
 
 Si la clienta nunca escribe, Valen cancela el turno y el horario vuelve a estar libre.
+
+### Circuito de una giftcard
+
+1. Quien regala la arma en `/giftcard`: un tratamiento o un monto, para
+   quién, de parte de quién y un mensaje.
+2. Toca *Pedir por WhatsApp* → `POST /api/giftcards` la registra como
+   **nueva** y se abre WhatsApp con el código.
+3. Valen cobra por el chat y la marca cobrada en el panel: queda **vigente**.
+4. Valen le manda el link (`/giftcard/G-4K7M9P`) a quien la compró, que se
+   lo reenvía a quien la recibe.
+5. Quien la recibe reserva su turno y avisa que viene con la giftcard. Al
+   cobrar, Valen elige *Giftcard* y pone el código: queda **usada**.
 
 ---
 
