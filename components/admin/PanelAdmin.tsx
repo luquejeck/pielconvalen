@@ -18,6 +18,7 @@ import {
 } from "@/lib/whatsapp";
 import BuscadorCliente from "./BuscadorCliente";
 import Hoja from "./Hoja";
+import AvisoGiftcards from "./AvisoGiftcards";
 import BandejaPendientes from "./BandejaPendientes";
 import PedidosWeb from "./PedidosWeb";
 import Recordatorios from "./Recordatorios";
@@ -254,6 +255,8 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
       /* Que se le hizo de verdad. El turno entro como consulta y esto es
          lo que queda escrito en Economia y en su ficha. */
       tratamientoId: string;
+      /* El codigo, si pago con giftcard: queda usada en este turno. */
+      giftcard?: string;
     }
   ): Promise<string | null> => {
     const res = await fetch("/api/turnos/realizar", {
@@ -356,6 +359,10 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
       {/* Los pedidos de la tienda que entraron por la web, para cruzar
           con el WhatsApp por su codigo. */}
       <PedidosWeb />
+
+      {/* Las giftcards pedidas por la web: un renglon que lleva a su
+          pestaña, donde se cobran. */}
+      <AvisoGiftcards />
 
       {/* Los pedidos sin responder, de cualquier fecha. */}
       <BandejaPendientes

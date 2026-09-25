@@ -229,6 +229,78 @@ if (faltaPedidos) {
   }
 }
 
+/*
+  LAS GIFTCARDS (schema-22).
+
+  Como los pedidos: la visitante registra una nueva, pero no lee
+  ninguna, ni la registra ya cobrada, ni se la marca como cobrada. Y
+  puede ver UNA tarjeta sabiendo su codigo, con `giftcard_publica`, que
+  de una sin cobrar devuelve el estado y nada mas.
+
+  La prueba de escritura corre solo con la clave de servicio: sin ella
+  no hay como borrar la giftcard de prueba, y le quedaria a Valen en
+  "para cobrar".
+*/
+const { data: vacia, error: eFuncion } = await anon.rpc("giftcard_publica", { p_codigo: "G-NOEXIS" });
+const faltaGiftcards = eFuncion && (eFuncion.code === "PGRST202" || eFuncion.code === "42883");
+if (faltaGiftcards) {
+  probar("giftcards", true, "falta correr schema-22-giftcards.sql");
+} else {
+  probar(
+    "buscar una tarjeta que no existe",
+    !eFuncion && (vacia ?? []).length === 0,
+    eFuncion ? eFuncion.message.slice(0, 50) : "no devuelve nada"
+  );
+
+  const { data: leidas, error: eLeerGift } = await anon.from("giftcards").select("codigo").limit(5);
+  probar(
+    "listar las giftcards",
+    Boolean(eLeerGift) || (leidas ?? []).length === 0,
+    eLeerGift ? "bloqueado" : (leidas ?? []).length ? "SE FILTRAN" : "no devuelve nada"
+  );
+
+  if (SERVICIO) {
+    const svc = createClient(URL, SERVICIO, sinSesion);
+    const GIFT = "G-PRUEBA";
+    const GIFT_COBRADA = "G-PRUEB2";
+    const prueba = { para: MARCA, de: MARCA, monto: 1000 };
+
+    const { error: eGift } = await anon.from("giftcards").insert({ ...prueba, codigo: GIFT });
+    probar("registrar una giftcard", !eGift, eGift ? eGift.message.slice(0, 50) : "se puede");
+
+    const { data: tarjeta } = await anon.rpc("giftcard_publica", { p_codigo: GIFT });
+    probar(
+      "ver una sin cobrar por su codigo",
+      tarjeta?.[0]?.estado === "nueva" && tarjeta[0].para === null,
+      tarjeta?.[0]?.para ? "MUESTRA LA TARJETA SIN PAGAR" : "solo el estado"
+    );
+
+    const { error: eCobrada } = await anon
+      .from("giftcards")
+      .insert({ ...prueba, codigo: GIFT_COBRADA, estado: "vigente" });
+    await anon.from("giftcards").update({ estado: "vigente" }).eq("codigo", GIFT);
+
+    const { data: quedaron } = await svc
+      .from("giftcards")
+      .select("codigo, estado")
+      .in("codigo", [GIFT, GIFT_COBRADA]);
+    const fila = (c) => (quedaron ?? []).find((g) => g.codigo === c);
+    probar(
+      "registrar una giftcard ya cobrada",
+      Boolean(eCobrada) && !fila(GIFT_COBRADA),
+      eCobrada ? "bloqueado" : "ENTRO"
+    );
+    probar(
+      "marcarse una giftcard como cobrada",
+      fila(GIFT)?.estado === "nueva",
+      fila(GIFT)?.estado === "nueva" ? "bloqueado" : "SE PUDO"
+    );
+    await svc.from("giftcards").delete().in("codigo", [GIFT, GIFT_COBRADA]);
+  } else {
+    probar("escribir giftcards", true, "sin clave de servicio, no se pudo comprobar");
+  }
+}
+
 const fallaron = resultados.filter((r) => !r).length;
 console.log(
   fallaron

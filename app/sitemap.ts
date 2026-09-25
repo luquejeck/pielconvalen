@@ -38,6 +38,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.7,
     },
+    /* "giftcard limpieza de cutis Caballito", cerca de cada fecha de
+       regalos. Las tarjetas de cada persona no van: son privadas. */
+    {
+      url: `${SITIO_URL}/giftcard`,
+      lastModified: ahora,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
     /* Cada tratamiento con su pagina: "dermaplaning Caballito" tiene
        que caer en la de dermaplaning. */
     ...tratamientos

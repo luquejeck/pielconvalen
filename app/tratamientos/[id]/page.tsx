@@ -134,6 +134,15 @@ export default async function PaginaTratamiento({ params }: Ruta) {
                 <p className="mt-3 text-center text-base text-tinta-suave">
                   {CONSULTORIO.mediosDePago}
                 </p>
+                {/* Para quien lo quiere regalar: la giftcard se abre con
+                    este tratamiento ya elegido. */}
+                <Link
+                  href={`/giftcard?regalo=${t.id}`}
+                  className="mt-2 flex min-h-11 items-center justify-center gap-1.5 text-base font-semibold text-vino underline decoration-vino/30 underline-offset-4 hover:decoration-vino"
+                >
+                  Regalarlo con una giftcard
+                  <IconoFlecha className="h-4 w-4" />
+                </Link>
               </footer>
             </article>
 

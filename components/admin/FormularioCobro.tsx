@@ -1,10 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  CODIGO_GIFTCARD,
+  estaVencida,
+  fechaConAnio,
+  MEDIO_GIFTCARD,
+  queRegala,
+  type Giftcard,
+} from "@/lib/giftcards";
+import { hoyEnArgentina } from "@/lib/fechas";
 import { esConsulta, formatearPrecio, type Tratamiento } from "@/lib/tratamientos";
 import AvisoDuplicado from "./AvisoDuplicado";
 
 export const MEDIOS_DE_PAGO = ["Efectivo", "Transferencia", "Mercado Pago"];
+
+/* Un tratamiento tambien se paga con giftcard. Los productos no: por
+   eso no esta en la lista de arriba, que usan las ventas. */
+const MEDIOS_DEL_TURNO = [...MEDIOS_DE_PAGO, MEDIO_GIFTCARD];
+
+/** Lo que se sabe de la giftcard que se esta escribiendo. */
+type Chequeo =
+  | { estado: "buscando" }
+  | { estado: "encontrada"; g: Giftcard }
+  | { estado: "error"; mensaje: string }
+  | null;
 
 /**
  * "Atendida y cobrada": el paso que cierra el circuito.
@@ -48,6 +68,8 @@ export default function FormularioCobro({
     medioPago: string;
     notas: string;
     tratamientoId: string;
+    /** El codigo, cuando se paga con giftcard. */
+    giftcard?: string;
   }) => Promise<string | null>;
   onCancelar: () => void;
 }) {
@@ -65,6 +87,44 @@ export default function FormularioCobro({
   const [error, setError] = useState<string | null>(null);
   /* Cuantas cosas ya cargadas hay cerca de esta fecha para esta clienta. */
   const [duplicados, setDuplicados] = useState(0);
+  const [giftcard, setGiftcard] = useState("");
+  const [chequeo, setChequeo] = useState<Chequeo>(null);
+
+  const conGiftcard = medioPago === MEDIO_GIFTCARD;
+  const codigo = giftcard.trim().toUpperCase();
+
+  /*
+    LA GIFTCARD SE MIRA MIENTRAS SE ESCRIBE: que regala, para quien y
+    hasta cuando vale. Valen la tiene enfrente y decide con eso; el
+    servidor igual vuelve a controlar todo al confirmar.
+
+    Y el monto pasa a ser el de la giftcard. Es la plata que entro
+    cuando se vendio y que recien ahora llega a la Caja: si ademas le
+    pagaron una diferencia, se suma a mano.
+  */
+  useEffect(() => {
+    if (!conGiftcard || !CODIGO_GIFTCARD.test(codigo)) {
+      setChequeo(null);
+      return;
+    }
+    let vigente = true;
+    setChequeo({ estado: "buscando" });
+    fetch(`/api/giftcards?codigo=${codigo}`)
+      .then(async (r) => {
+        const data = await r.json().catch(() => null);
+        if (!vigente) return;
+        if (!r.ok) {
+          setChequeo({ estado: "error", mensaje: data?.error ?? "No se pudo buscar la giftcard." });
+          return;
+        }
+        setChequeo({ estado: "encontrada", g: data });
+        if (data.estado === "vigente") setMonto(String(data.monto));
+      })
+      .catch(() => vigente && setChequeo({ estado: "error", mensaje: "No se pudo buscar la giftcard." }));
+    return () => {
+      vigente = false;
+    };
+  }, [conGiftcard, codigo]);
 
   /* Elegir el tratamiento trae su precio de lista al monto: es el numero
      que se cobra casi siempre, y si no, se corrige al lado. */
@@ -82,6 +142,11 @@ export default function FormularioCobro({
       return;
     }
 
+    if (conGiftcard && !CODIGO_GIFTCARD.test(codigo)) {
+      setError("Poné el código de la giftcard, como G-4K7M9P.");
+      return;
+    }
+
     setGuardando(true);
     setError(null);
 
@@ -90,6 +155,7 @@ export default function FormularioCobro({
       medioPago,
       notas,
       tratamientoId,
+      giftcard: conGiftcard ? codigo : undefined,
     });
 
     setGuardando(false);
@@ -122,7 +188,9 @@ export default function FormularioCobro({
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="block">
-          <span className="text-sm opacity-80">Cuánto cobraste</span>
+          <span className="text-sm opacity-80">
+            {conGiftcard ? "Cuánto suma a la Caja" : "Cuánto cobraste"}
+          </span>
           <input
             type="number"
             min="0"
@@ -140,7 +208,7 @@ export default function FormularioCobro({
             onChange={(e) => setMedioPago(e.target.value)}
             className="mt-1 min-h-12 w-full rounded-2xl border border-borde bg-white px-4 text-base text-tinta outline-none focus:border-vino"
           >
-            {MEDIOS_DE_PAGO.map((m) => (
+            {MEDIOS_DEL_TURNO.map((m) => (
               <option key={m} value={m}>
                 {m}
               </option>
@@ -148,6 +216,26 @@ export default function FormularioCobro({
           </select>
         </label>
       </div>
+
+      {conGiftcard && (
+        <div className="mt-3">
+          <label className="block">
+            <span className="text-sm opacity-80">Código de la giftcard</span>
+            <input
+              type="text"
+              value={giftcard}
+              onChange={(e) => setGiftcard(e.target.value.toUpperCase())}
+              placeholder="G-4K7M9P"
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              maxLength={10}
+              className="mt-1 min-h-12 w-full rounded-2xl border border-borde bg-white px-4 text-base tracking-[0.08em] text-tinta outline-none focus:border-vino"
+            />
+          </label>
+          <EstadoGiftcard chequeo={chequeo} />
+        </div>
+      )}
 
       {hayClienta ? (
         <label className="mt-3 block">
@@ -207,5 +295,51 @@ export default function FormularioCobro({
         </button>
       </div>
     </form>
+  );
+}
+
+/**
+ * Lo que dice la giftcard escrita, en un renglon: si sirve, que regala
+ * y hasta cuando; si no, por que.
+ */
+function EstadoGiftcard({ chequeo }: { chequeo: Chequeo }) {
+  if (!chequeo) {
+    return (
+      <p className="mt-1 text-sm opacity-80">
+        La giftcard ya se cobró cuando se vendió: ahora entra en la Caja y queda usada.
+      </p>
+    );
+  }
+  if (chequeo.estado === "buscando") {
+    return <p className="mt-1 text-sm opacity-80">Buscando…</p>;
+  }
+  if (chequeo.estado === "error") {
+    return <p className="mt-1 text-sm font-semibold text-negativo">{chequeo.mensaje}</p>;
+  }
+
+  const { g } = chequeo;
+  const detalle = `${queRegala(g)}${g.tratamiento ? ` · ${formatearPrecio(g.monto)}` : ""} · para ${g.para}`;
+
+  if (g.estado !== "vigente") {
+    return (
+      <p className="mt-1 text-sm font-semibold text-negativo">
+        {g.estado === "nueva"
+          ? "Todavía no está cobrada. Marcala como cobrada en Giftcards."
+          : g.estado === "usada"
+            ? `Ya se usó${g.usada_el ? ` el ${fechaConAnio(g.usada_el)}` : ""}.`
+            : "Está anulada."}
+      </p>
+    );
+  }
+
+  /* Una vencida se puede tomar igual: lo decide Valen. */
+  return estaVencida(g, hoyEnArgentina()) ? (
+    <p className="mt-1 text-sm font-semibold text-negativo">
+      {detalle}. Venció el {fechaConAnio(g.vence_el!)}: si la tomás igual, confirmá el cobro.
+    </p>
+  ) : (
+    <p className="mt-1 text-sm font-semibold text-positivo">
+      ✓ {detalle}. Si te pagó una diferencia aparte, sumala al monto.
+    </p>
   );
 }
