@@ -90,6 +90,12 @@ function margenDe(p: Producto): number | null {
   return Math.round((p.precio_venta / p.costo - 1) * 100);
 }
 
+/**
+ * Publicado y con una unidad o ninguna. Los ocultos no cuentan: muchas
+ * veces estan ocultos justo porque no se van a reponer.
+ */
+const paraReponer = (p: Producto) => p.publicado && p.cantidad <= 1;
+
 const claseMargen = (m: number | null) =>
   m == null ? "text-tinta-suave" : m < 40 ? "text-negativo" : "text-positivo";
 
@@ -99,7 +105,7 @@ export default function PanelProductos() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<"inventario" | "combos" | "ganancia">("inventario");
-  const [filtro, setFiltro] = useState<"todos" | "publicados" | "borrador" | "sin-stock">("todos");
+  const [filtro, setFiltro] = useState<"todos" | "publicados" | "borrador" | "reponer">("todos");
   const [editando, setEditando] = useState<Producto | null>(null);
   const [creando, setCreando] = useState(false);
   const [cotizacion, setCotizacion] = useState<number | null>(null);
@@ -139,7 +145,7 @@ export default function PanelProductos() {
     const lista = productos.filter((p) =>
       filtro === "publicados" ? p.publicado
       : filtro === "borrador" ? !p.publicado
-      : filtro === "sin-stock" ? p.cantidad === 0
+      : filtro === "reponer" ? paraReponer(p)
       : true
     );
     return lista.sort(
@@ -150,17 +156,66 @@ export default function PanelProductos() {
     );
   }, [productos, filtro]);
 
+  /*
+    LO QUE PASO, NO LO QUE PODRIA PASAR.
+
+    Arriba iban cuatro numeros de "si vendes todo": unidades, lo
+    invertido, lo que valdria a precio de venta y la ganancia si se
+    vendiera todo. Ninguno cambia de un dia para otro ni pide hacer nada.
+    Lucas pidio informacion mas importante (25-09-2026), y lo que Valen
+    quiere saber al abrir esta pantalla es como viene vendiendo y que
+    tiene que reponer. Lo parado en stock queda en un renglon chico.
+
+    Las ventas son los movimientos `venta_producto`: los del boton
+    "Vendí", los de Caja y los de cada producto de un combo vendido. El
+    costo del movimiento es por unidad, congelado el dia de la venta.
+  */
   const resumen = useMemo(() => {
+    const hoy = hoyEnArgentina();
+    const mes = hoy.slice(0, 7);
+    const [a, m] = mes.split("-").map(Number);
+    const mesPasado = m === 1 ? `${a - 1}-12` : `${a}-${String(m - 1).padStart(2, "0")}`;
+    const hace30 = new Date(Date.UTC(a, m - 1, Number(hoy.slice(8, 10)) - 30)).toISOString().slice(0, 10);
+
+    const ventas = movimientos.filter((v) => v.tipo === "venta_producto");
+    const delMes = ventas.filter((v) => v.fecha.startsWith(mes));
+    const suma = (lista: Movimiento[]) => lista.reduce((n, v) => n + v.monto, 0);
+
+    /* La que mas se vendio en 30 dias, por unidades. */
+    const porProducto = new Map<string, number>();
+    for (const v of ventas) {
+      if (v.fecha < hace30 || !v.inventario_id) continue;
+      porProducto.set(v.inventario_id, (porProducto.get(v.inventario_id) ?? 0) + (v.unidades ?? 1));
+    }
+    const [idTop, unidadesTop] = [...porProducto.entries()].sort((x, y) => y[1] - x[1])[0] ?? [];
+    const top = productos.find((p) => p.id === idTop);
+    const nombreTop = top
+      ? top.producto
+      : ventas.find((v) => v.inventario_id === idTop)?.producto_nombre ?? null;
+
     const conStock = productos.filter((p) => p.cantidad > 0);
+    const reponer = productos.filter(paraReponer);
+
     return {
+      vendidoMes: suma(delMes),
+      unidadesMes: delMes.reduce((n, v) => n + (v.unidades ?? 1), 0),
+      vendidoMesPasado: suma(ventas.filter((v) => v.fecha.startsWith(mesPasado))),
+      /* Sin costo cargado no se puede saber cuanto dejo: esas ventas
+         quedan afuera de la ganancia y se avisa cuantas son. */
+      gananciaMes: delMes
+        .filter((v) => v.costo != null)
+        .reduce((n, v) => n + v.monto - (v.costo ?? 0) * (v.unidades ?? 1), 0),
+      sinCosto: delMes.filter((v) => v.costo == null).length,
+      sinStock: reponer.filter((p) => p.cantidad === 0).length,
+      queda1: reponer.filter((p) => p.cantidad === 1).length,
+      reponer: reponer.length,
+      nombreTop,
+      unidadesTop: unidadesTop ?? 0,
       unidades: conStock.reduce((n, p) => n + p.cantidad, 0),
-      productos: conStock.length,
       invertidoUsd: conStock.reduce((n, p) => n + p.cantidad * (p.costo_usd ?? 0), 0),
       invertido: conStock.reduce((n, p) => n + p.cantidad * p.costo, 0),
-      aVender: conStock.reduce((n, p) => n + p.cantidad * p.precio_venta, 0),
-      publicados: productos.filter((p) => p.publicado).length,
     };
-  }, [productos]);
+  }, [productos, movimientos]);
 
   if (cargando) {
     return <p className="mt-6 text-base text-tinta-suave">Cargando…</p>;
@@ -181,18 +236,61 @@ export default function PanelProductos() {
 
       {error && <p className="mb-4 text-base text-negativo">{error}</p>}
 
-      {/* La plata que hay parada en el deposito, que es lo primero que
-          se quiere saber al abrir esta pantalla. */}
-      <div className="mb-6 grid gap-3 sm:grid-cols-4">
-        <Tarjeta titulo="En stock" valor={`${resumen.unidades} u.`} pie={`${resumen.productos} productos`} />
-        <Tarjeta titulo="Invertido" valor={usd(resumen.invertidoUsd)} pie={formatearPrecio(resumen.invertido)} />
-        <Tarjeta titulo="A precio de venta" valor={formatearPrecio(resumen.aVender)} pie="si se vende todo" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Tarjeta
-          titulo="Ganancia si vendés todo"
-          valor={formatearPrecio(resumen.aVender - resumen.invertido)}
-          pie={`${resumen.publicados} publicados`}
+          titulo="Vendiste este mes"
+          valor={formatearPrecio(resumen.vendidoMes)}
+          pie={`${resumen.unidadesMes} u. · el mes pasado ${formatearPrecio(resumen.vendidoMesPasado)}`}
+        />
+        <Tarjeta
+          titulo="Te quedó este mes"
+          valor={formatearPrecio(resumen.gananciaMes)}
+          pie={
+            resumen.sinCosto > 0
+              ? `${resumen.sinCosto} ${resumen.sinCosto === 1 ? "venta" : "ventas"} sin costo cargado`
+              : "después de lo que costó"
+          }
+          positivo={resumen.gananciaMes > 0}
+        />
+        {/* Se toca y deja la lista con esos productos: es lo unico de
+            arriba que pide hacer algo. */}
+        <Tarjeta
+          titulo="Para reponer"
+          valor={resumen.reponer === 0 ? "Nada" : `${resumen.reponer} ${resumen.reponer === 1 ? "producto" : "productos"}`}
+          pie={
+            resumen.reponer === 0
+              ? "todo lo publicado tiene stock"
+              : [
+                  /* Con espacios duros: en el celular "1 u." se partia en dos renglones. */
+                  resumen.sinStock > 0 && `${resumen.sinStock}\u00a0sin\u00a0stock`,
+                  resumen.queda1 > 0 && `${resumen.queda1}\u00a0con\u00a01\u00a0u.`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")
+          }
+          alerta={resumen.sinStock > 0}
+          onTocar={
+            resumen.reponer > 0
+              ? () => {
+                  setTab("inventario");
+                  setFiltro("reponer");
+                }
+              : undefined
+          }
+        />
+        <Tarjeta
+          titulo="Lo que más sale"
+          valor={resumen.nombreTop ?? "—"}
+          pie={resumen.nombreTop ? `${resumen.unidadesTop} u. en 30 días` : "sin ventas en 30 días"}
+          chico
         />
       </div>
+
+      {/* Lo parado en stock: sirve, pero no cambia de un dia al otro. */}
+      <p className="mt-2 mb-6 text-sm text-tinta-suave tabular-nums">
+        En stock: {resumen.unidades} u. · invertido {usd(resumen.invertidoUsd)} ·{" "}
+        {formatearPrecio(resumen.invertido)}
+      </p>
 
       <nav className="mb-4 -mx-5 overflow-x-auto px-5">
         <div className="segmentado" style={{ width: "max-content" }}>
@@ -221,7 +319,7 @@ export default function PanelProductos() {
               ["todos", `Todos ${productos.length}`],
               ["publicados", `En la web ${productos.filter((p) => p.publicado).length}`],
               ["borrador", `Ocultos ${productos.filter((p) => !p.publicado).length}`],
-              ["sin-stock", `Sin stock ${productos.filter((p) => p.cantidad === 0).length}`],
+              ["reponer", `Para reponer ${productos.filter(paraReponer).length}`],
             ] as const).map(([id, texto]) => (
               <button
                 key={id}
@@ -271,13 +369,44 @@ export default function PanelProductos() {
   );
 }
 
-function Tarjeta({ titulo, valor, pie }: { titulo: string; valor: string; pie: string }) {
-  return (
-    <div className="rounded-chico border border-borde bg-papel px-4 py-3">
+function Tarjeta({
+  titulo,
+  valor,
+  pie,
+  positivo = false,
+  alerta = false,
+  chico = false,
+  onTocar,
+}: {
+  titulo: string;
+  valor: string;
+  pie: string;
+  positivo?: boolean;
+  alerta?: boolean;
+  /** Un nombre de producto: mas largo que un numero. */
+  chico?: boolean;
+  onTocar?: () => void;
+}) {
+  const contenido = (
+    <>
       <p className="text-xs tracking-wide text-tinta-suave uppercase">{titulo}</p>
-      <p className="mt-1 font-display text-xl font-semibold text-tinta tabular-nums">{valor}</p>
+      <p
+        className={`mt-1 font-display font-semibold tabular-nums ${
+          chico ? "line-clamp-2 text-base leading-snug" : "text-xl"
+        } ${positivo ? "text-positivo" : alerta ? "text-negativo" : "text-tinta"}`}
+      >
+        {valor}
+      </p>
       <p className="text-sm text-tinta-suave">{pie}</p>
-    </div>
+    </>
+  );
+  const clase = "rounded-chico border border-borde bg-papel px-4 py-3 text-left";
+  return onTocar ? (
+    <button type="button" onClick={onTocar} className={`${clase} transition-colors hover:border-vino`}>
+      {contenido}
+    </button>
+  ) : (
+    <div className={clase}>{contenido}</div>
   );
 }
 
