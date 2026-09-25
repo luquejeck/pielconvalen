@@ -3,9 +3,9 @@ import "server-only";
 import { obtenerTratamientos } from "./catalogo";
 import { GIFTCARD } from "./giftcards";
 
-/** Lo que el panel lee de cada giftcard: todo. */
+/** Lo que el panel lee de cada giftcard: todo, y el turno asociado. */
 export const COLUMNAS_GIFTCARD =
-  "id, codigo, para, de, mensaje, tratamiento, monto, estado, medio_pago, cobrada_el, vence_el, usada_el, turno_id, creado_en";
+  "id, codigo, para, de, mensaje, tratamiento, monto, estado, medio_pago, cobrada_el, vence_el, usada_el, turno_id, creado_en, turno:turnos(fecha, hora, cliente, estado)";
 
 /** Un texto del formulario, recortado y con tope. Vacio -> "". */
 export const texto = (v: unknown, largo: number) =>

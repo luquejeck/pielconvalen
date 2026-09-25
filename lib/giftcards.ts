@@ -52,8 +52,11 @@ export type Giftcard = {
   cobrada_el: string | null;
   vence_el: string | null;
   usada_el: string | null;
+  /* Vigente: el turno que saco quien la recibe. Usada: donde se uso. */
   turno_id: string | null;
   creado_en: string;
+  /** El turno asociado, tal como lo trae el panel. */
+  turno?: { fecha: string; hora: string; cliente: string | null; estado: string } | null;
 };
 
 /** Lo que dice la tarjeta en grande: el tratamiento, o el monto. */

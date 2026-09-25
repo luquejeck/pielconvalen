@@ -25,7 +25,7 @@ import PedidosWeb from "./PedidosWeb";
 import Recordatorios from "./Recordatorios";
 import FormularioCobro, { MEDIOS_DE_PAGO } from "./FormularioCobro";
 import AvisoDuplicado from "./AvisoDuplicado";
-import { IconoCheck } from "../iconos";
+import { IconoCheck, IconoRegalo } from "../iconos";
 
 type EstadoTurno =
   | "pendiente"
@@ -36,6 +36,15 @@ type EstadoTurno =
   /* Confirmo y no aparecio. Sin este estado no habia forma de medir
      ausentismo ni de distinguir a la que aviso de la que no vino. */
   | "no_vino";
+
+/** La giftcard asociada a un turno (ver components/admin/PanelGiftcards). */
+type GiftcardDelTurno = {
+  codigo: string;
+  tratamiento: string | null;
+  monto: number;
+  estado: string;
+  turno_id: string;
+};
 
 type TurnoDB = {
   id: string;
@@ -94,6 +103,8 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
 
   const [fecha, setFecha] = useState(() => claveFecha(new Date()));
   const [turnos, setTurnos] = useState<TurnoDB[]>([]);
+  /* turno_id -> la giftcard que tiene asociada. */
+  const [giftcards, setGiftcards] = useState<Record<string, GiftcardDelTurno>>({});
   const [diaCerrado, setDiaCerrado] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -157,6 +168,23 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
     setTurnos((filas as TurnoDB[]) ?? []);
     setDiaCerrado(Boolean(cerrado));
     setCargando(false);
+
+    /* Las giftcards asociadas a los turnos del dia: se muestran en el
+       turno y el cobro las trae puestas. Sin la tabla (schema-22 sin
+       correr) no viene nada y el dia se ve igual. */
+    const ids = ((filas as TurnoDB[]) ?? []).map((t) => t.id);
+    if (ids.length === 0) {
+      setGiftcards({});
+      return;
+    }
+    const { data: gcs } = await supabase
+      .from("giftcards")
+      .select("codigo, tratamiento, monto, estado, turno_id")
+      .in("turno_id", ids)
+      .in("estado", ["vigente", "usada"]);
+    setGiftcards(
+      Object.fromEntries(((gcs as GiftcardDelTurno[]) ?? []).map((g) => [g.turno_id, g]))
+    );
   }, [fecha, supabase]);
 
   const cargarSemana = useCallback(async () => {
@@ -569,6 +597,14 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                 {turno?.cliente && (
                   <p className="mt-2 text-lg">{turno.cliente}</p>
                 )}
+                {/* Viene con giftcard: se ve antes de atenderla. */}
+                {turno && giftcards[turno.id] && (
+                  <p className="mt-1 flex items-center gap-1.5 text-base font-semibold">
+                    <IconoRegalo className="h-4.5 w-4.5 shrink-0" />
+                    Giftcard {giftcards[turno.id].codigo} ·{" "}
+                    {giftcards[turno.id].tratamiento ?? formatearPrecio(giftcards[turno.id].monto)}
+                  </p>
+                )}
                 {turno?.tratamiento && (
                   <p className="text-base opacity-80">
                     {turno.tratamiento}
@@ -859,6 +895,9 @@ export default function PanelAdmin({ tratamientos, agenda, direccion }: Props) {
                     clienteId={turno.cliente_id}
                     fecha={turno.fecha}
                     hayClienta={Boolean(turno.cliente_id)}
+                    giftcardInicial={
+                      giftcards[turno.id]?.estado === "vigente" ? giftcards[turno.id].codigo : undefined
+                    }
                     onListo={(datos) => registrarCobro(turno.id, datos)}
                     onCancelar={() => setHoja(null)}
                   />

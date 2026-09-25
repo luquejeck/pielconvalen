@@ -124,13 +124,14 @@ export default async function PaginaTarjeta({ params }: Ruta) {
                     <ol className="mt-3 space-y-3 text-lg leading-snug text-tinta">
                       <li className="flex gap-3">
                         <Numero n={1} />
-                        <span>Reservá tu turno desde la web, como cualquier turno.</span>
+                        <span>Elegí día y horario con el botón de abajo.</span>
                       </li>
                       <li className="flex gap-3">
                         <Numero n={2} />
                         <span>
-                          Cuando Valen te responda, avisale que venís con la giftcard{" "}
-                          <b className="font-display tracking-[0.06em] whitespace-nowrap">{g.codigo}</b>.
+                          El código{" "}
+                          <b className="font-display tracking-[0.06em] whitespace-nowrap">{g.codigo}</b>{" "}
+                          va solo en el mensaje. Valen te confirma el turno con tu giftcard.
                         </span>
                       </li>
                     </ol>
@@ -139,7 +140,8 @@ export default async function PaginaTarjeta({ params }: Ruta) {
                         Vale hasta el {fechaConAnio(g.vence_el)}.
                       </p>
                     )}
-                    <Link href="/#reservar" className="boton-principal mt-5 w-full">
+                    {/* Con el codigo: la reserva lo pone en el mensaje. */}
+                    <Link href={`/?giftcard=${g.codigo}#reservar`} className="boton-principal mt-5 w-full">
                       Reservar turno
                     </Link>
                   </section>

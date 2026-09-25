@@ -33,6 +33,8 @@ type DatosReserva = {
   fecha: string; // "YYYY-MM-DD"
   hora: string; // "HH:mm"
   nombre?: string;
+  /** Si viene a usar una giftcard: el codigo, para que Valen la asocie. */
+  giftcard?: string;
 };
 
 /** Arma el mensaje que va prellenado en WhatsApp. */
@@ -41,6 +43,7 @@ export function mensajeReserva({
   fecha,
   hora,
   nombre,
+  giftcard,
 }: DatosReserva): string {
   // Intl usa espacio duro ( ) entre el simbolo y el numero: en WhatsApp queda feo.
   const precio = formatearPrecio(tratamiento.precio).replace(/ /g, " ");
@@ -70,6 +73,7 @@ export function mensajeReserva({
   ];
 
   if (nombre?.trim()) lineas.push(`• Mi nombre: ${nombre.trim()}`);
+  if (giftcard) lineas.push(`• Vengo con la giftcard ${giftcard}`);
 
   lineas.push(``, `¿Me lo confirmás? ¡Gracias!`);
   return lineas.join("\n");
