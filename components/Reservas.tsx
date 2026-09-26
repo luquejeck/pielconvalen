@@ -407,9 +407,13 @@ export default function Reservas() {
                   </>
                 )}
 
-                <p className="mt-3 text-center text-lg leading-snug text-tinta-suave">
-                  Queda confirmado cuando Valen te responde.
-                </p>
+                {/* Con giftcard no va: el cartel verde ya dice como sigue, y
+                    la aclaracion sobraba (Lucas, 26-09-2026). */}
+                {!giftcard && (
+                  <p className="mt-3 text-center text-lg leading-snug text-tinta-suave">
+                    Queda confirmado cuando Valen te responde.
+                  </p>
+                )}
 
                 {/* Como venir se fue al pie, al lado del mapa. Aca
                     alargaba el paso 2 justo en el momento de confirmar, y
