@@ -14,13 +14,14 @@ import { formatearPrecio } from "./tratamientos";
  * Las reglas de la giftcard. Viven aca y no en el panel porque no son
  * algo que se cambie seguido.
  *
- * VALEN: confirmar la vigencia. Seis meses es lo habitual en estetica:
- * alcanza para que quien la recibe encuentre un turno sin apuro, y no
- * deja plata dando vueltas un año entero.
+ * LA VIGENCIA ES DE UN MES desde que se cobra (Lucas, 28-09-2026).
+ * Arranco en seis, que es lo habitual en estetica; Valen la prefiere
+ * corta. Las que ya estaban cobradas conservan su fecha: `vence_el` se
+ * guarda al cobrarlas y no se recalcula.
  */
 export const GIFTCARD = {
   /** Cuanto dura desde que se cobra. */
-  vigenciaMeses: 6,
+  vigenciaMeses: 1,
   /** Un monto libre menor a esto no alcanza para ningun tratamiento. */
   montoMinimo: 10000,
   montoMaximo: 500000,
