@@ -426,11 +426,78 @@
   animation: aparecer 0.5s ease-out both;
 }
 
+/* La giftcard de la portada: llega de espaldas y se da vuelta cuando
+   aparece en pantalla (GiraAlVer le pone `data-girada`). Al terminar
+   de girar, un brillo le cruza el frente una sola vez. */
+.giftcard-escena {
+  position: relative;
+  display: block;
+  perspective: 700px;
+}
+
+.giftcard-cuerpo {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateY(180deg);
+  /* El final pasa un poco de largo y vuelve: como una tarjeta que se
+     suelta sobre la mesa, no como una pieza de maquina. */
+  transition: transform 1s cubic-bezier(0.3, 1.3, 0.5, 1) 0.15s;
+}
+
+.giftcard-escena[data-girada] .giftcard-cuerpo {
+  transform: rotateY(0deg);
+}
+
+.giftcard-cara {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+  border-radius: var(--radius-chico);
+  box-shadow: 0 10px 22px -10px rgb(93 10 52 / 0.7);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.giftcard-dorso {
+  transform: rotateY(180deg);
+}
+
+.giftcard-brillo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgb(255 255 255 / 0.4) 50%,
+    transparent 65%
+  );
+  transform: translateX(-120%);
+}
+
+.giftcard-escena[data-girada] .giftcard-brillo {
+  animation: giftcard-brillo 0.9s ease-in-out 1.1s both;
+}
+
+@keyframes giftcard-brillo {
+  to {
+    transform: translateX(120%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
   .animar-entrada {
+    animation: none;
+  }
+  /* Sin movimiento, la giftcard esta de frente desde el principio. */
+  .giftcard-cuerpo {
+    transform: none;
+    transition: none;
+  }
+  .giftcard-escena[data-girada] .giftcard-brillo {
     animation: none;
   }
 }
