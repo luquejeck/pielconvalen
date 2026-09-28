@@ -2,6 +2,16 @@
 const nextConfig = {
   reactStrictMode: true,
 
+  /*
+    La giftcard como imagen y como PDF (lib/giftcard-dibujo.tsx) lee la
+    tipografia y los logos de `assets/` con readFile. En Vercel cada
+    funcion lleva solo los archivos que Next detecta que usa: esto se
+    los asegura, aunque el rastreo automatico no los encuentre.
+  */
+  outputFileTracingIncludes: {
+    "/giftcard/**": ["./assets/**/*"],
+  },
+
   images: {
     /*
       Next solo genera las calidades que estan declaradas aca. La 45 es

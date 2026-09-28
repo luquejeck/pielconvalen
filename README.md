@@ -149,7 +149,10 @@ y los pasos que incluyen todos los tratamientos.
   llega en el WhatsApp (G-4K7M9P). *Me la pagaron* → cómo pagó, y queda
   vigente por un mes. En Turnos aparece un aviso mientras haya alguna.
 - **Vigentes:** *Mandar la tarjeta* abre WhatsApp con el link de la tarjeta
-  para mandárselo a quien la compró, que se lo reenvía a quien la recibe.
+  y el del PDF para imprimir, para mandárselo a quien la compró, que se lo
+  reenvía a quien la recibe. En el chat el link ya muestra la tarjeta
+  dibujada. *PDF* abre la hoja para imprimir, por si se prefiere adjuntar
+  el archivo.
 - **El turno de quien la recibe**, por dos caminos que no suman trabajo:
   - **Reserva sola desde su tarjeta:** el turno se asocia solo a la
     giftcard.

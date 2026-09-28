@@ -98,6 +98,32 @@ export default async function PaginaTarjeta({ params }: Ruta) {
                   </p>
                 )}
 
+                {/*
+                  PARA REGALARLA EN PAPEL O COMO FOTO. El PDF es una hoja
+                  A4 con la tarjeta, el mensaje y un QR que trae de vuelta
+                  aca; la imagen es la tarjeta sola. Los dos salen del
+                  mismo dibujo (lib/giftcard-dibujo.tsx).
+                */}
+                {g.estado === "vigente" && !vencida && (
+                  <div className="mt-5 flex flex-wrap justify-center gap-x-6 gap-y-1">
+                    <a
+                      href={`/giftcard/${g.codigo}/pdf`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-11 items-center text-base font-semibold text-vino underline decoration-vino/30 underline-offset-4 hover:decoration-vino"
+                    >
+                      Descargar para imprimir
+                    </a>
+                    <a
+                      href={`/giftcard/${g.codigo}/imagen`}
+                      download={`giftcard-${g.codigo}.png`}
+                      className="inline-flex min-h-11 items-center text-base font-semibold text-vino underline decoration-vino/30 underline-offset-4 hover:decoration-vino"
+                    >
+                      Guardar imagen
+                    </a>
+                  </div>
+                )}
+
                 {g.estado === "usada" ? (
                   <Aviso titulo="Esta giftcard ya se usó">
                     Esperamos que la hayas disfrutado. Cuando quieras volver, el turno se saca
