@@ -147,7 +147,7 @@ y los pasos que incluyen todos los tratamientos.
 
 - **Para cobrar:** las que se pidieron por la web, con el mismo código que
   llega en el WhatsApp (G-4K7M9P). *Me la pagaron* → cómo pagó, y queda
-  vigente por 6 meses. En Turnos aparece un aviso mientras haya alguna.
+  vigente por un mes. En Turnos aparece un aviso mientras haya alguna.
 - **Vigentes:** *Mandar la tarjeta* abre WhatsApp con el link de la tarjeta
   para mandárselo a quien la compró, que se lo reenvía a quien la recibe.
 - **El turno de quien la recibe**, por dos caminos que no suman trabajo:

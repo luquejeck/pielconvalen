@@ -269,7 +269,8 @@ export default function ArmarGiftcard({
           <li className="flex gap-2.5">
             <IconoCheck className="mt-0.5 h-4 w-4 shrink-0 text-vino" />
             <span>
-              Valen te manda la tarjeta para reenviar. Vale {GIFTCARD.vigenciaMeses} meses: hasta el{" "}
+              Valen te manda la tarjeta para reenviar. Vale{" "}
+              {GIFTCARD.vigenciaMeses === 1 ? "un mes" : `${GIFTCARD.vigenciaMeses} meses`}: hasta el{" "}
               {fechaConAnio(sumarMeses(hoyEnArgentina(), GIFTCARD.vigenciaMeses))} si la pagás hoy.
             </span>
           </li>
