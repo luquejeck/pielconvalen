@@ -449,6 +449,23 @@
   transform: rotateY(0deg);
 }
 
+/* Ya de frente, queda flotando: sube y baja apenas, sin parar, como
+   apoyada en el agua. Empieza cuando termina el giro. Va con
+   `translate` y no con `transform` para no pisar la inclinacion
+   (-rotate-6) que ya tiene la tarjeta. */
+.giftcard-escena[data-girada] {
+  animation: giftcard-flotar 3.2s ease-in-out 1.15s infinite alternate;
+}
+
+@keyframes giftcard-flotar {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 -5px;
+  }
+}
+
 .giftcard-cara {
   position: absolute;
   inset: 0;
@@ -497,6 +514,7 @@
     transform: none;
     transition: none;
   }
+  .giftcard-escena[data-girada],
   .giftcard-escena[data-girada] .giftcard-brillo {
     animation: none;
   }
