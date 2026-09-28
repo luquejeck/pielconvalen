@@ -364,7 +364,13 @@ export const linkGiftcardLista = (g: { para: string }, url: string) =>
       `Acá la podés ver y reenviársela:`,
       url,
       ``,
-      `Para usarla, reserva su turno desde la web y me avisa que viene con la giftcard.`,
+      /* WhatsApp no deja adjuntar archivos desde un link: el PDF va como
+         link. La tarjeta, en cambio, se ve sola en la vista previa del
+         primer link (ver app/giftcard/[codigo]/opengraph-image.tsx). */
+      `Si se la querés regalar en papel, acá está para imprimir:`,
+      `${url}/pdf`,
+      ``,
+      `Para usarla, reserva su turno desde ese link.`,
     ].join("\n")
   )}`;
 

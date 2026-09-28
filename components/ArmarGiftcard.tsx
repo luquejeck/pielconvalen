@@ -269,7 +269,7 @@ export default function ArmarGiftcard({
           <li className="flex gap-2.5">
             <IconoCheck className="mt-0.5 h-4 w-4 shrink-0 text-vino" />
             <span>
-              Valen te manda la tarjeta para reenviar. Vale{" "}
+              Valen te manda la tarjeta para reenviar o imprimir. Vale{" "}
               {GIFTCARD.vigenciaMeses === 1 ? "un mes" : `${GIFTCARD.vigenciaMeses} meses`}: hasta el{" "}
               {fechaConAnio(sumarMeses(hoyEnArgentina(), GIFTCARD.vigenciaMeses))} si la pagás hoy.
             </span>
@@ -385,7 +385,7 @@ function Confirmacion({ enviado, onArmarOtra }: { enviado: Enviado; onArmarOtra:
 
       <p className="mx-auto mt-3 max-w-sm text-base leading-snug text-tinta-suave">
         {registrada
-          ? `Valen la ve con este mismo código. Cuando te confirme el pago, te manda la tarjeta para que se la reenvíes a ${enviado.para}.`
+          ? `Valen la ve con este mismo código. Cuando te confirme el pago, te manda la tarjeta para que se la reenvíes a ${enviado.para}, y un PDF por si se la querés regalar impresa.`
           : "No la pudimos registrar en la web, pero si enviaste el mensaje, Valen lo recibe igual."}
       </p>
 

@@ -539,6 +539,16 @@ function Fila({
               >
                 Ver tarjeta
               </a>
+              {/* Para adjuntarlo a mano en WhatsApp, si prefiere mandar
+                  el archivo y no el link. */}
+              <a
+                href={`${linkDe(g)}/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-11 items-center rounded-full border border-borde bg-white px-4 text-base text-tinta"
+              >
+                PDF
+              </a>
             </div>
             <div className="mt-2 flex flex-wrap gap-x-4 text-sm">
               <button
