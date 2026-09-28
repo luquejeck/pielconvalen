@@ -3,7 +3,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import QRCode from "qrcode";
-import { fechaConAnio, queRegala, type Giftcard } from "./giftcards";
+import { fechaConAnio, queRegala, tamanoRegalo, type Giftcard } from "./giftcards";
 import { clienteServidor } from "./supabase-servidor";
 import { hayBaseDeDatos } from "./supabase";
 
@@ -106,6 +106,9 @@ export function Tarjeta({
   const s = ancho / 600;
   const alto = Math.round(ancho / 1.6);
   const radio = 36 * s;
+  const regalo = g ? queRegala(g) : "Una sesión de piel";
+  /* Ver tamanoRegalo en lib/giftcards.ts. */
+  const letra = { grande: 50, medio: 38, chico: 30 }[tamanoRegalo(regalo)] * s;
 
   return (
     <div
@@ -176,8 +179,8 @@ export function Tarjeta({
         <div style={{ fontSize: 22 * s, color: "rgba(250,245,246,0.8)" }}>
           {g ? `Para ${g.para}` : "Para alguien especial"}
         </div>
-        <div style={{ marginTop: 6 * s, fontSize: 50 * s, fontWeight: 600, lineHeight: 1.1 }}>
-          {g ? queRegala(g) : "Una sesión de piel"}
+        <div style={{ marginTop: 6 * s, fontSize: letra, fontWeight: 600, lineHeight: 1.12 }}>
+          {regalo}
         </div>
       </div>
 

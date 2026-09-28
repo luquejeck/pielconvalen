@@ -1,3 +1,4 @@
+import { tamanoRegalo } from "@/lib/giftcards";
 import { IconoRegalo } from "./iconos";
 import { LogoMarca } from "./Logo";
 
@@ -45,6 +46,14 @@ export default function TarjetaGiftcard({
   className?: string;
 }) {
   const ejemplo = "text-crema/45";
+  /* El tamaño del regalo segun el largo del nombre (ver lib/giftcards.ts):
+     asi un tratamiento de 59 letras no estira la tarjeta hasta dejarla
+     cuadrada. */
+  const letra = {
+    grande: "text-[1.75rem] sm:text-[2rem]",
+    medio: "text-[1.3125rem] sm:text-[1.625rem]",
+    chico: "text-[1.0625rem] sm:text-[1.3125rem]",
+  }[tamanoRegalo(regalo || "Tu regalo")];
 
   return (
     <div
@@ -74,23 +83,24 @@ export default function TarjetaGiftcard({
         <IconoRegalo className="h-7 w-7 shrink-0 text-crema/85" />
       </div>
 
-      <div className="py-3">
+      <div className="py-2 sm:py-3">
         <p className={`text-[0.9375rem] leading-snug ${para ? "text-crema/80" : ejemplo}`}>
           Para {para || "quien la recibe"}
         </p>
         <p
-          className={`mt-1 font-display text-[1.75rem] leading-[1.1] font-semibold sm:text-[2rem] ${
-            regalo ? "" : ejemplo
-          }`}
+          className={`mt-1 font-display leading-[1.12] font-semibold ${letra} ${regalo ? "" : ejemplo}`}
         >
           {regalo || "Tu regalo"}
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 text-[0.9375rem] leading-snug">
+      {/* En un celular angosto, "De parte de" y el codigo van un punto mas
+          chicos: si no entran en un renglon, el codigo baja y la tarjeta
+          pierde la forma. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 text-sm leading-snug sm:text-[0.9375rem]">
         <p className={de ? "text-crema/80" : ejemplo}>De parte de {de || "vos"}</p>
         {codigo && (
-          <p className="rounded-full bg-crema/12 px-3 py-1 font-display text-sm font-semibold tracking-[0.12em] tabular-nums ring-1 ring-crema/20">
+          <p className="rounded-full bg-crema/12 px-2.5 py-0.5 font-display text-xs font-semibold tracking-[0.1em] tabular-nums ring-1 ring-crema/20 sm:px-3 sm:py-1 sm:text-sm sm:tracking-[0.12em]">
             {codigo}
           </p>
         )}

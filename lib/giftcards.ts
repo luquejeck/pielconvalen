@@ -64,6 +64,19 @@ export type Giftcard = {
 export const queRegala = (g: Pick<Giftcard, "tratamiento" | "monto">) =>
   g.tratamiento ?? formatearPrecio(g.monto);
 
+/**
+ * Que tan grande va el regalo en la tarjeta, segun el largo del nombre.
+ *
+ * "Full Glow" entra enorme; "Higiene Facial Profunda con Microneedling y
+ * Radiofrecuencia" (59 letras) a ese tamaño ocupaba cuatro renglones:
+ * en la web la tarjeta se estiraba hasta quedar cuadrada, y en la imagen
+ * y el PDF tapaba el "De parte de" y el codigo (Lucas, 28-09-2026). Tres
+ * tamaños alcanzan para todos los tratamientos que hay cargados, y la
+ * regla es la misma en la web y en la imagen.
+ */
+export const tamanoRegalo = (texto: string): "grande" | "medio" | "chico" =>
+  texto.length <= 18 ? "grande" : texto.length <= 34 ? "medio" : "chico";
+
 /** Una vigente cuya fecha ya paso. La base no la cambia sola de estado. */
 export const estaVencida = (g: Pick<Giftcard, "estado" | "vence_el">, hoy: string) =>
   g.estado === "vigente" && g.vence_el !== null && g.vence_el < hoy;
