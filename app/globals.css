@@ -650,6 +650,16 @@
   opacity: 0.12;
 }
 
+/* Foil leve: para papeles cuyo color tiene que leerse puro, como el
+   rojo y verde de Navidad. Queda el destello, sin teñir el papel. */
+.tarjeta3d-foil[data-suave] > span:first-child {
+  opacity: 0.35;
+}
+
+.tarjeta3d-foil[data-suave] > span:last-child {
+  display: none;
+}
+
 /* Usada o vencida: sin destello. */
 .tarjeta3d[data-quieta] .tarjeta3d-foil {
   display: none;

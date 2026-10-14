@@ -33,6 +33,8 @@ export type EstiloGiftcard = {
    * blanco; los claros, este color y el logo en vino.
    */
   tinta?: string;
+  /** Un foil mas leve, para papeles cuyo color tiene que leerse puro. */
+  foilSuave?: boolean;
   /** Solo los de fecha especial: cual, y que dia cae ese año. */
   fecha?: { nombre: string; dia: (anio: number) => string };
 };
@@ -117,17 +119,18 @@ export const ESTILOS_GIFTCARD: EstiloGiftcard[] = [
     fecha: { nombre: "Día de la Madre", dia: (a) => tercerDomingo(a, 9) },
   },
   {
-    /* Vino profundo con una nevada finita: la Navidad en los colores de
-       la casa, sin verde ni dorado. */
-    id: "nevado",
-    nombre: "Nevado",
+    /* Navidad minimalista, en rojo y verde: rojo plano y una cinta verde
+       con dos filetes crema en el borde izquierdo, como el lomo de un
+       paquete. Va en el margen, asi no toca ningun texto. Sin nieve ni
+       dibujos: la fuerza esta en el color (Lucas, 14-10-2026). */
+    id: "navidad",
+    nombre: "Rojo y verde",
     fondo:
-      "radial-gradient(80% 70% at 20% 10%, #a3164f 0%, transparent 65%), linear-gradient(150deg, #7d0d46 0%, #5d0a34 55%, #3a0620 100%)",
-    extra:
-      /* Tres capas de copos con tamaños de baldosa que no se dividen
-         entre si: asi no se arma una grilla y la nevada se ve suelta. */
-      "radial-gradient(circle, rgb(255 255 255 / 0.7) 1.3px, transparent 2px) 7px 11px / 53px 47px, radial-gradient(circle, rgb(255 255 255 / 0.45) 1px, transparent 1.6px) 31px 3px / 71px 61px, radial-gradient(circle, rgb(255 255 255 / 0.3) 0.8px, transparent 1.3px) 19px 29px / 37px 41px",
-    og: "linear-gradient(150deg, #a3164f 0%, #7d0d46 40%, #3a0620 100%)",
+      "linear-gradient(90deg, transparent 0 0.9%, #f3e9e0 0.9% 1.3%, #0f5a3c 1.3% 3.3%, #f3e9e0 3.3% 3.7%, transparent 3.7%), linear-gradient(160deg, #c8102e 0%, #a50d24 100%)",
+    og: "linear-gradient(90deg, #c8102e 0%, #c8102e 0.9%, #f3e9e0 0.9%, #f3e9e0 1.3%, #0f5a3c 1.3%, #0f5a3c 3.3%, #f3e9e0 3.3%, #f3e9e0 3.7%, #c8102e 3.7%, #a50d24 100%)",
+    /* El tornasol vuelve rosado el rojo y turquesa el verde: aca va
+       apenas, para que los dos colores se lean puros. */
+    foilSuave: true,
     fecha: { nombre: "Navidad", dia: (a) => clave(a, 11, 25) },
   },
   {
