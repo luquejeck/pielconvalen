@@ -600,30 +600,61 @@
   mix-blend-mode: soft-light;
 }
 
-/* El tornasol: franjas crema y rosa que corren en diagonal al moverla.
-   Muy diluido: tiene que parecer papel metalizado, no un holograma. */
-.tarjeta3d-tornasol {
-  background: linear-gradient(
-    115deg,
-    transparent 20%,
-    rgb(250 245 246 / 0.07) 36%,
-    rgb(247 200 220 / 0.06) 44%,
-    rgb(250 245 246 / 0.07) 52%,
-    transparent 68%
-  );
-  background-size: 250% 250%;
+/* EL FOIL HOLOGRAFICO (14-10-2026): la terminacion de todas las
+   giftcards, sin que nadie la elija. Va DEBAJO del texto, adentro del
+   papel (components/TarjetaGiftcard.tsx): el nombre y el regalo se leen
+   siempre nitidos, y lo que brilla es la tarjeta.
+
+   Dos capas, en pasteles —rosa, lila, celeste, menta, manteca— y no un
+   arco iris saturado:
+     - una franja tornasolada que sigue al puntero, como el destello de
+       una lamina al inclinarla
+     - un velo del mismo tornasol en toda la tarjeta, que cambia de tono
+       con la inclinacion
+   Quieta, se mece sola (ver tarjeta3d-mecer), asi que en el celular el
+   destello tambien corre. */
+.tarjeta3d-foil,
+.tarjeta3d-foil > span {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tarjeta3d-foil > span:first-child {
+  background: linear-gradient(115deg, #ff9ec7 0%, #c79bff 20%, #8fc8ff 40%, #8ff0cf 60%, #ffe39a 80%, #ff9ec7 100%);
+  background-size: 260% 100%;
+  background-position: calc(var(--mx) * 1.8) 0;
+  -webkit-mask-image: linear-gradient(115deg, transparent calc(var(--mx) - 45%), #000 calc(var(--mx) - 5%), #000 calc(var(--mx) + 5%), transparent calc(var(--mx) + 45%));
+  mask-image: linear-gradient(115deg, transparent calc(var(--mx) - 45%), #000 calc(var(--mx) - 5%), #000 calc(var(--mx) + 5%), transparent calc(var(--mx) + 45%));
+  mix-blend-mode: overlay;
+}
+
+.tarjeta3d-foil > span:last-child {
+  background: linear-gradient(115deg, #ff9ec7, #c79bff, #8fc8ff, #8ff0cf, #ffe39a);
+  background-size: 300% 300%;
   background-position: var(--mx) var(--my);
-  mix-blend-mode: overlay;
+  mix-blend-mode: soft-light;
+  opacity: 0.65;
 }
 
-/* El grano: ruido fractal en SVG, apenas visible. */
-.tarjeta3d-textura {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-  opacity: 0.09;
-  mix-blend-mode: overlay;
+/* SOBRE LOS PAPELES CLAROS el overlay casi no se ve: mezclar colores
+   pastel con un fondo casi blanco da casi blanco. Ahi la lamina se pinta
+   tal cual, apenas transparente, que es como se ve en la imagen y el PDF. */
+.tarjeta3d-foil[data-claro] > span:first-child {
+  mix-blend-mode: normal;
+  opacity: 0.42;
 }
 
-.tarjeta3d[data-quieta] .tarjeta3d-tornasol,
+.tarjeta3d-foil[data-claro] > span:last-child {
+  mix-blend-mode: multiply;
+  opacity: 0.12;
+}
+
+/* Usada o vencida: sin destello. */
+.tarjeta3d[data-quieta] .tarjeta3d-foil {
+  display: none;
+}
+
 .tarjeta3d[data-quieta] .tarjeta3d-brillo {
   display: none;
 }
@@ -714,7 +745,7 @@
   html {
     scroll-behavior: auto;
   }
-  /* Sin movimiento: de frente, con la textura y un brillo fijo. */
+  /* Sin movimiento: de frente, con el foil y el brillo quietos. */
   .tarjeta3d-cuerpo,
   .tarjeta3d-cuerpo[data-activa] {
     animation: none;

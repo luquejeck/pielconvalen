@@ -6,13 +6,10 @@ import { useRef, useState, type CSSProperties, type ReactNode } from "react";
  * Una tarjeta que se inclina siguiendo el mouse, como si se la tuviera en
  * la mano: la giftcard grande de /giftcard y la que abre quien la recibe.
  *
- * TRES CAPAS ENCIMA DE LA TARJETA, todas en globals.css (`.tarjeta3d`):
- *   - el brillo: una luz que sigue al puntero, como el reflejo de una
- *     lampara sobre un papel metalizado
- *   - el tornasol: un velo crema y rosa que corre al inclinarla. Nada de
- *     arco iris: los colores son los de la casa, diluidos
- *   - la textura: un grano muy fino, para que el papel se lea como papel
- *     y no como pantalla
+ * ENCIMA, EL BRILLO: una luz que sigue al puntero, como el reflejo de
+ * una lampara sobre la lamina. El foil holografico va debajo del texto,
+ * adentro del papel de cada tarjeta (`.tarjeta3d-foil` en globals.css),
+ * y se mueve con las mismas variables.
  *
  * QUIETA, TAMBIEN SE MUEVE. En el celular no hay mouse, asi que la
  * tarjeta se mece sola, despacio, y el brillo la recorre. Al tocarla o
@@ -25,7 +22,7 @@ import { useRef, useState, type CSSProperties, type ReactNode } from "react";
  * portada.
  *
  * Con "reducir movimiento" no se inclina, no se mece y no hay destellos:
- * se da vuelta sin animacion, y quedan la textura y un brillo fijo.
+ * se da vuelta sin animacion, y el foil y el brillo quedan quietos.
  *
  * El movimiento se escribe en variables CSS dentro de un
  * requestAnimationFrame, sin pasar por React: son decenas de cambios por
@@ -124,8 +121,6 @@ export default function Tarjeta3D({
           <div className="tarjeta3d-cara relative" aria-hidden={deEspaldas || undefined}>
             {children}
             <span aria-hidden className="tarjeta3d-luz">
-              <span className="tarjeta3d-tornasol" />
-              <span className="tarjeta3d-textura" />
               <span className="tarjeta3d-brillo" />
             </span>
           </div>
