@@ -593,8 +593,8 @@
 .tarjeta3d-brillo {
   background: radial-gradient(
     circle at var(--mx) var(--my),
-    rgb(255 255 255 / 0.45) 0%,
-    rgb(255 255 255 / 0.1) 22%,
+    rgb(255 255 255 / 0.22) 0%,
+    rgb(255 255 255 / 0.05) 22%,
     transparent 45%
   );
   mix-blend-mode: soft-light;
@@ -606,9 +606,9 @@
   background: linear-gradient(
     115deg,
     transparent 20%,
-    rgb(250 245 246 / 0.12) 36%,
-    rgb(247 200 220 / 0.1) 44%,
-    rgb(250 245 246 / 0.12) 52%,
+    rgb(250 245 246 / 0.07) 36%,
+    rgb(247 200 220 / 0.06) 44%,
+    rgb(250 245 246 / 0.07) 52%,
     transparent 68%
   );
   background-size: 250% 250%;
