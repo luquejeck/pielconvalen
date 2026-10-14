@@ -1,7 +1,7 @@
-import { Fragment } from "react";
 import Image from "next/image";
-import { pasosDe, type Combo } from "@/lib/combos";
-import { fotoDe } from "@/lib/productos";
+import Link from "next/link";
+import type { Combo } from "@/lib/combos";
+import { fotoDe, slugDe } from "@/lib/productos";
 import { formatearPrecio } from "@/lib/tratamientos";
 import ControlCarrito from "./ControlCarrito";
 
@@ -20,17 +20,19 @@ import ControlCarrito from "./ControlCarrito";
  * es justo lo que ya ofrece la grilla de abajo. En la tarjeta queda una
  * sola decision: llevarse el combo o no.
  *
- * LO QUE LLEVA, de arriba a abajo, en el orden en que se decide:
- *   1. Que es: el nombre y los pasos ("Limpiar + Hidratar + Tratar").
- *      Los pasos dicen por que esos productos van juntos, que es lo que
- *      hace que un combo se entienda sin saber que es un serum.
- *   2. Que trae: las fotos unidas con "+" —el gesto de "comprados
- *      juntos" que se reconoce de Mercado Libre y de Amazon— y debajo
- *      los nombres, que en una foto de 70 px no se leen.
- *   3. Cuanto sale: igual que en la ficha de producto, la etiqueta
- *      verde "10% OFF" y lo que salen por separado tachado arriba, el
- *      precio grande solo, y lo que se ahorra en pesos, que pesa mas
- *      que un porcentaje.
+ * SIMPLE, Y CON LA CUENTA A LA VISTA (14-10-2026). La version anterior
+ * decia lo mismo con mas cosas —pasos, lista de nombres, etiqueta verde
+ * llena— y no terminaba de gustar. Lucas pidio algo simple, en la
+ * paleta de la casa, donde se vea el producto y se sienta el ahorro.
+ * Se probaron cinco direcciones en una pagina aparte y quedo esta:
+ *
+ *   1. Que es: el nombre y una linea de por que van juntos.
+ *   2. Que trae: las fotos en fila, cada una con marca, nombre y SU
+ *      precio suelto. Ver los tres precios es lo que hace creible el
+ *      ahorro: la clienta puede sumar.
+ *   3. Cuanto sale: el precio grande con la suma tachada al lado, y
+ *      debajo lo que se ahorra en pesos, que pesa mas que un porcentaje.
+ *      El verde del ahorro es el unico color ademas del vino del boton.
  *   4. El boton, al pie, ancho completo.
  *
  * Es un componente de servidor: solo el boton necesita el navegador, y
@@ -38,100 +40,84 @@ import ControlCarrito from "./ControlCarrito";
  */
 export default function TarjetaCombo({ combo: c }: { combo: Combo }) {
   const porcentaje = Math.round(c.descuento * 100);
-  const cuantos = c.productos.length;
 
   return (
     <li className="flex">
       <article
         aria-labelledby={`combo-${c.slug}`}
-        className="flex w-full flex-col rounded-suave border border-borde bg-papel p-4 transition-shadow duration-200 hover:shadow-suave sm:p-5"
+        className="flex w-full flex-col rounded-suave border border-borde bg-papel p-5 shadow-suave"
       >
-        <p className="font-display text-sm font-semibold tracking-[0.08em] text-vino uppercase">
-          Combo · {cuantos} productos
-        </p>
+        <p className="font-display text-xs font-semibold tracking-[0.14em] text-vino uppercase">Combo</p>
         <h3
           id={`combo-${c.slug}`}
-          className="mt-1.5 font-display text-xl leading-tight font-semibold text-tinta"
+          className="mt-1 font-display text-2xl leading-tight font-semibold text-balance text-tinta"
         >
           {c.nombre}
         </h3>
-        <p className="mt-1 text-[0.9375rem] leading-snug text-tinta-suave">
-          {pasosDe(c).join(" + ")}
-        </p>
+        <p className="mt-1 text-[0.9375rem] text-tinta-suave">Elegidos por Valen para usar juntos</p>
 
         {/*
-          Las fotos, en una fila con "+" entre medio. Van sin texto
-          alternativo porque los nombres estan escritos justo debajo: con
-          los dos, el lector de pantalla diria cada producto dos veces.
+          Cada producto lleva a su ficha: quien quiere saber que es el
+          serum antes de llevarse el combo lo toca y lo ve, sin buscarlo
+          en el catalogo. La baldosa entera es el blanco a tocar.
 
-          Con cuatro productos cada foto baja a unos 50 px en el telefono.
-          Alcanza para reconocer el envase; lo que lo nombra es la lista.
+          Las fotos van sin texto alternativo porque el nombre esta
+          escrito debajo: con los dos, el lector de pantalla diria cada
+          producto dos veces. La marca puede ocupar dos renglones en vez
+          de cortarse: "Beauty of Jo…" en un telefono chico no se entiende.
         */}
-        <div aria-hidden className="mt-4 flex items-center">
-          {c.productos.map((p, i) => (
-            <Fragment key={p.id}>
-              {i > 0 && (
-                <span className="w-5 shrink-0 text-center text-lg font-light text-tinta-suave">
-                  +
-                </span>
-              )}
-              {/* `mix-blend-multiply` funde el blanco de las fotos de
-                  catalogo con la baldosa, en vez de dejarlas como un
-                  cuadrado pegado encima. */}
-              <span className="block min-w-0 flex-1 overflow-hidden rounded-chico bg-crema">
-                <Image
-                  src={fotoDe(p)}
-                  alt=""
-                  width={240}
-                  height={240}
-                  sizes="(min-width: 1024px) 7rem, 5rem"
-                  className="aspect-square w-full object-cover mix-blend-multiply"
-                />
-              </span>
-            </Fragment>
-          ))}
-        </div>
-
-        <ol className="mt-3 space-y-1.5 text-[0.9375rem] leading-snug text-tinta">
+        <ul className={`mt-5 grid gap-2.5 ${c.productos.length === 4 ? "grid-cols-4" : "grid-cols-3"}`}>
           {c.productos.map((p) => (
-            <li key={p.id} className="flex gap-2">
-              <span aria-hidden className="mt-[0.45rem] size-1.5 shrink-0 rounded-full bg-vino" />
-              <span>
-                <span className="font-semibold">{p.marca}</span> {p.nombre}
-              </span>
+            <li key={p.id} className="flex">
+              <Link
+                href={`/productos/${slugDe(p)}`}
+                className="group flex w-full flex-col rounded-chico focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-vino"
+              >
+                {/* `mix-blend-multiply` funde el blanco de las fotos de
+                    catalogo con la baldosa, en vez de dejarlas como un
+                    cuadrado pegado encima. */}
+                <span className="block overflow-hidden rounded-chico bg-crema">
+                  <Image
+                    src={fotoDe(p)}
+                    alt=""
+                    width={240}
+                    height={240}
+                    sizes="(min-width: 1024px) 8rem, 30vw"
+                    className="aspect-square w-full object-cover mix-blend-multiply transition-transform duration-300 motion-safe:group-hover:scale-105"
+                  />
+                </span>
+                <span className="mt-2 text-[0.8125rem] leading-tight font-semibold text-tinta-suave">{p.marca}</span>
+                <span className="text-[0.9375rem] leading-snug text-tinta group-hover:underline group-hover:decoration-borde group-hover:underline-offset-2">
+                  {p.nombre}
+                </span>
+                <span className="mt-auto pt-1 text-[0.9375rem] text-tinta-suave tabular-nums">
+                  <span className="sr-only">Suelto: </span>
+                  {formatearPrecio(p.precio)}
+                </span>
+              </Link>
             </li>
           ))}
-        </ol>
+        </ul>
 
         {/* `mt-auto` baja el precio al pie: en la fila de escritorio los
-            combos miden distinto —uno de cuatro, otros de tres— y sin
-            esto los precios y los botones quedaban escalonados. */}
-        <div className="mt-auto pt-4">
-          {/* "Por separado" se queda: en un combo el tachado no es un
-              precio de antes sino la suma de los productos, y sin la
-              palabra no se entiende de donde sale ese numero. */}
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.9375rem] text-tinta-suave">
-            <span className="rounded-md bg-positivo px-2 py-1 font-display text-sm leading-none font-bold text-white tabular-nums">
-              {porcentaje}% OFF
+            combos miden distinto y sin esto los precios y los botones
+            quedaban escalonados. */}
+        <div className="mt-auto pt-5">
+          <p className="flex flex-wrap items-baseline gap-x-2.5">
+            <span className="font-display text-3xl font-bold text-tinta tabular-nums">
+              <span className="sr-only">Precio del combo: </span>
+              {formatearPrecio(c.precio)}
             </span>
-            <span>
-              Por separado{" "}
-              <span className="line-through tabular-nums">{formatearPrecio(c.suma)}</span>
+            <span className="text-[0.9375rem] text-tinta-suave line-through tabular-nums">
+              <span className="sr-only">Por separado: </span>
+              {formatearPrecio(c.suma)}
             </span>
-          </p>
-          <p className="mt-1 font-display text-3xl font-bold text-tinta tabular-nums">
-            {formatearPrecio(c.precio)}
           </p>
           <p className="mt-0.5 text-[0.9375rem] font-semibold text-positivo">
-            Ahorrás {formatearPrecio(c.ahorro)}
+            Ahorrás {formatearPrecio(c.ahorro)} · {porcentaje}% menos
           </p>
 
-          <ControlCarrito
-            id={c.id}
-            nombre={`Combo ${c.nombre}`}
-            texto="Agregar combo al pedido"
-            grande
-          />
+          <ControlCarrito id={c.id} nombre={`Combo ${c.nombre}`} texto="Agregar combo al pedido" grande />
         </div>
       </article>
     </li>
