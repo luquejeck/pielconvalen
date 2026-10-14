@@ -116,6 +116,32 @@ export const ESTILOS_GIFTCARD: EstiloGiftcard[] = [
     tinta: "#6b1a3a",
     fecha: { nombre: "Día de la Madre", dia: (a) => tercerDomingo(a, 9) },
   },
+  {
+    /* Vino profundo con una nevada finita: la Navidad en los colores de
+       la casa, sin verde ni dorado. */
+    id: "nevado",
+    nombre: "Nevado",
+    fondo:
+      "radial-gradient(80% 70% at 20% 10%, #a3164f 0%, transparent 65%), linear-gradient(150deg, #7d0d46 0%, #5d0a34 55%, #3a0620 100%)",
+    extra:
+      /* Tres capas de copos con tamaños de baldosa que no se dividen
+         entre si: asi no se arma una grilla y la nevada se ve suelta. */
+      "radial-gradient(circle, rgb(255 255 255 / 0.7) 1.3px, transparent 2px) 7px 11px / 53px 47px, radial-gradient(circle, rgb(255 255 255 / 0.45) 1px, transparent 1.6px) 31px 3px / 71px 61px, radial-gradient(circle, rgb(255 255 255 / 0.3) 0.8px, transparent 1.3px) 19px 29px / 37px 41px",
+    og: "linear-gradient(150deg, #a3164f 0%, #7d0d46 40%, #3a0620 100%)",
+    fecha: { nombre: "Navidad", dia: (a) => clave(a, 11, 25) },
+  },
+  {
+    /* Medianoche: casi negro, con un resplandor vino arriba y polvo de
+       estrellas crema, como el cielo del brindis. */
+    id: "medianoche",
+    nombre: "Medianoche",
+    fondo:
+      "radial-gradient(80% 70% at 80% 10%, rgb(125 13 70 / 0.75) 0%, transparent 65%), linear-gradient(160deg, #2a1219 0%, #1d0f14 100%)",
+    extra:
+      "radial-gradient(circle, rgb(250 245 246 / 0.9) 1px, transparent 1.6px) 11px 7px / 67px 59px, radial-gradient(circle, rgb(250 245 246 / 0.55) 0.7px, transparent 1.2px) 29px 23px / 41px 53px, radial-gradient(circle, rgb(247 200 220 / 0.5) 0.6px, transparent 1px) 3px 37px / 97px 43px",
+    og: "linear-gradient(160deg, #5a0d33 0%, #2a1219 45%, #1d0f14 100%)",
+    fecha: { nombre: "Año Nuevo", dia: (a) => clave(a, 0, 1) },
+  },
 ];
 
 /**
@@ -144,13 +170,19 @@ function restarDias(fecha: string, dias: number): string {
 
 /**
  * Si un estilo de fecha se ofrece hoy: desde 14 dias antes hasta el dia
- * mismo. Se mira la fecha de este año: la de San Valentín del año que
- * viene recien entra en la ventana a fin de enero, ya con el año nuevo.
+ * mismo.
  */
 export function enVentana(e: EstiloGiftcard, hoy: string): boolean {
-  if (!e.fecha) return true;
-  const dia = e.fecha.dia(Number(hoy.slice(0, 4)));
-  return hoy >= restarDias(dia, DIAS_ANTES) && hoy <= dia;
+  const fecha = e.fecha;
+  if (!fecha) return true;
+  /* Se mira la fecha de este año y la del que viene: la ventana de Año
+     Nuevo arranca el 18 de diciembre, cuando el 1 de enero que importa
+     ya es el del año siguiente. */
+  const anio = Number(hoy.slice(0, 4));
+  return [anio, anio + 1].some((a) => {
+    const dia = fecha.dia(a);
+    return hoy >= restarDias(dia, DIAS_ANTES) && hoy <= dia;
+  });
 }
 
 /**
