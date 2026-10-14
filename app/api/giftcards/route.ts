@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fallo, requerirSesion } from "@/lib/api";
+import { ESTILOS_GIFTCARD } from "@/lib/estilos-giftcard";
 import { hoyEnArgentina } from "@/lib/fechas";
 import { CODIGO_GIFTCARD, GIFTCARD, sumarMeses } from "@/lib/giftcards";
 import { COLUMNAS_GIFTCARD as COLUMNAS, resolverRegalo, texto } from "@/lib/giftcards-servidor";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST /api/giftcards — registra la giftcard que se pide por WhatsApp.
- * Body: { codigo, para, de, mensaje?, tratamientoId? | monto? }
+ * Body: { codigo, para, de, mensaje?, estilo?, tratamientoId? | monto? }
  *
  * Igual que los pedidos: el codigo lo arma el navegador, porque tiene
  * que ir adentro del mensaje que se abre en el mismo toque. Entra como
@@ -28,15 +29,24 @@ export async function POST(request: NextRequest) {
   const de = texto(cuerpo.de, GIFTCARD.largoNombre);
   const mensaje = texto(cuerpo.mensaje, GIFTCARD.largoMensaje);
   const regalo = await resolverRegalo(cuerpo.tratamientoId, cuerpo.monto);
+  /* Un estilo que no existe no frena el pedido: sale con la de siempre. */
+  const estilo = ESTILOS_GIFTCARD.find((e) => e.id === cuerpo.estilo)?.id ?? null;
 
   if (!CODIGO_GIFTCARD.test(codigo) || !para || !de || !regalo) {
     return NextResponse.json({ error: "Giftcard invalida" }, { status: 400 });
   }
 
   const supabase = await clienteServidor();
-  const { error } = await supabase
-    .from("giftcards")
-    .insert({ codigo, para, de, mensaje: mensaje || null, ...regalo });
+  const fila: Record<string, unknown> = { codigo, para, de, mensaje: mensaje || null, ...regalo };
+  let { error } = await supabase.from("giftcards").insert(estilo ? { ...fila, estilo } : fila);
+  /*
+    SIN LA COLUMNA `estilo` (una base donde todavia no se corrio
+    schema-23) se registra igual, sin el papel: la tarjeta sale vino.
+    Perder el estilo es menos grave que perder la giftcard.
+  */
+  if (error && estilo && /estilo/.test(error.message)) {
+    ({ error } = await supabase.from("giftcards").insert(fila));
+  }
   if (error) return fallo("registrar la giftcard", error);
 
   return NextResponse.json({ guardado: true });

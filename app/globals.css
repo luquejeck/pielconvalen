@@ -628,6 +628,88 @@
   display: none;
 }
 
+/* La vuelta: la inclinacion va en el cuerpo y el giro en otra capa, asi
+   no se pisan. El final pasa un poco de largo y vuelve, como una
+   tarjeta que se suelta sobre la mesa. */
+.tarjeta3d {
+  position: relative;
+}
+
+.tarjeta3d-volteo {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 1.1s cubic-bezier(0.3, 1.25, 0.5, 1);
+}
+
+.tarjeta3d-volteo[data-espalda] {
+  transform: rotateY(180deg);
+}
+
+.tarjeta3d-cara {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.tarjeta3d-dorso {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  border-radius: var(--radius-suave);
+  cursor: pointer;
+}
+
+.tarjeta3d-dorso:focus-visible {
+  outline: 3px solid var(--color-vino);
+  outline-offset: 4px;
+}
+
+.tarjeta3d-latir {
+  animation: tarjeta3d-latir 1.8s ease-in-out infinite;
+}
+
+@keyframes tarjeta3d-latir {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Los destellos: chispas de cuatro puntas que salen del centro y se
+   apagan. Blancas y rosadas, sobre cualquier papel. */
+.tarjeta3d-destellos {
+  position: absolute;
+  inset: -40px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.tarjeta3d-destello {
+  position: absolute;
+  width: var(--t);
+  height: var(--t);
+  animation: tarjeta3d-destellar var(--d) ease-out var(--r) both;
+}
+
+.tarjeta3d-destello svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes tarjeta3d-destellar {
+  0% {
+    transform: translate(0, 0) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+    transform: translate(calc(var(--x) * 0.4), calc(var(--y) * 0.4)) scale(1) rotate(45deg);
+  }
+  100% {
+    transform: translate(var(--x), var(--y)) scale(0.2) rotate(140deg);
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -638,6 +720,12 @@
     animation: none;
     transform: none;
     transition: none;
+  }
+  .tarjeta3d-volteo {
+    transition: none;
+  }
+  .tarjeta3d-latir {
+    animation: none;
   }
   .animar-entrada {
     animation: none;

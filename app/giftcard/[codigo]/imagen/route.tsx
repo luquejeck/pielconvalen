@@ -18,7 +18,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ codigo: st
   ]);
   if (!g) return new Response("No encontramos esta giftcard.", { status: 404 });
 
-  const imagen = new ImageResponse(<Tarjeta g={g} ancho={1600} logoBlanco={recursos.logoBlanco} />, {
+  const imagen = new ImageResponse(<Tarjeta g={g} ancho={1600} recursos={recursos} />, {
     width: 1600,
     height: 1000,
     fonts: recursos.fuentes,
