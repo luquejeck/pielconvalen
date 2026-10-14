@@ -502,9 +502,142 @@
   }
 }
 
+/* La giftcard grande, en 3D (components/Tarjeta3D.tsx).
+
+   Las cuatro variables se registran con @property para que se puedan
+   animar: asi la misma regla sirve para el vaiven solo y para seguir
+   al mouse, y el paso de uno a otro se suaviza con una transicion. */
+@property --rx {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+@property --ry {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+@property --mx {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+@property --my {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+.tarjeta3d {
+  perspective: 900px;
+}
+
+.tarjeta3d-cuerpo {
+  position: relative;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transform-style: preserve-3d;
+  transition:
+    --rx 0.35s ease-out,
+    --ry 0.35s ease-out,
+    --mx 0.35s ease-out,
+    --my 0.35s ease-out;
+  /* Quieta, se mece sola: es lo que se ve en el celular, que no tiene
+     mouse. Lenta y corta, para que acompañe y no maree. */
+  animation: tarjeta3d-mecer 7s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Con el mouse encima manda el puntero. Una animacion le gana a los
+   estilos escritos en el elemento, asi que hay que apagarla. */
+.tarjeta3d-cuerpo[data-activa] {
+  animation: none;
+  transition-duration: 0.08s;
+}
+
+.tarjeta3d[data-quieta] .tarjeta3d-cuerpo {
+  animation: none;
+}
+
+@keyframes tarjeta3d-mecer {
+  0%,
+  100% {
+    --rx: 4deg;
+    --ry: -7deg;
+    --mx: 25%;
+    --my: 20%;
+  }
+  50% {
+    --rx: -3deg;
+    --ry: 7deg;
+    --mx: 75%;
+    --my: 70%;
+  }
+}
+
+/* Las capas de luz: recortadas a la forma de la tarjeta y sin
+   interceptar el mouse. */
+.tarjeta3d-luz {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: var(--radius-suave);
+  pointer-events: none;
+}
+
+.tarjeta3d-luz > span {
+  position: absolute;
+  inset: 0;
+}
+
+/* El reflejo: una luz blanca que sigue al puntero. */
+.tarjeta3d-brillo {
+  background: radial-gradient(
+    circle at var(--mx) var(--my),
+    rgb(255 255 255 / 0.45) 0%,
+    rgb(255 255 255 / 0.1) 22%,
+    transparent 45%
+  );
+  mix-blend-mode: soft-light;
+}
+
+/* El tornasol: franjas crema y rosa que corren en diagonal al moverla.
+   Muy diluido: tiene que parecer papel metalizado, no un holograma. */
+.tarjeta3d-tornasol {
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgb(250 245 246 / 0.12) 36%,
+    rgb(247 200 220 / 0.1) 44%,
+    rgb(250 245 246 / 0.12) 52%,
+    transparent 68%
+  );
+  background-size: 250% 250%;
+  background-position: var(--mx) var(--my);
+  mix-blend-mode: overlay;
+}
+
+/* El grano: ruido fractal en SVG, apenas visible. */
+.tarjeta3d-textura {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  opacity: 0.09;
+  mix-blend-mode: overlay;
+}
+
+.tarjeta3d[data-quieta] .tarjeta3d-tornasol,
+.tarjeta3d[data-quieta] .tarjeta3d-brillo {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+  /* Sin movimiento: de frente, con la textura y un brillo fijo. */
+  .tarjeta3d-cuerpo,
+  .tarjeta3d-cuerpo[data-activa] {
+    animation: none;
+    transform: none;
+    transition: none;
   }
   .animar-entrada {
     animation: none;
