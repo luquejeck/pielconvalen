@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import ControlCarrito from "@/components/ControlCarrito";
 import TarjetaCombo from "@/components/TarjetaCombo";
 import { type Combo } from "@/lib/combos";
-import { fotoDe, PRODUCTOS } from "@/lib/productos";
+import { fotoDe, PRODUCTOS, slugDe } from "@/lib/productos";
 import { formatearPrecio } from "@/lib/tratamientos";
 
 /**
@@ -40,7 +41,8 @@ const COMBO: Combo = {
  *
  *   - El nombre y una sola linea de por que esos productos van juntos.
  *   - Las tres fotos en fila, con marca, nombre y el precio suelto de
- *     cada una: ver los precios es lo que hace creible el ahorro.
+ *     cada una: ver los precios es lo que hace creible el ahorro. Cada
+ *     una lleva a la ficha del producto.
  *   - El precio tachado al lado del final, y debajo el ahorro en pesos,
  *     en verde. Es lo unico con color ademas del boton.
  */
@@ -48,35 +50,58 @@ function Propuesta({ combo: c }: { combo: Combo }) {
   const porcentaje = Math.round(c.descuento * 100);
 
   return (
-    <article className="flex flex-col rounded-suave border border-borde bg-papel p-5 shadow-suave">
+    <article aria-labelledby={`combo-${c.slug}`} className="flex flex-col rounded-suave border border-borde bg-papel p-5 shadow-suave">
       <p className="font-display text-xs font-semibold tracking-[0.14em] text-vino uppercase">Combo</p>
-      <h3 className="mt-1 font-display text-2xl leading-tight font-semibold text-tinta">{c.nombre}</h3>
+      <h3 id={`combo-${c.slug}`} className="mt-1 font-display text-2xl text-balance leading-tight font-semibold text-tinta">{c.nombre}</h3>
       <p className="mt-1 text-[0.9375rem] text-tinta-suave">Elegidos por Valen para usar juntos</p>
 
+      {/*
+        Cada producto lleva a su ficha: quien quiere saber que es el
+        Revive Serum antes de llevarse el combo lo toca y lo ve, sin
+        buscarlo en el catalogo. La baldosa entera es el blanco a tocar.
+        Las fotos van sin alt porque el nombre esta escrito debajo y el
+        lector de pantalla lo diria dos veces.
+      */}
       <ul className="mt-5 grid grid-cols-3 gap-2.5">
         {c.productos.map((p) => (
-          <li key={p.id} className="flex flex-col">
-            <span className="block overflow-hidden rounded-chico bg-crema">
-              <Image
-                src={fotoDe(p)}
-                alt=""
-                width={240}
-                height={240}
-                sizes="(min-width: 1024px) 8rem, 30vw"
-                className="aspect-square w-full object-cover mix-blend-multiply"
-              />
-            </span>
-            <span className="mt-2 truncate text-xs font-semibold text-tinta-suave">{p.marca}</span>
-            <span className="text-sm leading-snug text-tinta">{p.nombre}</span>
-            <span className="mt-auto pt-0.5 text-sm text-tinta-suave tabular-nums">{formatearPrecio(p.precio)}</span>
+          <li key={p.id} className="flex">
+            <Link
+              href={`/productos/${slugDe(p)}`}
+              className="group flex w-full flex-col rounded-chico focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-vino"
+            >
+              <span className="block overflow-hidden rounded-chico bg-crema">
+                <Image
+                  src={fotoDe(p)}
+                  alt=""
+                  width={240}
+                  height={240}
+                  sizes="(min-width: 1024px) 8rem, 30vw"
+                  className="aspect-square w-full object-cover mix-blend-multiply transition-transform duration-300 motion-safe:group-hover:scale-105"
+                />
+              </span>
+              <span className="mt-2 text-[0.8125rem] leading-tight font-semibold text-tinta-suave">{p.marca}</span>
+              <span className="text-[0.9375rem] leading-snug text-tinta group-hover:underline group-hover:decoration-borde group-hover:underline-offset-2">
+                {p.nombre}
+              </span>
+              <span className="mt-auto pt-1 text-[0.9375rem] text-tinta-suave tabular-nums">
+                <span className="sr-only">Suelto: </span>
+                {formatearPrecio(p.precio)}
+              </span>
+            </Link>
           </li>
         ))}
       </ul>
 
       <div className="mt-auto pt-5">
         <p className="flex items-baseline gap-2.5">
-          <span className="font-display text-3xl font-bold text-tinta tabular-nums">{formatearPrecio(c.precio)}</span>
-          <span className="text-[0.9375rem] text-tinta-suave line-through tabular-nums">{formatearPrecio(c.suma)}</span>
+          <span className="font-display text-3xl font-bold text-tinta tabular-nums">
+            <span className="sr-only">Precio del combo: </span>
+            {formatearPrecio(c.precio)}
+          </span>
+          <span className="text-[0.9375rem] text-tinta-suave line-through tabular-nums">
+            <span className="sr-only">Por separado: </span>
+            {formatearPrecio(c.suma)}
+          </span>
         </p>
         <p className="mt-0.5 text-[0.9375rem] font-semibold text-positivo">
           Ahorrás {formatearPrecio(c.ahorro)} · {porcentaje}% menos
