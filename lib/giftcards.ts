@@ -56,6 +56,8 @@ export type Giftcard = {
   /* Vigente: el turno que saco quien la recibe. Usada: donde se uso. */
   turno_id: string | null;
   creado_en: string;
+  /** El papel de la tarjeta (lib/estilos-giftcard.ts). Vacio = vino. */
+  estilo?: string | null;
   /** El turno asociado, tal como lo trae el panel. */
   turno?: { fecha: string; hora: string; cliente: string | null; estado: string } | null;
 };

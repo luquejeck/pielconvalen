@@ -16,7 +16,7 @@ type Ruta = { params: Promise<{ codigo: string }> };
 /** Lo que devuelve `giftcard_publica`: solo lo que muestra la tarjeta. */
 type Publica = Pick<
   Giftcard,
-  "codigo" | "estado" | "para" | "de" | "mensaje" | "tratamiento" | "monto" | "vence_el"
+  "codigo" | "estado" | "para" | "de" | "mensaje" | "tratamiento" | "monto" | "vence_el" | "estilo"
 >;
 
 /**
@@ -89,7 +89,11 @@ export default async function PaginaTarjeta({ params }: Ruta) {
                   de={g.de}
                   regalo={queRegala(g)}
                   codigo={g.codigo}
+                  estilo={g.estilo}
                   apagada={g.estado === "usada" || vencida}
+                  /* Llega de espaldas y se da vuelta al tocarla: el
+                     momento de abrir el regalo. */
+                  sorpresa
                 />
 
                 {g.mensaje && (

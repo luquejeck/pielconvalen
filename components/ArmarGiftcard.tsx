@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ESTILO_POR_DEFECTO, estilosDisponibles, type EstiloGiftcard } from "@/lib/estilos-giftcard";
 import { fechaConAnio, GIFTCARD, nuevoCodigoGiftcard, sumarMeses } from "@/lib/giftcards";
 import { hoyEnArgentina } from "@/lib/fechas";
 import { formatearPrecio, type Tratamiento } from "@/lib/tratamientos";
@@ -58,6 +59,7 @@ export default function ArmarGiftcard({
   const [para, setPara] = useState("");
   const [de, setDe] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [estilo, setEstilo] = useState(ESTILO_POR_DEFECTO.id);
   const [codigo, setCodigo] = useState("");
   const [enviado, setEnviado] = useState<Enviado | null>(null);
 
@@ -105,6 +107,7 @@ export default function ArmarGiftcard({
       para,
       de,
       mensaje,
+      estilo,
       ...(tratamiento ? { tratamientoId: tratamiento.id } : { monto: importe }),
     });
     setTimeout(() => {
@@ -133,6 +136,7 @@ export default function ArmarGiftcard({
     setPara("");
     setDe("");
     setMensaje("");
+    setEstilo(ESTILO_POR_DEFECTO.id);
     setCodigo(nuevoCodigoGiftcard());
   };
 
@@ -153,6 +157,7 @@ export default function ArmarGiftcard({
             : ""
       }
       codigo={enviado?.codigo}
+      estilo={estilo}
     />
   );
 
@@ -174,6 +179,12 @@ export default function ArmarGiftcard({
           “{mensaje.trim()}”
         </p>
       )}
+
+      <SelectorEstilo
+        estilos={estilosDisponibles(hoyEnArgentina())}
+        elegido={estilo}
+        onElegir={setEstilo}
+      />
 
       <div className="tarjeta mt-6 px-4 py-6 sm:px-6">
         <fieldset>
@@ -307,6 +318,74 @@ export default function ArmarGiftcard({
         )}
       </div>
     </>
+  );
+}
+
+/**
+ * "Personalizar estilo", justo debajo de la tarjeta: cada muestra la
+ * cambia al instante, a la vista.
+ *
+ * VIENE CERRADO Y ES OPCIONAL. Quien no lo abre sigue de largo y se lleva
+ * la vino de siempre; nada en el pedido espera a que se elija (Lucas,
+ * 14-10-2026). Es un <details> y no un estado de React: abre y cierra sin
+ * JavaScript y el lector de pantalla lo anuncia solo.
+ *
+ * El de la fecha especial, cuando hay una cerca, va primero y con su
+ * nombre debajo: es el que mas convence ese mes.
+ */
+function SelectorEstilo({
+  estilos,
+  elegido,
+  onElegir,
+}: {
+  estilos: EstiloGiftcard[];
+  elegido: string;
+  onElegir: (id: string) => void;
+}) {
+  return (
+    <details className="group mt-4 rounded-chico border border-borde bg-white">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-chico px-4 font-display text-base font-semibold text-tinta [&::-webkit-details-marker]:hidden">
+        <span>
+          Personalizar estilo <span className="font-sans font-normal text-tinta-suave">· si querés</span>
+        </span>
+        <svg
+          aria-hidden
+          viewBox="0 0 24 24"
+          className="h-5 w-5 shrink-0 text-tinta-suave transition-transform group-open:rotate-180"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </summary>
+      <fieldset className="grid grid-cols-3 gap-x-2 gap-y-3 px-4 pt-1 pb-4 sm:grid-cols-6">
+        <legend className="sr-only">Estilo de la giftcard</legend>
+        {estilos.map((e) => (
+          <label key={e.id} className="flex cursor-pointer flex-col items-center gap-1.5 text-center">
+            <input
+              type="radio"
+              name="estilo"
+              value={e.id}
+              checked={elegido === e.id}
+              onChange={() => onElegir(e.id)}
+              className="peer sr-only"
+            />
+            <span
+              aria-hidden
+              className="block aspect-[1.6] w-full max-w-16 rounded-lg ring-1 ring-borde transition peer-checked:-translate-y-0.5 peer-checked:ring-2 peer-checked:ring-vino peer-checked:ring-offset-2 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-vino"
+              style={{ background: e.extra ? `${e.extra}, ${e.fondo}` : e.fondo }}
+            />
+            <span className="text-sm leading-tight text-tinta-suave peer-checked:font-semibold peer-checked:text-vino">
+              {e.nombre}
+            </span>
+            {e.fecha && (
+              <span className="-mt-1 text-xs leading-tight font-semibold text-positivo">{e.fecha.nombre}</span>
+            )}
+          </label>
+        ))}
+      </fieldset>
+    </details>
   );
 }
 

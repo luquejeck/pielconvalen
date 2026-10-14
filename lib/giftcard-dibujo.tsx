@@ -3,6 +3,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import QRCode from "qrcode";
+import { estiloGiftcard } from "./estilos-giftcard";
 import { fechaConAnio, queRegala, tamanoRegalo, type Giftcard } from "./giftcards";
 import { clienteServidor } from "./supabase-servidor";
 import { hayBaseDeDatos } from "./supabase";
@@ -24,7 +25,7 @@ import { hayBaseDeDatos } from "./supabase";
 /** Lo que muestra la tarjeta: lo que devuelve `giftcard_publica`. */
 export type GiftcardPublica = Pick<
   Giftcard,
-  "codigo" | "estado" | "para" | "de" | "mensaje" | "tratamiento" | "monto" | "vence_el"
+  "codigo" | "estado" | "para" | "de" | "mensaje" | "tratamiento" | "monto" | "vence_el" | "estilo"
 >;
 
 /** Una giftcard por su codigo, solo si ya esta cobrada (vigente o usada). */
@@ -80,6 +81,12 @@ export function cargarRecursos(): Promise<Recursos> {
   return recursos;
 }
 
+/** "#5d0a34" con transparencia, como rgba(): next/og no entiende color-mix. */
+function conAlfa(hex: string, alfa: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alfa})`;
+}
+
 /** El monograma mide 830 x 428. */
 const ANCHO_LOGO = 830 / 428;
 
@@ -97,12 +104,18 @@ const iconoRegalo = (color: string) =>
 export function Tarjeta({
   g,
   ancho,
-  logoBlanco,
+  recursos,
 }: {
   g: GiftcardPublica | null;
   ancho: number;
-  logoBlanco: string;
+  recursos: Pick<Recursos, "logoBlanco" | "logoVino">;
 }) {
+  /* El papel que se eligio (lib/estilos-giftcard.ts). Sobre los claros
+     el texto va en la tinta del estilo y el logo en vino. */
+  const e = estiloGiftcard(g?.estilo);
+  const tinta = e.tinta ?? C.crema;
+  const logo = e.tinta ? recursos.logoVino : recursos.logoBlanco;
+  const linea = conAlfa(tinta, 0.22);
   const s = ancho / 600;
   const alto = Math.round(ancho / 1.6);
   const radio = 36 * s;
@@ -122,14 +135,14 @@ export function Tarjeta({
         padding: 40 * s,
         borderRadius: radio,
         overflow: "hidden",
-        backgroundImage: `linear-gradient(135deg, ${C.vinoClaro} 0%, ${C.vino} 42%, ${C.vinoOscuro} 100%)`,
-        color: C.crema,
+        backgroundImage: e.og,
+        color: tinta,
         fontFamily: "Montserrat",
       }}
     >
       {/* La marca de agua, el brillo y el filete. */}
       <img
-        src={logoBlanco}
+        src={logo}
         width={300 * s * ANCHO_LOGO}
         height={300 * s}
         style={{ position: "absolute", right: -70 * s, bottom: -60 * s, opacity: 0.08 }}
@@ -153,30 +166,30 @@ export function Tarjeta({
           width: ancho - 32 * s,
           height: alto - 32 * s,
           borderRadius: radio - 14 * s,
-          border: `${Math.max(1, 1.5 * s)}px solid rgba(250,245,246,0.22)`,
+          border: `${Math.max(1, 1.5 * s)}px solid ${linea}`,
         }}
       />
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <img src={logoBlanco} width={34 * s * ANCHO_LOGO} height={34 * s} />
+          <img src={logo} width={34 * s * ANCHO_LOGO} height={34 * s} />
           <div
             style={{
               marginTop: 12 * s,
               fontSize: 14 * s,
               fontWeight: 600,
               letterSpacing: 4.5 * s,
-              color: "rgba(250,245,246,0.72)",
+              color: conAlfa(tinta, 0.72),
             }}
           >
             GIFTCARD
           </div>
         </div>
-        <img src={iconoRegalo("rgba(250,245,246,0.88)")} width={42 * s} height={42 * s} />
+        <img src={iconoRegalo(conAlfa(tinta, 0.88))} width={42 * s} height={42 * s} />
       </div>
 
       <div style={{ display: "flex", flexDirection: "column" }}>
-        <div style={{ fontSize: 22 * s, color: "rgba(250,245,246,0.8)" }}>
+        <div style={{ fontSize: 22 * s, color: conAlfa(tinta, 0.8) }}>
           {g ? `Para ${g.para}` : "Para alguien especial"}
         </div>
         <div style={{ marginTop: 6 * s, fontSize: letra, fontWeight: 600, lineHeight: 1.12 }}>
@@ -185,7 +198,7 @@ export function Tarjeta({
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ fontSize: 22 * s, color: "rgba(250,245,246,0.8)" }}>
+        <div style={{ fontSize: 22 * s, color: conAlfa(tinta, 0.8) }}>
           {g ? `De parte de ${g.de}` : "Piel con Valen"}
         </div>
         {g && (
@@ -194,8 +207,8 @@ export function Tarjeta({
               display: "flex",
               padding: `${7 * s}px ${18 * s}px`,
               borderRadius: 999,
-              backgroundColor: "rgba(250,245,246,0.12)",
-              border: `${Math.max(1, 1.5 * s)}px solid rgba(250,245,246,0.22)`,
+              backgroundColor: conAlfa(tinta, 0.1),
+              border: `${Math.max(1, 1.5 * s)}px solid ${linea}`,
               fontSize: 20 * s,
               fontWeight: 600,
               letterSpacing: 2.5 * s,
@@ -266,7 +279,7 @@ export function HojaImpresion({
       </div>
 
       <div style={{ display: "flex", marginTop: 64 }}>
-        <Tarjeta g={g} ancho={1000} logoBlanco={recursos.logoBlanco} />
+        <Tarjeta g={g} ancho={1000} recursos={recursos} />
       </div>
 
       {g.mensaje && (

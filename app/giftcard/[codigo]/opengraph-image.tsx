@@ -31,7 +31,7 @@ export default async function Imagen({ params }: { params: Promise<{ codigo: str
           backgroundColor: "#ecdde3",
         }}
       >
-        <Tarjeta g={g} ancho={880} logoBlanco={recursos.logoBlanco} />
+        <Tarjeta g={g} ancho={880} recursos={recursos} />
       </div>
     ),
     { ...size, fonts: recursos.fuentes }
