@@ -20,19 +20,21 @@ import ControlCarrito from "./ControlCarrito";
  * es justo lo que ya ofrece la grilla de abajo. En la tarjeta queda una
  * sola decision: llevarse el combo o no.
  *
- * SIMPLE, Y CON LA CUENTA A LA VISTA (14-10-2026). La version anterior
- * decia lo mismo con mas cosas —pasos, lista de nombres, etiqueta verde
- * llena— y no terminaba de gustar. Lucas pidio algo simple, en la
- * paleta de la casa, donde se vea el producto y se sienta el ahorro.
- * Se probaron cinco direcciones en una pagina aparte y quedo esta:
+ * UN PRODUCTO POR RENGLON (14-10-2026). La version anterior ponia las
+ * fotos en fila de a tres con marca, nombre y precio debajo de cada una,
+ * y dentro del carrusel —que deja la tarjeta en unos 330 px— cada
+ * columna quedaba de 90 px: nombres en tres renglones y todo apretado.
+ * En renglones cada cosa tiene su lugar: foto a la izquierda, marca y
+ * nombre en el medio, precio suelto a la derecha.
  *
- *   1. Que es: el nombre y una linea de por que van juntos.
- *   2. Que trae: las fotos en fila, cada una con marca, nombre y SU
- *      precio suelto. Ver los tres precios es lo que hace creible el
- *      ahorro: la clienta puede sumar.
- *   3. Cuanto sale: el precio grande con la suma tachada al lado, y
- *      debajo lo que se ahorra en pesos, que pesa mas que un porcentaje.
- *      El verde del ahorro es el unico color ademas del vino del boton.
+ * LO QUE LLEVA, de arriba a abajo:
+ *   1. Que es: el nombre.
+ *   2. Que trae: los productos, cada uno con SU precio suelto. Ver los
+ *      precios es lo que hace creible el ahorro: la clienta puede sumar.
+ *      Cada renglon lleva a la ficha del producto.
+ *   3. Cuanto sale: el precio grande, la suma tachada, y debajo lo que
+ *      se ahorra en pesos, que pesa mas que un porcentaje. El verde del
+ *      ahorro es el unico color ademas del vino del boton.
  *   4. El boton, al pie, ancho completo.
  *
  * Es un componente de servidor: solo el boton necesita el navegador, y
@@ -45,52 +47,45 @@ export default function TarjetaCombo({ combo: c }: { combo: Combo }) {
     <li className="flex">
       <article
         aria-labelledby={`combo-${c.slug}`}
-        className="flex w-full flex-col rounded-suave border border-borde bg-papel p-5 shadow-suave"
+        className="flex w-full flex-col rounded-suave bg-papel p-6 shadow-suave"
       >
         <p className="font-display text-xs font-semibold tracking-[0.14em] text-vino uppercase">Combo</p>
         <h3
           id={`combo-${c.slug}`}
-          className="mt-1 font-display text-2xl leading-tight font-semibold text-balance text-tinta"
+          className="mt-1.5 font-display text-2xl leading-tight font-semibold text-balance text-tinta"
         >
           {c.nombre}
         </h3>
-        <p className="mt-1 text-[0.9375rem] text-tinta-suave">Elegidos por Valen para usar juntos</p>
 
         {/*
-          Cada producto lleva a su ficha: quien quiere saber que es el
-          serum antes de llevarse el combo lo toca y lo ve, sin buscarlo
-          en el catalogo. La baldosa entera es el blanco a tocar.
-
           Las fotos van sin texto alternativo porque el nombre esta
-          escrito debajo: con los dos, el lector de pantalla diria cada
-          producto dos veces. La marca puede ocupar dos renglones en vez
-          de cortarse: "Beauty of Jo…" en un telefono chico no se entiende.
+          escrito al lado: con los dos, el lector de pantalla diria cada
+          producto dos veces. `mix-blend-multiply` funde el blanco de las
+          fotos de catalogo con la baldosa.
         */}
-        <ul className={`mt-5 grid gap-2.5 ${c.productos.length === 4 ? "grid-cols-4" : "grid-cols-3"}`}>
+        <ul className="mt-6 space-y-4">
           {c.productos.map((p) => (
-            <li key={p.id} className="flex">
+            <li key={p.id}>
               <Link
                 href={`/productos/${slugDe(p)}`}
-                className="group flex w-full flex-col rounded-chico focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-vino"
+                className="group flex items-center gap-4 rounded-chico focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-vino"
               >
-                {/* `mix-blend-multiply` funde el blanco de las fotos de
-                    catalogo con la baldosa, en vez de dejarlas como un
-                    cuadrado pegado encima. */}
-                <span className="block overflow-hidden rounded-chico bg-crema">
+                <span className="block size-16 shrink-0 overflow-hidden rounded-chico bg-crema">
                   <Image
                     src={fotoDe(p)}
                     alt=""
-                    width={240}
-                    height={240}
-                    sizes="(min-width: 1024px) 8rem, 30vw"
-                    className="aspect-square w-full object-cover mix-blend-multiply transition-transform duration-300 motion-safe:group-hover:scale-105"
+                    width={160}
+                    height={160}
+                    className="size-full object-cover mix-blend-multiply transition-transform duration-300 motion-safe:group-hover:scale-105"
                   />
                 </span>
-                <span className="mt-2 text-[0.8125rem] leading-tight font-semibold text-tinta-suave">{p.marca}</span>
-                <span className="text-[0.9375rem] leading-snug text-tinta group-hover:underline group-hover:decoration-borde group-hover:underline-offset-2">
-                  {p.nombre}
+                <span className="min-w-0 flex-1 leading-snug">
+                  <span className="block text-[0.8125rem] text-tinta-suave">{p.marca}</span>
+                  <span className="block text-[0.9375rem] text-tinta group-hover:underline group-hover:decoration-borde group-hover:underline-offset-2">
+                    {p.nombre}
+                  </span>
                 </span>
-                <span className="mt-auto pt-1 text-[0.9375rem] text-tinta-suave tabular-nums">
+                <span className="shrink-0 text-[0.9375rem] text-tinta-suave tabular-nums">
                   <span className="sr-only">Suelto: </span>
                   {formatearPrecio(p.precio)}
                 </span>
@@ -100,22 +95,24 @@ export default function TarjetaCombo({ combo: c }: { combo: Combo }) {
         </ul>
 
         {/* `mt-auto` baja el precio al pie: en la fila de escritorio los
-            combos miden distinto y sin esto los precios y los botones
-            quedaban escalonados. */}
-        <div className="mt-auto pt-5">
-          <p className="flex flex-wrap items-baseline gap-x-2.5">
-            <span className="font-display text-3xl font-bold text-tinta tabular-nums">
-              <span className="sr-only">Precio del combo: </span>
-              {formatearPrecio(c.precio)}
-            </span>
-            <span className="text-[0.9375rem] text-tinta-suave line-through tabular-nums">
-              <span className="sr-only">Por separado: </span>
-              {formatearPrecio(c.suma)}
-            </span>
-          </p>
-          <p className="mt-0.5 text-[0.9375rem] font-semibold text-positivo">
-            Ahorrás {formatearPrecio(c.ahorro)} · {porcentaje}% menos
-          </p>
+            combos miden distinto —uno de cuatro, otros de tres— y sin
+            esto los precios y los botones quedaban escalonados. */}
+        <div className="mt-auto pt-6">
+          <div className="border-t border-borde pt-5">
+            <p className="flex flex-wrap items-baseline justify-between gap-x-3">
+              <span className="font-display text-3xl font-bold text-tinta tabular-nums">
+                <span className="sr-only">Precio del combo: </span>
+                {formatearPrecio(c.precio)}
+              </span>
+              <span className="text-[0.9375rem] text-tinta-suave line-through tabular-nums">
+                <span className="sr-only">Por separado: </span>
+                {formatearPrecio(c.suma)}
+              </span>
+            </p>
+            <p className="mt-1 text-[0.9375rem] font-semibold text-positivo">
+              Ahorrás {formatearPrecio(c.ahorro)} · {porcentaje}% menos
+            </p>
+          </div>
 
           <ControlCarrito id={c.id} nombre={`Combo ${c.nombre}`} texto="Agregar combo al pedido" grande />
         </div>
