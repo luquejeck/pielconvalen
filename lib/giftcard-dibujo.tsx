@@ -169,6 +169,8 @@ export function Tarjeta({
           height: alto,
           backgroundImage:
             "linear-gradient(115deg, rgba(255,158,199,0) 18%, rgba(255,158,199,0.3) 32%, rgba(199,155,255,0.32) 42%, rgba(143,200,255,0.3) 52%, rgba(143,240,207,0.26) 62%, rgba(255,227,154,0) 76%)",
+          /* Los de foil leve (ver lib/estilos-giftcard.ts), apenas. */
+          opacity: e.foilSuave ? 0.35 : 1,
         }}
       />
       <div

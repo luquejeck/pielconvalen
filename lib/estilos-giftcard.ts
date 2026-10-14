@@ -33,6 +33,8 @@ export type EstiloGiftcard = {
    * blanco; los claros, este color y el logo en vino.
    */
   tinta?: string;
+  /** Un foil mas leve, para papeles cuyo color tiene que leerse puro. */
+  foilSuave?: boolean;
   /** Solo los de fecha especial: cual, y que dia cae ese año. */
   fecha?: { nombre: string; dia: (anio: number) => string };
 };
@@ -116,6 +118,45 @@ export const ESTILOS_GIFTCARD: EstiloGiftcard[] = [
     tinta: "#6b1a3a",
     fecha: { nombre: "Día de la Madre", dia: (a) => tercerDomingo(a, 9) },
   },
+  {
+    /* Navidad pintada: rojo intenso con pinceladas diagonales en lavanda
+       y rosa, como pintura al agua, y una nevada de puntos blancos de
+       tamaños distintos. Inspirado en las giftcards navideñas de las
+       cafeterias, sin logo ni dibujos (Lucas, 14-10-2026).
+
+       Las pinceladas son franjas en diagonal con los bordes difusos; los
+       copos, tres capas de puntos con baldosas de medidas que no se
+       dividen entre si, para que no se arme una grilla. */
+    id: "navidad",
+    nombre: "Pinceladas",
+    fondo: [
+      "radial-gradient(circle, rgb(255 255 255 / 0.95) 2.4px, transparent 3.2px) 23px 17px / 151px 127px",
+      "radial-gradient(circle, rgb(255 255 255 / 0.85) 1.5px, transparent 2.2px) 61px 41px / 83px 97px",
+      "radial-gradient(circle, rgb(255 255 255 / 0.7) 1.1px, transparent 1.7px) 7px 59px / 113px 71px",
+      "radial-gradient(circle, rgb(255 236 242 / 0.6) 0.8px, transparent 1.3px) 37px 9px / 47px 79px",
+      "linear-gradient(142deg, transparent 6%, rgb(190 168 224 / 0.6) 12%, rgb(236 160 196 / 0.35) 17%, transparent 24%)",
+      "linear-gradient(158deg, transparent 34%, rgb(140 16 38 / 0.5) 41%, transparent 49%)",
+      "linear-gradient(147deg, transparent 54%, rgb(180 156 214 / 0.55) 60%, rgb(242 172 204 / 0.3) 65%, transparent 72%)",
+      "linear-gradient(165deg, transparent 79%, rgb(206 182 230 / 0.5) 86%, transparent 94%)",
+      "linear-gradient(160deg, #d0182f 0%, #b8122a 55%, #a30f26 100%)",
+    ].join(", "),
+    og: "linear-gradient(150deg, #d0182f 0%, #d0182f 8%, #c98ab8 14%, #d0182f 26%, #b8122a 38%, #8f1028 44%, #b8122a 52%, #b8122a 55%, #c48fbd 61%, #b8122a 73%, #b8122a 80%, #c69ac4 87%, #a30f26 95%)",
+    /* El tornasol vuelve fucsia el rojo: aca va apenas. */
+    foilSuave: true,
+    fecha: { nombre: "Navidad", dia: (a) => clave(a, 11, 25) },
+  },
+  {
+    /* Medianoche: casi negro, con un resplandor vino arriba y polvo de
+       estrellas crema, como el cielo del brindis. */
+    id: "medianoche",
+    nombre: "Medianoche",
+    fondo:
+      "radial-gradient(80% 70% at 80% 10%, rgb(125 13 70 / 0.75) 0%, transparent 65%), linear-gradient(160deg, #2a1219 0%, #1d0f14 100%)",
+    extra:
+      "radial-gradient(circle, rgb(250 245 246 / 0.9) 1px, transparent 1.6px) 11px 7px / 67px 59px, radial-gradient(circle, rgb(250 245 246 / 0.55) 0.7px, transparent 1.2px) 29px 23px / 41px 53px, radial-gradient(circle, rgb(247 200 220 / 0.5) 0.6px, transparent 1px) 3px 37px / 97px 43px",
+    og: "linear-gradient(160deg, #5a0d33 0%, #2a1219 45%, #1d0f14 100%)",
+    fecha: { nombre: "Año Nuevo", dia: (a) => clave(a, 0, 1) },
+  },
 ];
 
 /**
@@ -144,13 +185,19 @@ function restarDias(fecha: string, dias: number): string {
 
 /**
  * Si un estilo de fecha se ofrece hoy: desde 14 dias antes hasta el dia
- * mismo. Se mira la fecha de este año: la de San Valentín del año que
- * viene recien entra en la ventana a fin de enero, ya con el año nuevo.
+ * mismo.
  */
 export function enVentana(e: EstiloGiftcard, hoy: string): boolean {
-  if (!e.fecha) return true;
-  const dia = e.fecha.dia(Number(hoy.slice(0, 4)));
-  return hoy >= restarDias(dia, DIAS_ANTES) && hoy <= dia;
+  const fecha = e.fecha;
+  if (!fecha) return true;
+  /* Se mira la fecha de este año y la del que viene: la ventana de Año
+     Nuevo arranca el 18 de diciembre, cuando el 1 de enero que importa
+     ya es el del año siguiente. */
+  const anio = Number(hoy.slice(0, 4));
+  return [anio, anio + 1].some((a) => {
+    const dia = fecha.dia(a);
+    return hoy >= restarDias(dia, DIAS_ANTES) && hoy <= dia;
+  });
 }
 
 /**
