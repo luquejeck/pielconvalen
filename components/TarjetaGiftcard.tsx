@@ -1,4 +1,4 @@
-import { estiloGiftcard } from "@/lib/estilos-giftcard";
+import { estiloGiftcard, rotuloEstilo } from "@/lib/estilos-giftcard";
 import { tamanoRegalo } from "@/lib/giftcards";
 import { IconoRegalo } from "./iconos";
 import { LogoMarca } from "./Logo";
@@ -127,8 +127,14 @@ export default function TarjetaGiftcard({
         <div className="flex items-start justify-between gap-3">
           <div>
             <LogoMarca alto={22} sobreOscuro={!claro} />
-            <p className="mt-2 font-display text-[0.6875rem] leading-none font-semibold tracking-[0.3em] uppercase opacity-70">
-              Giftcard
+            {/* "Giftcard", o "Especial Día de la Madre" en las de fecha:
+                un poco mas juntas las letras, para que entre en un renglon. */}
+            <p
+              className={`mt-2 font-display text-[0.6875rem] leading-tight font-semibold uppercase opacity-70 ${
+                e.fecha ? "tracking-[0.16em]" : "tracking-[0.3em]"
+              }`}
+            >
+              {rotuloEstilo(e)}
             </p>
           </div>
           <IconoRegalo className="h-7 w-7 shrink-0 opacity-85" />

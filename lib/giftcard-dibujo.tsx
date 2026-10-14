@@ -3,7 +3,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import QRCode from "qrcode";
-import { estiloGiftcard } from "./estilos-giftcard";
+import { estiloGiftcard, rotuloEstilo } from "./estilos-giftcard";
 import { fechaConAnio, queRegala, tamanoRegalo, type Giftcard } from "./giftcards";
 import { clienteServidor } from "./supabase-servidor";
 import { hayBaseDeDatos } from "./supabase";
@@ -191,11 +191,11 @@ export function Tarjeta({
               marginTop: 12 * s,
               fontSize: 14 * s,
               fontWeight: 600,
-              letterSpacing: 4.5 * s,
+              letterSpacing: (e.fecha ? 2.4 : 4.5) * s,
               color: conAlfa(tinta, 0.72),
             }}
           >
-            GIFTCARD
+            {rotuloEstilo(e).toUpperCase()}
           </div>
         </div>
         <img src={iconoRegalo(conAlfa(tinta, 0.88))} width={42 * s} height={42 * s} />

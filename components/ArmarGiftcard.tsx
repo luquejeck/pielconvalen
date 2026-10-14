@@ -380,7 +380,7 @@ function SelectorEstilo({
               {e.nombre}
             </span>
             {e.fecha && (
-              <span className="-mt-1 text-xs leading-tight font-semibold text-positivo">{e.fecha.nombre}</span>
+              <span className="-mt-1 text-xs leading-tight font-semibold text-positivo">Especial {e.fecha.nombre}</span>
             )}
           </label>
         ))}

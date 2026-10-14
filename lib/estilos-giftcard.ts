@@ -118,6 +118,14 @@ export const ESTILOS_GIFTCARD: EstiloGiftcard[] = [
   },
 ];
 
+/**
+ * Lo que dice la tarjeta debajo del logo. Las de fecha especial lo dicen
+ * con todas las letras —"Especial Día de la Madre"—: es lo que hace que
+ * se sientan de edicion limitada (Lucas, 14-10-2026).
+ */
+export const rotuloEstilo = (e: EstiloGiftcard) =>
+  e.fecha ? `Especial ${e.fecha.nombre}` : "Giftcard";
+
 /** Cuantos dias antes de la fecha aparece su estilo. */
 export const DIAS_ANTES = 14;
 
