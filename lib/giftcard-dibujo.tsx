@@ -140,7 +140,7 @@ export function Tarjeta({
         fontFamily: "Montserrat",
       }}
     >
-      {/* La marca de agua, el brillo y el filete. */}
+      {/* La marca de agua, el brillo, el foil y el filete. */}
       <img
         src={logo}
         width={300 * s * ANCHO_LOGO}
@@ -156,6 +156,19 @@ export function Tarjeta({
           height: alto,
           backgroundImage:
             "linear-gradient(115deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.09) 45%, rgba(255,255,255,0) 60%)",
+        }}
+      />
+      {/* El foil holografico, quieto: en la web el destello sigue al
+          puntero; aca queda como una foto de la lamina inclinada. */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: ancho,
+          height: alto,
+          backgroundImage:
+            "linear-gradient(115deg, rgba(255,158,199,0) 18%, rgba(255,158,199,0.3) 32%, rgba(199,155,255,0.32) 42%, rgba(143,200,255,0.3) 52%, rgba(143,240,207,0.26) 62%, rgba(255,227,154,0) 76%)",
         }}
       />
       <div

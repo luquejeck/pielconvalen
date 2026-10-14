@@ -83,6 +83,7 @@ export default function TarjetaGiftcard({
   const papel = (
     <span aria-hidden className="absolute inset-0 -z-10 overflow-hidden rounded-suave" style={{ background: e.fondo }}>
       {e.extra && <span className="absolute inset-0" style={{ background: e.extra }} />}
+      <Foil claro={claro} />
       {/* El filete: el marco fino adentro del borde. */}
       <span className="absolute inset-2.5 rounded-[1.05rem] border border-current/20" />
     </span>
@@ -115,6 +116,8 @@ export default function TarjetaGiftcard({
           style={{ background: e.fondo }}
         >
           {e.extra && <span className="absolute inset-0" style={{ background: e.extra }} />}
+          {/* La lamina holografica, debajo del texto (ver globals.css). */}
+          <Foil claro={claro} />
           {/* El monograma, de marca de agua, saliendo por la esquina. */}
           <LogoMarca alto={170} sobreOscuro={!claro} tenue className="absolute -right-10 -bottom-8" />
           {/* El filete: el marco fino adentro del borde. */}
@@ -155,5 +158,15 @@ export default function TarjetaGiftcard({
         </div>
       </div>
     </Tarjeta3D>
+  );
+}
+
+/** El foil holografico: dos capas que se mueven con la inclinacion. */
+function Foil({ claro }: { claro: boolean }) {
+  return (
+    <span className="tarjeta3d-foil" data-claro={claro ? "" : undefined}>
+      <span />
+      <span />
+    </span>
   );
 }
