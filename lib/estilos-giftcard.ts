@@ -119,17 +119,29 @@ export const ESTILOS_GIFTCARD: EstiloGiftcard[] = [
     fecha: { nombre: "Día de la Madre", dia: (a) => tercerDomingo(a, 9) },
   },
   {
-    /* Navidad minimalista, en rojo y verde: rojo plano y una cinta verde
-       con dos filetes crema en el borde izquierdo, como el lomo de un
-       paquete. Va en el margen, asi no toca ningun texto. Sin nieve ni
-       dibujos: la fuerza esta en el color (Lucas, 14-10-2026). */
+    /* Navidad pintada: rojo intenso con pinceladas diagonales en lavanda
+       y rosa, como pintura al agua, y una nevada de puntos blancos de
+       tamaños distintos. Inspirado en las giftcards navideñas de las
+       cafeterias, sin logo ni dibujos (Lucas, 14-10-2026).
+
+       Las pinceladas son franjas en diagonal con los bordes difusos; los
+       copos, tres capas de puntos con baldosas de medidas que no se
+       dividen entre si, para que no se arme una grilla. */
     id: "navidad",
-    nombre: "Rojo y verde",
-    fondo:
-      "linear-gradient(90deg, transparent 0 0.9%, #f3e9e0 0.9% 1.3%, #0f5a3c 1.3% 3.3%, #f3e9e0 3.3% 3.7%, transparent 3.7%), linear-gradient(160deg, #c8102e 0%, #a50d24 100%)",
-    og: "linear-gradient(90deg, #c8102e 0%, #c8102e 0.9%, #f3e9e0 0.9%, #f3e9e0 1.3%, #0f5a3c 1.3%, #0f5a3c 3.3%, #f3e9e0 3.3%, #f3e9e0 3.7%, #c8102e 3.7%, #a50d24 100%)",
-    /* El tornasol vuelve rosado el rojo y turquesa el verde: aca va
-       apenas, para que los dos colores se lean puros. */
+    nombre: "Pinceladas",
+    fondo: [
+      "radial-gradient(circle, rgb(255 255 255 / 0.95) 2.4px, transparent 3.2px) 23px 17px / 151px 127px",
+      "radial-gradient(circle, rgb(255 255 255 / 0.85) 1.5px, transparent 2.2px) 61px 41px / 83px 97px",
+      "radial-gradient(circle, rgb(255 255 255 / 0.7) 1.1px, transparent 1.7px) 7px 59px / 113px 71px",
+      "radial-gradient(circle, rgb(255 236 242 / 0.6) 0.8px, transparent 1.3px) 37px 9px / 47px 79px",
+      "linear-gradient(142deg, transparent 6%, rgb(190 168 224 / 0.6) 12%, rgb(236 160 196 / 0.35) 17%, transparent 24%)",
+      "linear-gradient(158deg, transparent 34%, rgb(140 16 38 / 0.5) 41%, transparent 49%)",
+      "linear-gradient(147deg, transparent 54%, rgb(180 156 214 / 0.55) 60%, rgb(242 172 204 / 0.3) 65%, transparent 72%)",
+      "linear-gradient(165deg, transparent 79%, rgb(206 182 230 / 0.5) 86%, transparent 94%)",
+      "linear-gradient(160deg, #d0182f 0%, #b8122a 55%, #a30f26 100%)",
+    ].join(", "),
+    og: "linear-gradient(150deg, #d0182f 0%, #d0182f 8%, #c98ab8 14%, #d0182f 26%, #b8122a 38%, #8f1028 44%, #b8122a 52%, #b8122a 55%, #c48fbd 61%, #b8122a 73%, #b8122a 80%, #c69ac4 87%, #a30f26 95%)",
+    /* El tornasol vuelve fucsia el rojo: aca va apenas. */
     foilSuave: true,
     fecha: { nombre: "Navidad", dia: (a) => clave(a, 11, 25) },
   },
