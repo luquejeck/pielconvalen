@@ -3,6 +3,7 @@ import Beneficios from "@/components/Beneficios";
 import BotonWhatsApp from "@/components/BotonWhatsApp";
 import ComoTrabajo from "@/components/ComoTrabajo";
 import Consultorio from "@/components/Consultorio";
+import DiaDeLaMadre from "@/components/DiaDeLaMadre";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
@@ -103,6 +104,10 @@ export default async function Home() {
       <Header consultorio={CONSULTORIO} />
       <main>
         <Hero consultorio={CONSULTORIO} />
+
+        {/* De temporada: el regalo del Dia de la Madre, arriba de todo
+            hasta el domingo 18. Se va solo el lunes 19. */}
+        <DiaDeLaMadre productos={productos} />
 
         {/*
           PRIMERO LO QUE SE VENDE, DESPUES LO QUE LO EXPLICA.
