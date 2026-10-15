@@ -65,6 +65,7 @@ const CATEGORIAS = [
   "Cremas",
   "Contorno de ojos",
   "Protector solar",
+  "Kits",
 ];
 
 const usd = (n: number | null | undefined) =>

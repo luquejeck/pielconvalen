@@ -27,7 +27,8 @@ export type Categoria =
   | "Mascarillas"
   | "Cremas"
   | "Contorno de ojos"
-  | "Protector solar";
+  | "Protector solar"
+  | "Kits";
 
 /**
  * El orden en que se recorre el catalogo.
@@ -44,6 +45,11 @@ export type Categoria =
  * publicarse el Glow Rice Milk y el Peach 77%. Mascarillas espera a las
  * cinco JM Solution, que estan cargadas y les falta la foto.
  *
+ * "KITS" VA AL FINAL (15-10-2026). Entro con el Madagascar Centella
+ * Travel Kit de SKIN1004, para el Dia de la Madre: trae la rutina
+ * entera en tamaño mini y no es ningun paso en particular. Va despues
+ * de proteger porque es "todo lo anterior, junto".
+ *
  * `porCategoria()` saltea las vacias, asi que una categoria sin
  * productos publicados no dibuja ni pastilla ni seccion.
  */
@@ -55,6 +61,7 @@ export const CATEGORIAS: Categoria[] = [
   "Cremas",
   "Contorno de ojos",
   "Protector solar",
+  "Kits",
 ];
 
 /**

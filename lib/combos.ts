@@ -172,6 +172,7 @@ export const PASO: Record<string, string> = {
   Cremas: "Hidratar",
   "Contorno de ojos": "Contorno",
   "Protector solar": "Proteger",
+  Kits: "Rutina completa",
 };
 
 /** Los pasos del combo, en el orden en que Valen los cargo. */
