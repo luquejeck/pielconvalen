@@ -871,3 +871,104 @@
 .segmentado button:active {
   transform: scale(0.97);
 }
+
+/* ------------------------------------------------------------------
+   La vidriera de la tarjeta de combo (components/VitrinaCombo.tsx).
+
+   Cada foto tiene dos posiciones: cerrada (--cerrada) y abierta en
+   abanico (--abierta). El estado elige cual va; el numero de productos
+   elige donde queda cada una. Asi el caso de cuatro se acomoda aparte
+   sin pisar al de tres. El final del movimiento pasa un poco de largo y
+   vuelve, igual que el giro de la giftcard.
+
+   `mix-blend-mode: multiply` funde el blanco de las fotos de catalogo
+   con el crema de la baldosa: sin eso se verian cuadrados blancos.
+   ------------------------------------------------------------------ */
+.vitrina-combo img {
+  position: absolute;
+  bottom: 0.875rem;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 0.75rem;
+  mix-blend-mode: multiply;
+  transform: var(--cerrada);
+  transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.vitrina-combo[data-abierta] img {
+  transform: var(--abierta);
+}
+
+/* TRES PRODUCTOS: el del medio adelante y mas grande, los otros dos a
+   los costados y apenas girados. */
+.vitrina-combo img:nth-child(1) {
+  z-index: 3;
+  left: 27%;
+  width: 46%;
+  --cerrada: none;
+  --abierta: translateY(-6px) scale(1.04);
+}
+.vitrina-combo img:nth-child(2),
+.vitrina-combo img:nth-child(3) {
+  z-index: 2;
+  left: 30%;
+  width: 40%;
+}
+.vitrina-combo img:nth-child(2) {
+  --cerrada: translateX(-40%) rotate(-8deg) scale(0.86);
+  --abierta: translateX(-62%) rotate(-12deg) scale(0.86);
+}
+.vitrina-combo img:nth-child(3) {
+  --cerrada: translateX(40%) rotate(8deg) scale(0.86);
+  --abierta: translateX(62%) rotate(12deg) scale(0.86);
+}
+
+/* CUATRO PRODUCTOS (la Rutina full): los cuatro en fila, en el orden
+   de la rutina, todos del mismo tamaño. Los dos del medio van adelante;
+   los de las puntas, un poco mas chicos, girados y atras. Antes el
+   cuarto quedaba chiquito detras de los otros y casi no se veia. */
+.vitrina-combo[data-cuantos="4"] img {
+  width: 46%;
+}
+.vitrina-combo[data-cuantos="4"] img:nth-child(1) {
+  z-index: 1;
+  left: -5%;
+  --cerrada: translateX(8%) rotate(-7deg) scale(0.9);
+  --abierta: translateY(-4px) rotate(-11deg) scale(0.9);
+}
+.vitrina-combo[data-cuantos="4"] img:nth-child(2) {
+  z-index: 3;
+  left: 16%;
+  --cerrada: none;
+  --abierta: translate(-6%, -8px) scale(1.04);
+}
+.vitrina-combo[data-cuantos="4"] img:nth-child(3) {
+  z-index: 3;
+  left: 38%;
+  --cerrada: none;
+  --abierta: translate(6%, -8px) scale(1.04);
+}
+.vitrina-combo[data-cuantos="4"] img:nth-child(4) {
+  z-index: 1;
+  left: 59%;
+  --cerrada: translateX(-8%) rotate(7deg) scale(0.9);
+  --abierta: translateY(-4px) rotate(11deg) scale(0.9);
+}
+
+/* En escritorio entran tres combos a la vez y los tres estarian
+   abiertos: ahi el abanico se abre al pasar el mouse, para que el
+   movimiento diga cual esta mirando. */
+@media (hover: hover) and (min-width: 1024px) {
+  .vitrina-combo[data-abierta] img {
+    transform: var(--cerrada);
+  }
+  article:hover > .vitrina-combo img {
+    transform: var(--abierta);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vitrina-combo img {
+    transition: none;
+  }
+}
