@@ -972,31 +972,3 @@
     transition: none;
   }
 }
-
-/* ------------------------------------------------------------------
-   El Dia de la Madre en la portada (components/DiaDeLaMadre.tsx).
-
-   El kit flota como la giftcard de la portada (mismo keyframe), y un
-   brillo cruza la vidriera una sola vez al cargar.
-   ------------------------------------------------------------------ */
-.madre-flota {
-  animation: giftcard-flotar 3.2s ease-in-out infinite alternate;
-}
-
-.madre-brillo {
-  background: linear-gradient(
-    105deg,
-    transparent 35%,
-    rgb(255 255 255 / 0.16) 50%,
-    transparent 65%
-  );
-  transform: translateX(-120%);
-  animation: giftcard-brillo 1.4s ease-in-out 0.4s both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .madre-flota,
-  .madre-brillo {
-    animation: none;
-  }
-}
