@@ -1,44 +1,38 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { Combo } from "@/lib/combos";
 import { fotoDe, slugDe } from "@/lib/productos";
 import { formatearPrecio } from "@/lib/tratamientos";
 import ControlCarrito from "./ControlCarrito";
+import VitrinaCombo from "./VitrinaCombo";
 
 /**
- * Un combo, en una tarjeta que entra en una pantalla de celular.
+ * Un combo, como una vidriera: los productos juntos arriba, grandes, y
+ * debajo que es, cuanto sale y el boton.
  *
- * REEMPLAZA AL BLOQUE "COMPRADOS JUNTOS" A LO AMAZON. Cada combo ocupaba
- * entre 800 y 950 px en el telefono —casi una pantalla y cuarto—, y con
- * cuatro combos eran 3400 px de combos antes del primer producto de
- * /productos. Ahora cada uno mide lo que una pantalla y van en una fila
- * que se desliza (components/Carrusel.tsx).
+ * LA "VITRINA" (15-10-2026). Lucas probo cinco formas de mostrar los
+ * combos —vitrina, elegir por tipo de piel, paso a paso, la cuenta de la
+ * suma y una cajita de regalo— y eligio esta. Lo que cambia respecto de
+ * la version de renglones:
  *
- * SE FUERON LAS CASILLAS PARA DESTILDAR UN PRODUCTO. Eran de 20 px
- * —chicas para un dedo de sesenta años— y destildar uno hacia perder el
- * descuento: lo que quedaba eran productos sueltos a precio de lista, que
- * es justo lo que ya ofrece la grilla de abajo. En la tarjeta queda una
- * sola decision: llevarse el combo o no.
+ *   - LAS FOTOS PASAN A SER LO MAS GRANDE. Antes eran miniaturas de
+ *     64 px al costado de cada nombre; ahora los productos se ven juntos,
+ *     como lo que son: un conjunto. Cuando la tarjeta queda a la vista
+ *     se abren en abanico (components/VitrinaCombo.tsx).
+ *   - EL DESCUENTO SE VE ANTES QUE EL TEXTO: un sello vino con el
+ *     porcentaje en la esquina de las fotos.
+ *   - EL AHORRO VA EN UNA PASTILLA VERDE, debajo del precio. Sigue
+ *     diciendo pesos y no porcentaje, que es lo que pesa.
  *
- * UN PRODUCTO POR RENGLON (14-10-2026). La version anterior ponia las
- * fotos en fila de a tres con marca, nombre y precio debajo de cada una,
- * y dentro del carrusel —que deja la tarjeta en unos 330 px— cada
- * columna quedaba de 90 px: nombres en tres renglones y todo apretado.
- * En renglones cada cosa tiene su lugar: foto a la izquierda, marca y
- * nombre en el medio, precio suelto a la derecha.
+ * Lo que se resigno: el precio suelto de cada producto. Los nombres
+ * siguen escritos, cada uno lleva a su ficha, y la suma tachada al lado
+ * del precio alcanza para ver que conviene.
  *
- * LO QUE LLEVA, de arriba a abajo:
- *   1. Que es: el nombre.
- *   2. Que trae: los productos, cada uno con SU precio suelto. Ver los
- *      precios es lo que hace creible el ahorro: la clienta puede sumar.
- *      Cada renglon lleva a la ficha del producto.
- *   3. Cuanto sale: el precio grande, la suma tachada, y debajo lo que
- *      se ahorra en pesos, que pesa mas que un porcentaje. El verde del
- *      ahorro es el unico color ademas del vino del boton.
- *   4. El boton, al pie, ancho completo.
+ * LO QUE LLEVA, de arriba a abajo: las fotos con el sello, cuantos
+ * productos trae, el nombre, los productos por nombre, el precio con la
+ * suma tachada, el ahorro y el boton al pie.
  *
- * Es un componente de servidor: solo el boton necesita el navegador, y
- * ese es el mismo control de las fichas.
+ * Es un componente de servidor: solo las fotos (el abanico) y el boton
+ * necesitan el navegador.
  */
 export default function TarjetaCombo({ combo: c }: { combo: Combo }) {
   const porcentaje = Math.round(c.descuento * 100);
@@ -47,59 +41,43 @@ export default function TarjetaCombo({ combo: c }: { combo: Combo }) {
     <li className="flex">
       <article
         aria-labelledby={`combo-${c.slug}`}
-        className="flex w-full flex-col rounded-suave bg-papel p-6 shadow-suave"
+        className="group flex w-full flex-col overflow-hidden rounded-suave bg-papel shadow-suave"
       >
-        <p className="font-display text-xs font-semibold tracking-[0.14em] text-vino uppercase">Combo</p>
-        <h3
-          id={`combo-${c.slug}`}
-          className="mt-1.5 font-display text-2xl leading-tight font-semibold text-balance text-tinta"
-        >
-          {c.nombre}
-        </h3>
+        <VitrinaCombo fotos={c.productos.map(fotoDe)} porcentaje={porcentaje} />
 
-        {/*
-          Las fotos van sin texto alternativo porque el nombre esta
-          escrito al lado: con los dos, el lector de pantalla diria cada
-          producto dos veces. `mix-blend-multiply` funde el blanco de las
-          fotos de catalogo con la baldosa.
-        */}
-        <ul className="mt-6 space-y-4">
-          {c.productos.map((p) => (
-            <li key={p.id}>
-              <Link
-                href={`/productos/${slugDe(p)}`}
-                className="group flex items-center gap-4 rounded-chico focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-vino"
-              >
-                <span className="block size-16 shrink-0 overflow-hidden rounded-chico bg-crema">
-                  <Image
-                    src={fotoDe(p)}
-                    alt=""
-                    width={160}
-                    height={160}
-                    className="size-full object-cover mix-blend-multiply transition-transform duration-300 motion-safe:group-hover:scale-105"
-                  />
-                </span>
-                <span className="min-w-0 flex-1 leading-snug">
-                  <span className="block text-[0.8125rem] text-tinta-suave">{p.marca}</span>
-                  <span className="block text-[0.9375rem] text-tinta group-hover:underline group-hover:decoration-borde group-hover:underline-offset-2">
-                    {p.nombre}
-                  </span>
-                </span>
-                <span className="shrink-0 text-[0.9375rem] text-tinta-suave tabular-nums">
-                  <span className="sr-only">Suelto: </span>
-                  {formatearPrecio(p.precio)}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-1 flex-col p-5 pt-4">
+          <p className="self-start rounded-full bg-vino-suave px-3 py-1 font-display text-xs font-semibold tracking-[0.04em] text-vino">
+            Combo · {c.productos.length} productos
+          </p>
+          <h3
+            id={`combo-${c.slug}`}
+            className="mt-2.5 font-display text-xl leading-tight font-semibold text-balance text-tinta"
+          >
+            {c.nombre}
+          </h3>
 
-        {/* `mt-auto` baja el precio al pie: en la fila de escritorio los
-            combos miden distinto —uno de cuatro, otros de tres— y sin
-            esto los precios y los botones quedaban escalonados. */}
-        <div className="mt-auto pt-6">
-          <div className="border-t border-borde pt-5">
-            <p className="flex flex-wrap items-baseline justify-between gap-x-3">
+          {/* Los productos por nombre, en una linea corrida. Cada uno
+              lleva a su ficha, para quien quiera saber mas antes de
+              llevarse el combo. */}
+          <ul className="mt-2 text-sm leading-snug text-tinta-suave">
+            {c.productos.map((p, i) => (
+              <li key={p.id} className="inline">
+                {i > 0 && <span aria-hidden> · </span>}
+                <Link
+                  href={`/productos/${slugDe(p)}`}
+                  className="underline-offset-2 hover:text-tinta hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vino"
+                >
+                  {p.nombre}
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* `mt-auto` baja el precio al pie: en la fila de escritorio los
+              combos miden distinto —uno de cuatro, otros de tres— y sin
+              esto los precios y los botones quedaban escalonados. */}
+          <div className="mt-auto pt-5">
+            <p className="flex flex-wrap items-baseline gap-x-3">
               <span className="font-display text-3xl font-bold text-tinta tabular-nums">
                 <span className="sr-only">Precio del combo: </span>
                 {formatearPrecio(c.precio)}
@@ -109,12 +87,12 @@ export default function TarjetaCombo({ combo: c }: { combo: Combo }) {
                 {formatearPrecio(c.suma)}
               </span>
             </p>
-            <p className="mt-1 text-[0.9375rem] font-semibold text-positivo">
-              Ahorrás {formatearPrecio(c.ahorro)} · {porcentaje}% menos
+            <p className="mt-2 inline-flex rounded-full bg-positivo-suave px-3 py-1 text-sm font-bold text-positivo tabular-nums">
+              Ahorrás {formatearPrecio(c.ahorro)}
             </p>
-          </div>
 
-          <ControlCarrito id={c.id} nombre={`Combo ${c.nombre}`} texto="Agregar combo al pedido" grande />
+            <ControlCarrito id={c.id} nombre={`Combo ${c.nombre}`} texto="Agregar combo al pedido" grande />
+          </div>
         </div>
       </article>
     </li>
