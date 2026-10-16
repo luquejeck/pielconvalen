@@ -38,9 +38,12 @@ export default function BotonCarrito() {
     >
       <span className="relative">
         <IconoBolsa className="h-6 w-6" />
+        {/* La `key` vuelve a montar la pastilla con cada unidad, asi el
+            numero late cada vez que cambia y se nota que sumo. */}
         <span
+          key={unidades}
           aria-hidden
-          className="absolute -top-2 -right-2.5 flex min-w-5 items-center justify-center rounded-full bg-vino px-1 font-display text-xs font-semibold text-white tabular-nums"
+          className="contador-late absolute -top-2 -right-2.5 flex min-w-5 items-center justify-center rounded-full bg-vino px-1 font-display text-xs font-semibold text-white tabular-nums"
         >
           {unidades}
         </span>

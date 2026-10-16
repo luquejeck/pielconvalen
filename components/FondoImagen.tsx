@@ -33,6 +33,8 @@ type Props = {
    * hace que se lean como parte de la misma pagina.
    */
   filtro?: string;
+  /** Un zoom lento y continuo de la foto, para que la pantalla respire. */
+  movimiento?: boolean;
 };
 
 export default function FondoImagen({
@@ -40,6 +42,7 @@ export default function FondoImagen({
   intensidad = 30,
   velo = "bg-linear-to-b from-crema/80 via-crema/88 to-crema",
   filtro,
+  movimiento = false,
 }: Props) {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
@@ -52,7 +55,7 @@ export default function FondoImagen({
         /* Es decoracion: no debe competir con el titulo por el ancho de
            banda ni contar como la imagen principal de la pantalla. */
         loading="lazy"
-        className="scale-105 object-cover blur-xs"
+        className={`scale-105 object-cover blur-xs ${movimiento ? "fondo-vivo" : ""}`}
         style={{ opacity: intensidad / 100, filter: filtro }}
       />
       <div className={`absolute inset-0 ${velo}`} />

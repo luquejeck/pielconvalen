@@ -34,7 +34,7 @@ export default function Header({
 
         {/* El pedido a la izquierda del turno: el turno sigue siendo la
             accion principal de la web y no la pierde de lugar. */}
-        <div className="flex shrink-0 items-center gap-1">
+        <div data-destino-carrito className="flex shrink-0 items-center gap-1">
           <BotonCarrito />
 
           <a

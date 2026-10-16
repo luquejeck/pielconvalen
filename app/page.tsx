@@ -12,6 +12,8 @@ import Marcas from "@/components/Marcas";
 import Productos from "@/components/Productos";
 import { ReservaProvider } from "@/components/ReservaContext";
 import Reservas from "@/components/Reservas";
+import Revelador from "@/components/Revelador";
+import TestDePiel from "@/components/TestDePiel";
 import Tratamientos from "@/components/Tratamientos";
 import Videos from "@/components/Videos";
 import { obtenerProductos } from "@/lib/catalogo-productos";
@@ -131,6 +133,9 @@ export default async function Home() {
         */}
         <Consultorio consultorio={CONSULTORIO} />
         <Tratamientos />
+        {/* Para quien no sabe que pedir: el test la deja justo arriba
+            del calendario, con una sugerencia en la mano. */}
+        <TestDePiel productos={productos} />
         <Reservas />
         <BandaGiftcard />
         <Productos consultorio={CONSULTORIO} productos={productos} />
@@ -145,6 +150,7 @@ export default async function Home() {
       </main>
       <Footer consultorio={CONSULTORIO} />
       <BotonWhatsApp />
+      <Revelador />
     </ReservaProvider>
   );
 }

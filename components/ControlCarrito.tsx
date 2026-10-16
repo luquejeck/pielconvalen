@@ -1,6 +1,7 @@
 "use client";
 
 import { useCarrito } from "./CarritoContext";
+import { volarAlCarrito } from "./volarAlCarrito";
 
 /**
  * El control de cada ficha: "Agregar" cuando no esta en el pedido, y
@@ -63,7 +64,8 @@ export default function ControlCarrito({
     return (
       <button
         type="button"
-        onClick={() => {
+        onClick={(e) => {
+          volarAlCarrito(e.currentTarget);
           agregar(id);
           avisar(nombre);
         }}
