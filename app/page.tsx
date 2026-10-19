@@ -8,7 +8,6 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Preguntas from "@/components/Preguntas";
-import Marcas from "@/components/Marcas";
 import Productos from "@/components/Productos";
 import { ReservaProvider } from "@/components/ReservaContext";
 import Reservas from "@/components/Reservas";
@@ -182,7 +181,8 @@ export default async function Home() {
              horario sin haber mostrado un numero es pedir a ciegas.
           3. El turno          — con el precio ya visto.
              Y debajo, un renglon a las giftcards: lo mismo, para regalar.
-          4. Productos y marcas — lo que se lleva a casa.
+          4. Productos         — lo que se lleva a casa. Las marcas se
+             filtran en /productos; en la portada no sumaban.
           5. Recien ahi: como se trabaja, que va a notar y el consultorio
              por dentro. Es material para quien todavia esta decidiendo, y
              no tiene por que estar arriba del boton.
@@ -201,7 +201,6 @@ export default async function Home() {
         <Reservas />
         <BandaGiftcard />
         <Productos consultorio={CONSULTORIO} productos={productos} />
-        <Marcas productos={productos} />
         <ComoTrabajo agenda={agenda} />
         <Beneficios consultorio={CONSULTORIO} />
         <Videos subidos={videos} />

@@ -106,7 +106,7 @@ export default function Videos({ subidos }: { subidos: VideoGaleria[] }) {
   return (
     <section
       id="videos"
-      className="border-t border-borde bg-crema-oscuro seccion"
+      className="border-t border-borde bg-crema seccion"
     >
       <div className="contenedor">
         <TituloSeccion
