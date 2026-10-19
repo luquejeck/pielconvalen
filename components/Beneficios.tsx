@@ -32,25 +32,25 @@ export default function Beneficios({
         <TituloSeccion titulo="Qué vas a notar" />
 
         {/*
-          Tres renglones, no tres tarjetas.
+          EN CELULAR, TRES RENGLONES; DE 640 PARA ARRIBA, TRES COLUMNAS.
 
-          Eran tres tarjetas apiladas con un circulo de 56px cada una,
-          media pantalla de celular para decir tres frases de seis
-          palabras. La promesa no necesita tanto lugar: se lee de un
-          vistazo o no se lee.
-
-          El icono baja a 44 y el titulo entra en el mismo renglon que su
-          explicacion, separado por el punto. Asi cada beneficio ocupa una
-          linea y los tres se leen como una lista, que es lo que son.
+          En el telefono sigue siendo la lista compacta: tres frases de
+          seis palabras no merecen media pantalla. En pantalla ancha esos
+          mismos renglones dejaban dos tercios de la tarjeta vacios a la
+          derecha; ahi cada beneficio toma su columna, con el icono arriba,
+          y la seccion queda mas baja y mas pareja.
         */}
-        <div className="tarjeta mx-auto mt-6 max-w-2xl divide-y divide-borde px-5 sm:px-7 xl:max-w-3xl">
+        <div className="tarjeta mx-auto mt-6 grid max-w-2xl divide-y divide-borde px-5 sm:max-w-4xl sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:px-0 sm:py-2">
           {BENEFICIOS.map(({ Icono, titulo, texto }) => (
-            <div key={titulo} className="flex items-center gap-4 py-4">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vino-suave text-vino">
-                <Icono className="h-6 w-6" />
+            <div
+              key={titulo}
+              className="flex items-center gap-4 py-4 sm:flex-col sm:items-center sm:gap-3 sm:px-6 sm:py-6 sm:text-center"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vino-suave text-vino sm:h-14 sm:w-14">
+                <Icono className="h-6 w-6 sm:h-7 sm:w-7" />
               </span>
               <p className="text-lg leading-snug text-tinta-suave">
-                <span className="font-semibold text-tinta">{titulo}.</span>{" "}
+                <span className="font-semibold text-tinta sm:block">{titulo}.</span>{" "}
                 {texto}
               </p>
             </div>

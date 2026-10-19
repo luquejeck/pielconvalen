@@ -58,7 +58,41 @@ export default function Footer({
   return (
     <footer id="contacto" className="bg-tinta text-crema">
       <div className="contenedor seccion xl:py-16">
-        <div className="grid gap-8 md:grid-cols-2 md:items-center md:gap-12">
+        {/*
+          EL CIERRE DE LA PAGINA.
+
+          Quien llega hasta aca leyo todo y no reservo: es el momento de
+          volver a ofrecerle el turno, y el test para la que todavia duda.
+          Antes el pie arrancaba directo con los datos de contacto y la
+          pagina se terminaba sin pedir nada.
+        */}
+        <div className="mb-12 flex flex-col items-start gap-6 border-b border-crema/15 pb-12 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="rotulo-seccion text-crema/60">{CONSULTORIO.nombre}</p>
+            <p className="mt-3 max-w-xl font-display text-4xl leading-tight font-light text-crema sm:text-5xl">
+              Tu piel, en buenas manos.
+            </p>
+          </div>
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+            <a
+              href="/#reservar"
+              className="inline-flex min-h-14 items-center justify-center rounded-full bg-crema px-8 font-display text-lg font-semibold text-vino transition-colors hover:bg-white"
+            >
+              Reservar turno
+            </a>
+            <a
+              href="/#test-piel"
+              className="inline-flex min-h-14 items-center justify-center rounded-full border border-crema/40 px-8 font-display text-lg font-semibold text-crema transition-colors hover:border-crema hover:bg-crema/10"
+            >
+              Hacer el test de piel
+            </a>
+          </div>
+        </div>
+
+        {/* La marca arriba, a la altura del primer contacto: centrada
+            contra la columna de cuatro botones quedaba flotando en el
+            medio, con un hueco arriba y otro abajo. */}
+        <div className="grid gap-8 md:grid-cols-2 md:items-start md:gap-12">
           {/* Identidad */}
           <div>
             <div className="flex items-center gap-4">
@@ -85,6 +119,15 @@ export default function Footer({
             <p className="mt-6 max-w-xs text-xl leading-snug text-crema/85">
               {CONSULTORIO.eslogan}
             </p>
+
+            {/* Como venir, al lado de los contactos: debajo del eslogan
+                llenaba el hueco que dejaba la columna, y queda a la vista
+                junto a "Cómo llegar". */}
+            {CONSULTORIO.comoVenir && (
+              <p className="mt-6 max-w-md text-lg leading-snug text-crema/75">
+                {CONSULTORIO.comoVenir}
+              </p>
+            )}
           </div>
 
           {/* Contacto: cada item es una accion, no un dato suelto */}
@@ -125,21 +168,8 @@ export default function Footer({
           de Google adentro de la nuestra. Aca abajo casi nadie llega, y
           asi el que no llega no la paga.
         */}
-        {/*
-          Como venir, al lado del mapa.
 
-          Estaba metido adentro del paso 2 de la reserva, alargando el
-          momento de confirmar. Es informacion que se usa el dia del
-          turno, saliendo de casa, y ahi lo que se busca es el mapa: los
-          dos juntos y en el pie, que es donde ya vivia la direccion.
-        */}
-        {CONSULTORIO.comoVenir && (
-          <p className="mt-10 max-w-2xl text-lg leading-snug text-crema/75">
-            {CONSULTORIO.comoVenir}
-          </p>
-        )}
-
-        <div className="mt-4 overflow-hidden rounded-suave border border-crema/15">
+        <div className="mt-10 overflow-hidden rounded-suave border border-crema/15">
           <iframe
             src={`https://www.google.com/maps?q=${encodeURIComponent(
               CONSULTORIO.direccion

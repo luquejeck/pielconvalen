@@ -166,12 +166,20 @@ function TarjetaTratamiento({
 }) {
   return (
     <li className="flex">
-      <article className="group relative flex w-full flex-col overflow-hidden rounded-suave border border-borde bg-papel transition-shadow duration-200 hover:shadow-suave">
+      <article className="group relative flex w-full flex-col overflow-hidden rounded-suave border border-borde bg-papel transition-[box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-suave">
         {/* El detalle de color: una linea vino arriba. La tarjeta es
             blanca entera; el recorte redondeado de la tarjeta le da la
             curva en las puntas. */}
         <span aria-hidden className="block h-1 bg-vino" />
         <header className="border-b border-borde px-5 pt-4 pb-4">
+          {/* El que Valen marca como destacado en el panel lo dice arriba
+              del nombre: entre cinco precios parecidos, una recomendacion
+              ayuda a decidir. */}
+          {t.destacado && (
+            <p className="mb-1.5 inline-flex rounded-full bg-vino px-2.5 py-0.5 font-display text-xs font-semibold tracking-wide text-white uppercase">
+              Recomendado
+            </p>
+          )}
           <h3 className="font-display text-lg leading-snug font-semibold text-tinta">
             {t.nombre}
           </h3>

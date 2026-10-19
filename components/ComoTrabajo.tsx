@@ -1,5 +1,4 @@
 import { pasosComoTrabajo, type Agenda } from "@/lib/config";
-import TituloSeccion from "./TituloSeccion";
 
 /**
  * "Cómo trabajo": tres pasos, en primera persona.
@@ -24,48 +23,60 @@ export default function ComoTrabajo({ agenda }: { agenda: Agenda }) {
   return (
     <section
       id="como-trabajo"
-      className="border-t border-borde bg-crema-oscuro seccion"
+      /*
+        LA UNICA SECCION OSCURA DEL MEDIO DE LA PAGINA (19-10-2026).
+
+        Hasta aca la portada eran once bloques crema y rosa alternados, y
+        a la cuarta seccion la vista ya no distinguia una de otra. Esta es
+        la que habla en primera persona, la que mas se parece a Valen, y
+        en tinta —el mismo fondo del pie— se lee como una pausa.
+      */
+      className="seccion bg-tinta text-crema"
     >
       <div className="contenedor">
-        {/* Mismo encabezado que el resto de las secciones. Antes esto
-            era una etiqueta chica adentro de una tarjeta, y de todas las
-            secciones de la pagina era la unica que no se anunciaba. */}
-        <TituloSeccion titulo="Cómo trabajo" />
+        <header className="mx-auto max-w-2xl text-center">
+          <h2 className="text-4xl text-crema sm:text-5xl">Cómo trabajo</h2>
+        </header>
 
         {/*
-          LA MISMA FORMA QUE "QUE VAS A NOTAR".
+          TRES PASOS UNIDOS POR UNA LINEA.
 
-          Las dos secciones dicen lo mismo estructuralmente: tres cosas
-          cortas, cada una con un rotulo y su explicacion. Que una fuera
-          tres columnas con numeros al costado y la otra una tarjeta de
-          renglones divididos hacia que se leyeran como partes de dos
-          sitios distintos.
+          Antes era una tarjeta blanca con renglones, igual a "Que vas a
+          notar", y las dos secciones se leian como la misma. Son pasos en
+          orden, asi que se dibujan como un recorrido: en celular, la
+          linea baja por la izquierda; de 768 para arriba, cruza de lado a
+          lado y cada paso cuelga de su numero.
 
-          Ahora comparten todo: la tarjeta, el circulo de 44px, la linea
-          que separa cada fila y el titulo en negrita seguido de su texto
-          en el mismo renglon. Lo unico que cambia es lo que va adentro
-          del circulo —ahi un icono, aca el numero del paso— porque estos
-          tres SI tienen orden.
-
-          Va en <ol> y no en <div> justo por eso: son pasos, y para quien
-          escucha la pagina eso se anuncia solo.
+          Va en <ol>: son pasos, y para quien escucha la pagina eso se
+          anuncia solo.
         */}
-        <ol className="tarjeta mx-auto mt-6 max-w-2xl divide-y divide-borde px-5 sm:px-7 xl:max-w-3xl">
+        <ol className="relative mx-auto mt-10 grid max-w-2xl gap-8 md:max-w-none md:grid-cols-3 md:gap-10">
+          <span
+            aria-hidden
+            className="absolute top-2 bottom-2 left-[1.375rem] w-px bg-crema/20 md:top-[1.375rem] md:right-[16%] md:bottom-auto md:left-[16%] md:h-px md:w-auto"
+          />
           {pasos.map(({ titulo, texto }, i) => (
-            <li key={i} className="flex items-center gap-4 py-4">
+            <li
+              key={i}
+              className="relative flex gap-5 md:flex-col md:items-center md:gap-4 md:text-center"
+            >
               <span
                 aria-hidden
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vino-suave text-lg font-semibold tabular-nums text-vino"
+                className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-crema font-display text-lg font-semibold text-vino tabular-nums ring-8 ring-tinta"
               >
                 {String(i + 1).padStart(2, "0")}
               </span>
 
-              <p className="text-lg leading-snug text-tinta-suave">
+              <div className="min-w-0 pt-1.5 md:pt-0">
                 {titulo && (
-                  <span className="font-semibold text-tinta">{titulo}.</span>
-                )}{" "}
-                {texto}
-              </p>
+                  <h3 className="font-display text-xl font-semibold text-crema">
+                    {titulo}
+                  </h3>
+                )}
+                <p className="mt-1 text-lg leading-snug text-crema/75 md:mx-auto md:max-w-xs">
+                  {texto}
+                </p>
+              </div>
             </li>
           ))}
         </ol>

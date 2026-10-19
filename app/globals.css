@@ -1093,3 +1093,30 @@ html[data-revelando] [data-revelar][data-visible=""] {
     animation: none;
   }
 }
+
+/* Las preguntas frecuentes se abren deslizando, no de golpe. Donde el
+   navegador no sabe animar <details> (Safari viejo, Firefox), se abren
+   como siempre: es una mejora, no una condicion. */
+@supports (interpolate-size: allow-keywords) {
+  :root {
+    interpolate-size: allow-keywords;
+  }
+
+  .pregunta::details-content {
+    height: 0;
+    overflow: clip;
+    transition:
+      height 0.35s ease,
+      content-visibility 0.35s allow-discrete;
+  }
+
+  .pregunta[open]::details-content {
+    height: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pregunta::details-content {
+    transition: none;
+  }
+}
