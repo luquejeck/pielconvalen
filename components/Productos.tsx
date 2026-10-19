@@ -112,7 +112,7 @@ export default async function Productos({
         */}
         {combos.length > 0 && (
           <div className="mt-14">
-            <TituloTienda titulo="Combos" />
+            <TituloTienda titulo="Combos" sub />
             <div className="mt-6">
               <Carrusel etiqueta="Combos" tipo="combos">
                 {combos.map((c) => (

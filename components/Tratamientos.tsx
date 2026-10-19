@@ -166,7 +166,7 @@ function TarjetaTratamiento({
 }) {
   return (
     <li className="flex">
-      <article className="group relative flex w-full flex-col overflow-hidden rounded-suave border border-borde bg-papel transition-[box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-suave">
+      <article className="group relative flex w-full flex-col overflow-hidden rounded-suave border border-borde bg-papel transition-shadow duration-300 hover:shadow-suave">
         {/* El detalle de color: una linea vino arriba. La tarjeta es
             blanca entera; el recorte redondeado de la tarjeta le da la
             curva en las puntas. */}

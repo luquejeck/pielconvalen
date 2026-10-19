@@ -1,43 +1,45 @@
 import Link from "next/link";
 
 /**
- * El encabezado de las secciones de tienda: una linea a cada lado del
- * titulo, y debajo el link a "ver todo".
+ * El encabezado de las secciones de tienda, con el mismo estilo que el
+ * resto de la portada.
  *
- * Es otro componente y no TituloSeccion porque dicen cosas distintas.
- * TituloSeccion es editorial —titulo grande y una bajada que explica— y
- * lo usan las secciones donde hay algo que entender. Este es un rotulo
- * de estante: corto, en versalitas, centrado entre dos reglas, y lo que
- * lleva debajo no es una explicacion sino una puerta.
+ * Fue un rotulo de estante: versalitas centradas entre dos reglas. Al
+ * lado de los titulos grandes y livianos de las demas secciones se leia
+ * como otro sitio pegado en el medio (19-10-2026). Ahora es el mismo
+ * titulo de TituloSeccion, con dos cosas que solo tiene la tienda: una
+ * bajada que puede llevar un icono y el link a "ver todo" debajo.
  *
- * Las reglas se estiran solas con `flex-1`, asi que el titulo queda
- * centrado sin importar cuanto mida y las dos lineas siempre miden lo
- * mismo. Van con `aria-hidden` porque no dicen nada: son un adorno, y un
- * lector de pantalla que las anuncie solo estorba.
+ * `sub` es para un estante adentro de una seccion (los combos debajo de
+ * los productos): mismo trazo, un paso mas chico, y en h3.
  */
 export default function TituloTienda({
   titulo,
   bajada,
   verTodo,
+  sub = false,
 }: {
   titulo: string;
   /** Una linea corta debajo del titulo, antes del link. */
   bajada?: React.ReactNode;
   /** El link de abajo. Sin esto, el titulo va solo. */
   verTodo?: { href: string; texto: string };
+  sub?: boolean;
 }) {
+  const Titulo = sub ? "h3" : "h2";
+
   return (
-    <header className="text-center">
-      <div className="flex items-center gap-4 sm:gap-6">
-        <span aria-hidden className="h-px flex-1 bg-tinta/25" />
-        <h2 className="font-display text-xl font-semibold tracking-[0.1em] text-tinta uppercase sm:text-2xl">
-          {titulo}
-        </h2>
-        <span aria-hidden className="h-px flex-1 bg-tinta/25" />
-      </div>
+    <header className="mx-auto max-w-2xl text-center">
+      <Titulo
+        className={`font-display font-[350] leading-none tracking-[-0.015em] text-tinta ${
+          sub ? "text-3xl sm:text-4xl" : "text-4xl sm:text-5xl"
+        }`}
+      >
+        {titulo}
+      </Titulo>
 
       {bajada && (
-        <p className="mt-3 flex items-center justify-center gap-2 text-base text-tinta-suave">
+        <p className="mt-2 flex items-center justify-center gap-2 text-xl leading-snug text-tinta-suave">
           {bajada}
         </p>
       )}
@@ -45,7 +47,7 @@ export default function TituloTienda({
       {verTodo && (
         <Link
           href={verTodo.href}
-          className="mt-2 inline-block text-base text-tinta-suave underline decoration-tinta/30 underline-offset-[6px] transition-colors hover:text-vino hover:decoration-vino"
+          className="mt-2 inline-block text-lg text-tinta-suave underline decoration-tinta/30 underline-offset-[6px] transition-colors hover:text-vino hover:decoration-vino"
         >
           {verTodo.texto}
         </Link>

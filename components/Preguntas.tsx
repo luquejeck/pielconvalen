@@ -27,7 +27,7 @@ export default function Preguntas({
   return (
     <section
       id="preguntas"
-      className="border-t border-borde bg-crema seccion"
+      className="border-t border-borde bg-crema-oscuro seccion"
     >
       <div className="contenedor">
         <div className="mx-auto max-w-3xl">
@@ -99,7 +99,7 @@ export default function Preguntas({
 
           {/* La salida para quien no encontro su respuesta: en vez de
               irse, que pregunte. Abre WhatsApp con el saludo escrito. */}
-          <div className="mt-8 flex flex-col items-center gap-3 rounded-suave bg-vino-suave px-6 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
+          <div className="mt-8 flex flex-col items-center gap-3 tarjeta px-6 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
             <p className="text-lg leading-snug text-tinta">
               <span className="font-semibold">¿Te quedó otra duda?</span>{" "}
               Preguntame, te respondo yo.

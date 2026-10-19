@@ -1,4 +1,5 @@
 import { pasosComoTrabajo, type Agenda } from "@/lib/config";
+import TituloSeccion from "./TituloSeccion";
 
 /**
  * "Cómo trabajo": tres pasos, en primera persona.
@@ -23,20 +24,10 @@ export default function ComoTrabajo({ agenda }: { agenda: Agenda }) {
   return (
     <section
       id="como-trabajo"
-      /*
-        LA UNICA SECCION OSCURA DEL MEDIO DE LA PAGINA (19-10-2026).
-
-        Hasta aca la portada eran once bloques crema y rosa alternados, y
-        a la cuarta seccion la vista ya no distinguia una de otra. Esta es
-        la que habla en primera persona, la que mas se parece a Valen, y
-        en tinta —el mismo fondo del pie— se lee como una pausa.
-      */
-      className="seccion bg-tinta text-crema"
+      className="seccion border-t border-borde bg-crema"
     >
       <div className="contenedor">
-        <header className="mx-auto max-w-2xl text-center">
-          <h2 className="text-4xl text-crema sm:text-5xl">Cómo trabajo</h2>
-        </header>
+        <TituloSeccion titulo="Cómo trabajo" />
 
         {/*
           TRES PASOS UNIDOS POR UNA LINEA.
@@ -50,10 +41,10 @@ export default function ComoTrabajo({ agenda }: { agenda: Agenda }) {
           Va en <ol>: son pasos, y para quien escucha la pagina eso se
           anuncia solo.
         */}
-        <ol className="relative mx-auto mt-10 grid max-w-2xl gap-8 md:max-w-none md:grid-cols-3 md:gap-10">
+        <ol className="relative mx-auto mt-8 grid max-w-2xl gap-8 md:max-w-none md:grid-cols-3 md:gap-10">
           <span
             aria-hidden
-            className="absolute top-2 bottom-2 left-[1.375rem] w-px bg-crema/20 md:top-[1.375rem] md:right-[16%] md:bottom-auto md:left-[16%] md:h-px md:w-auto"
+            className="absolute top-2 bottom-2 left-[1.375rem] w-px bg-borde md:top-[1.375rem] md:right-[16%] md:bottom-auto md:left-[16%] md:h-px md:w-auto"
           />
           {pasos.map(({ titulo, texto }, i) => (
             <li
@@ -62,18 +53,18 @@ export default function ComoTrabajo({ agenda }: { agenda: Agenda }) {
             >
               <span
                 aria-hidden
-                className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-crema font-display text-lg font-semibold text-vino tabular-nums ring-8 ring-tinta"
+                className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vino-suave font-display text-lg font-semibold text-vino tabular-nums ring-8 ring-crema"
               >
                 {String(i + 1).padStart(2, "0")}
               </span>
 
               <div className="min-w-0 pt-1.5 md:pt-0">
                 {titulo && (
-                  <h3 className="font-display text-xl font-semibold text-crema">
+                  <h3 className="font-display text-xl font-semibold text-tinta">
                     {titulo}
                   </h3>
                 )}
-                <p className="mt-1 text-lg leading-snug text-crema/75 md:mx-auto md:max-w-xs">
+                <p className="mt-1 text-lg leading-snug text-tinta-suave md:mx-auto md:max-w-xs">
                   {texto}
                 </p>
               </div>

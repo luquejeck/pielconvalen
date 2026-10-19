@@ -20,14 +20,19 @@ import { useEffect } from "react";
 /** Los bloques de cada seccion, fuera de la primera pantalla. */
 const BLOQUES = "main > section:not(#inicio) > .contenedor > *";
 
-/** Las tarjetas que entran una detras de la otra. */
+/**
+ * Las tarjetas que entran una detras de la otra.
+ *
+ * NINGUNA DE UN CARRUSEL (Tratamientos, Productos, Videos). Ahi cada
+ * tarjeta nueva entra a la pantalla por el costado al deslizar, y si se
+ * animaba subia desde abajo mientras la clienta la arrastraba: el gesto
+ * es de lado y la tarjeta tiene que moverse solo de lado. El carrusel
+ * entero sigue apareciendo al bajar, como un bloque mas.
+ */
 const ESCALONADOS = [
   "#consultorio ul > li",
-  "#tratamientos ul > li",
-  "#productos ul > li",
   "#como-trabajo ol > li",
   "#beneficios .tarjeta > *",
-  "#videos ul > li",
   "#preguntas ul > li",
 ].join(", ");
 
