@@ -23,10 +23,9 @@ export default function Beneficios({
   return (
     <section
       id="beneficios"
-      /* Fondo mas oscuro que la seccion de al lado: alterna, y ademas
-         las tarjetas blancas se despegan. Con crema quedaban casi
-         invisibles sobre casi el mismo color. */
-      className="border-t border-borde bg-crema-oscuro seccion"
+      /* Crema: el fondo alterna de a una seccion en toda la portada,
+         y la de al lado (Como trabajo) va en el tono rosado. */
+      className="border-t border-borde bg-crema seccion"
     >
       <div className="contenedor">
         <TituloSeccion titulo="Qué vas a notar" />

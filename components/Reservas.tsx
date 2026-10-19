@@ -159,13 +159,13 @@ export default function Reservas() {
   return (
     <section
       id="reservar"
-      className="relative isolate border-t border-borde seccion"
+      className="relative isolate border-t border-borde bg-crema-oscuro seccion"
     >
       <FondoImagen
         imagen="/imagenes/reservas.jpg"
         intensidad={30}
         filtro="saturate(0.72) contrast(0.95)"
-        velo="bg-linear-to-b from-crema/88 via-crema/82 to-crema"
+        velo="bg-linear-to-b from-crema-oscuro/88 via-crema-oscuro/82 to-crema-oscuro"
       />
 
       <div className="contenedor">
