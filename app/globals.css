@@ -972,3 +972,151 @@
     transition: none;
   }
 }
+
+/* ------------------------------------------------------------------
+   LA PORTADA EN MOVIMIENTO (prueba, 16-10-2026)
+
+   Tres cosas, todas apagadas con "reducir movimiento":
+     - el hero respira: la foto hace un zoom lento y dos luces flotan
+     - los bloques aparecen al bajar (components/Revelador.tsx)
+     - el test de piel pasa de pregunta en pregunta con un deslizamiento
+   ------------------------------------------------------------------ */
+
+/* La foto del hero: un acercamiento lento de ida y vuelta. Tan lento que
+   no se ve moverse, se nota que esta viva. */
+.fondo-vivo {
+  animation: fondo-vivo 24s ease-in-out infinite alternate;
+}
+
+@keyframes fondo-vivo {
+  from {
+    transform: scale(1.05) translate(0, 0);
+  }
+  to {
+    transform: scale(1.16) translate(-1.5%, -1%);
+  }
+}
+
+/* Las luces: dos manchas difusas del vino de la marca. */
+.hero-luz {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.55;
+  will-change: transform;
+}
+
+.hero-luz-1 {
+  width: 28rem;
+  height: 28rem;
+  left: -8rem;
+  top: -6rem;
+  background: var(--color-vino-suave);
+  animation: hero-luz 18s ease-in-out infinite alternate;
+}
+
+.hero-luz-2 {
+  width: 22rem;
+  height: 22rem;
+  right: -6rem;
+  bottom: -8rem;
+  background: color-mix(in srgb, var(--color-vino) 22%, transparent);
+  animation: hero-luz 22s ease-in-out -6s infinite alternate-reverse;
+}
+
+@keyframes hero-luz {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(6rem, 3rem) scale(1.15);
+  }
+}
+
+/* LO QUE APARECE AL BAJAR.
+   Escondido solo si Revelador ya marco el html: sin JavaScript se ve
+   todo. Es una animacion y no una transicion para no pisar las
+   transiciones propias de cada tarjeta (sombra, elevacion), y su
+   relleno es `backwards`: al terminar suelta el `translate`, asi el
+   hover de las fichas sigue andando. */
+html[data-revelando] [data-revelar]:not([data-visible]) {
+  opacity: 0;
+}
+
+html[data-revelando] [data-revelar][data-visible=""] {
+  animation: revelar 0.75s cubic-bezier(0.2, 0.7, 0.2, 1) var(--retraso, 0s) backwards;
+}
+
+@keyframes revelar {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+  }
+}
+
+/* El numero del pedido late cada vez que cambia. */
+.contador-late {
+  animation: contador-late 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@keyframes contador-late {
+  from {
+    scale: 0.4;
+  }
+}
+
+/* El test de piel: cada pregunta entra desde la derecha y sus opciones
+   detras, una por una. */
+.test-paso {
+  animation: test-entra 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.test-opcion,
+.test-producto {
+  animation: revelar 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+@keyframes test-entra {
+  from {
+    opacity: 0;
+    translate: 24px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fondo-vivo,
+  .hero-luz,
+  .contador-late,
+  .test-paso,
+  .test-opcion,
+  .test-producto {
+    animation: none;
+  }
+}
+
+/* Las preguntas frecuentes se abren deslizando, no de golpe. Donde el
+   navegador no sabe animar <details> (Safari viejo, Firefox), se abren
+   como siempre: es una mejora, no una condicion. */
+@supports (interpolate-size: allow-keywords) {
+  :root {
+    interpolate-size: allow-keywords;
+  }
+
+  .pregunta::details-content {
+    height: 0;
+    overflow: clip;
+    transition:
+      height 0.35s ease,
+      content-visibility 0.35s allow-discrete;
+  }
+
+  .pregunta[open]::details-content {
+    height: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pregunta::details-content {
+    transition: none;
+  }
+}

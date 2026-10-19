@@ -42,7 +42,13 @@ export async function generateMetadata(): Promise<Metadata> {
   /* Sin esto, la imagen de la vista previa se pide con una ruta
      relativa y ningun cliente de mensajeria la resuelve. */
     metadataBase: new URL(SITIO_URL),
-    title: `${CONSULTORIO.nombre} | ${CONSULTORIO.profesional} · ${CONSULTORIO.titulo}`,
+    /* LO QUE SE BUSCA PRIMERO, LA MARCA DESPUES.
+       Antes decia "Piel con Valen | Valentina Gallo · Técnica UBA": tres
+       nombres propios y ninguna palabra que alguien escriba en Google.
+       Quien busca "limpieza de cutis Caballito" lee el principio del
+       titulo en el resultado; la marca queda al final, como en cualquier
+       ficha de negocio local. */
+    title: `${CONSULTORIO.queSeHace} en ${CONSULTORIO.direccion.split(",")[1]?.trim() ?? "Caballito"} | ${CONSULTORIO.nombre}`,
     description: `${CONSULTORIO.queSeHace} en ${CONSULTORIO.direccion}. Con ${CONSULTORIO.profesional}, ${CONSULTORIO.titulo}. Reservá tu turno por WhatsApp.`,
     keywords: [
       `${CONSULTORIO.profesion} ${CONSULTORIO.direccion.split(",")[1]?.trim() ?? ""}`,

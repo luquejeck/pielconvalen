@@ -98,7 +98,7 @@ export default function FichaProducto({ producto: p }: { producto: Producto }) {
   const subtitulo = [p.medida, ...p.beneficios].filter(Boolean).join(" · ");
 
   return (
-    <li className="group relative flex flex-col overflow-hidden rounded-chico border border-borde bg-papel transition-shadow duration-200 hover:shadow-suave">
+    <li className="group relative flex flex-col overflow-hidden rounded-chico border border-borde bg-papel transition-[box-shadow,translate] duration-300 hover:-translate-y-1 hover:shadow-suave">
         <div className={`relative ${claro ? "bg-papel" : "bg-tinta"}`}>
           {/*
             La base se pinta del mismo color al que fundio la foto

@@ -12,13 +12,32 @@ import Marcas from "@/components/Marcas";
 import Productos from "@/components/Productos";
 import { ReservaProvider } from "@/components/ReservaContext";
 import Reservas from "@/components/Reservas";
+import Revelador from "@/components/Revelador";
+import TestDePiel from "@/components/TestDePiel";
 import Tratamientos from "@/components/Tratamientos";
 import Videos from "@/components/Videos";
 import { obtenerProductos } from "@/lib/catalogo-productos";
 import { obtenerAgenda, obtenerTratamientosPublicos } from "@/lib/catalogo";
-import { horariosDelDia } from "@/lib/config";
+import { SITIO_URL, horariosDelDia } from "@/lib/config";
 import { obtenerConfiguracion } from "@/lib/consultorio";
 import { obtenerVideos } from "@/lib/galeria";
+import type { Metadata } from "next";
+
+/* La portada se declara a si misma como la direccion buena: sin esto, la
+   misma pagina con "?utm=..." o con barra al final cuenta como otra. */
+export const metadata: Metadata = {
+  alternates: { canonical: SITIO_URL },
+};
+
+/** Los barrios que quedan a un viaje corto de Riglos 531. */
+const BARRIOS_CERCANOS = [
+  "Caballito",
+  "Almagro",
+  "Flores",
+  "Parque Chacabuco",
+  "Boedo",
+  "Villa Crespo",
+];
 
 const DIAS_SCHEMA = [
   "Sunday",
@@ -57,7 +76,30 @@ export default async function Home() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BeautySalon",
+    "@id": `${SITIO_URL}/#negocio`,
     name: CONSULTORIO.nombre,
+    url: SITIO_URL,
+    image: `${SITIO_URL}/imagenes/valen.jpg`,
+    logo: `${SITIO_URL}/imagenes/logo-vg.png`,
+    hasMap: CONSULTORIO.mapsUrl || undefined,
+    paymentAccepted: "Efectivo, transferencia, Mercado Pago",
+    currenciesAccepted: "ARS",
+    areaServed: BARRIOS_CERCANOS.map((b) => ({
+      "@type": "Place",
+      name: `${b}, Ciudad Autónoma de Buenos Aires`,
+    })),
+    /* Quien atiende, con su titulo: es lo que un asistente de IA cita
+       cuando le preguntan por una cosmetologa recibida en la zona. */
+    employee: {
+      "@type": "Person",
+      name: CONSULTORIO.profesional,
+      jobTitle: CONSULTORIO.profesion,
+      hasCredential: {
+        "@type": "EducationalOccupationalCredential",
+        name: CONSULTORIO.titulo,
+        recognizedBy: { "@type": "CollegeOrUniversity", name: "Universidad de Buenos Aires" },
+      },
+    },
     description: `${CONSULTORIO.queSeHace} por ${CONSULTORIO.profesional}, ${CONSULTORIO.profesion}, ${CONSULTORIO.titulo}. ${CONSULTORIO.eslogan}`,
     address: {
       "@type": "PostalAddress",
@@ -91,6 +133,22 @@ export default async function Home() {
       })),
   };
 
+  /* Las preguntas frecuentes, tambien para Google y los asistentes de
+     IA: con esto pueden mostrar la respuesta de Valen tal cual. Salen de
+     la misma lista que la seccion, asi que nunca dicen otra cosa. */
+  const faqLd =
+    CONSULTORIO.preguntas.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: CONSULTORIO.preguntas.map((p) => ({
+            "@type": "Question",
+            name: p.pregunta,
+            acceptedAnswer: { "@type": "Answer", text: p.respuesta },
+          })),
+        }
+      : null;
+
   return (
     <ReservaProvider
       tratamientos={tratamientos}
@@ -101,6 +159,12 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {faqLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+        />
+      )}
       <Header consultorio={CONSULTORIO} />
       <main>
         <Hero consultorio={CONSULTORIO} />
@@ -131,6 +195,9 @@ export default async function Home() {
         */}
         <Consultorio consultorio={CONSULTORIO} />
         <Tratamientos />
+        {/* Para quien no sabe que pedir: el test la deja justo arriba
+            del calendario, con una sugerencia en la mano. */}
+        <TestDePiel productos={productos} />
         <Reservas />
         <BandaGiftcard />
         <Productos consultorio={CONSULTORIO} productos={productos} />
@@ -145,6 +212,7 @@ export default async function Home() {
       </main>
       <Footer consultorio={CONSULTORIO} />
       <BotonWhatsApp />
+      <Revelador />
     </ReservaProvider>
   );
 }

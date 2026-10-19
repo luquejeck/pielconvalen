@@ -16,13 +16,22 @@ export default function Hero({
       */}
       <FondoImagen
         imagen="/imagenes/hero.jpg"
-        intensidad={38}
-        filtro="saturate(0.72) contrast(0.95)"
-        velo="bg-linear-to-b from-crema/72 via-crema/82 to-crema"
+        intensidad={50}
+        filtro="saturate(0.8) contrast(0.95)"
+        velo="bg-linear-to-b from-crema/65 via-crema/80 to-crema"
+        movimiento
       />
 
-      <div className="contenedor animar-entrada py-14 text-center md:py-16 xl:py-20">
-        <h1 className="text-5xl text-tinta sm:text-6xl xl:text-7xl">
+      {/* Dos manchas de luz en el vino de la marca que flotan despacio
+          detras del texto: le dan profundidad a la primera pantalla sin
+          sumar una imagen mas. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <span className="hero-luz hero-luz-1" />
+        <span className="hero-luz hero-luz-2" />
+      </div>
+
+      <div className="contenedor py-14 text-center md:py-16 xl:py-20">
+        <h1 className="animar-entrada text-5xl text-tinta sm:text-6xl xl:text-7xl">
           {CONSULTORIO.profesional}
         </h1>
 
@@ -36,7 +45,7 @@ export default function Hero({
           dos y el separador desaparece: partida al medio, el "·" quedaba
           colgando solo al final de la primera linea.
         */}
-        <p className="rotulo-seccion mt-5 flex flex-col items-center gap-x-2.5 sm:flex-row sm:justify-center">
+        <p style={{ animationDelay: "0.12s" }} className="animar-entrada rotulo-seccion mt-5 flex flex-col items-center gap-x-2.5 sm:flex-row sm:justify-center">
           <span>{CONSULTORIO.profesion}</span>
           <span aria-hidden className="hidden sm:inline">
             ·
@@ -44,7 +53,7 @@ export default function Hero({
           <span>{CONSULTORIO.titulo}</span>
         </p>
 
-        <p className="mx-auto mt-8 max-w-2xl text-2xl font-light leading-snug text-tinta-suave sm:text-3xl">
+        <p style={{ animationDelay: "0.24s" }} className="animar-entrada mx-auto mt-8 max-w-2xl text-2xl font-light leading-snug text-tinta-suave sm:text-3xl">
           {CONSULTORIO.eslogan}
         </p>
 
@@ -58,7 +67,7 @@ export default function Hero({
           por un link de WhatsApp no trae ningun contexto. Tenia que bajar
           dos pantallas hasta Tratamientos para enterarse.
         */}
-        <p className="mt-4 text-lg text-tinta-suave">
+        <p style={{ animationDelay: "0.32s" }} className="animar-entrada mt-4 text-lg text-tinta-suave">
           {CONSULTORIO.queSeHace} en {CONSULTORIO.direccion.split(",")[1].trim()}
         </p>
 
@@ -77,7 +86,7 @@ export default function Hero({
           El turno sigue siendo el boton lleno. Este va en hueco: se ve,
           no compite.
         */}
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <div style={{ animationDelay: "0.44s" }} className="animar-entrada mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <a href="#reservar" className="boton-principal">
             Reservar turno
           </a>
@@ -86,7 +95,19 @@ export default function Hero({
           </a>
         </div>
 
-        <ul className="mt-8 flex flex-col items-center gap-1.5 text-lg text-tinta-suave sm:flex-row sm:justify-center sm:gap-6">
+        {/* El tercer camino, para quien no sabe que pedir: no compite con
+            los dos botones, es un renglon que lleva al test. */}
+        <p style={{ animationDelay: "0.56s" }} className="animar-entrada mt-5">
+          <a
+            href="#test-piel"
+            className="group inline-flex items-center gap-1.5 text-lg font-medium text-vino underline decoration-vino/30 underline-offset-4 hover:decoration-vino"
+          >
+            ¿No sabés qué necesita tu piel? Hacé el test
+            <span aria-hidden className="transition-transform group-hover:translate-x-1">→</span>
+          </a>
+        </p>
+
+        <ul style={{ animationDelay: "0.64s" }} className="animar-entrada mt-8 flex flex-col items-center gap-1.5 text-lg text-tinta-suave sm:flex-row sm:justify-center sm:gap-6">
           <li className="flex items-center gap-2">
             <IconoPin className="h-5 w-5 text-vino" />
             {CONSULTORIO.direccion}

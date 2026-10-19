@@ -66,8 +66,31 @@ export default async function PaginaTratamiento({ params }: Ruta) {
     .filter((x) => x.id !== t.id && x.precio > 0)
     .sort((a, b) => a.precio - b.precio);
 
+  /* El tratamiento como servicio del consultorio, con su precio: es lo
+     que Google y los asistentes de IA leen para contestar "cuanto sale
+     un dermaplaning en Caballito". */
+  const servicioLd = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: t.nombre,
+    serviceType: "Tratamiento facial",
+    description: `${incluye.join(", ")}. ${t.duracion}.`,
+    provider: { "@id": `${SITIO_URL}/#negocio` },
+    areaServed: "Ciudad Autónoma de Buenos Aires",
+    offers: {
+      "@type": "Offer",
+      price: t.precio,
+      priceCurrency: "ARS",
+      url: `${SITIO_URL}/tratamientos/${t.id}`,
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(servicioLd) }}
+      />
       <Header consultorio={CONSULTORIO} enPortada={false} />
 
       <main className="bg-crema">
