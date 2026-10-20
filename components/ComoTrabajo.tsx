@@ -24,7 +24,7 @@ export default function ComoTrabajo({ agenda }: { agenda: Agenda }) {
   return (
     <section
       id="como-trabajo"
-      className="seccion border-t border-borde bg-crema"
+      className="seccion border-t border-borde bg-crema-oscuro"
     >
       <div className="contenedor">
         <TituloSeccion titulo="Cómo trabajo" />
@@ -53,7 +53,7 @@ export default function ComoTrabajo({ agenda }: { agenda: Agenda }) {
             >
               <span
                 aria-hidden
-                className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vino-suave font-display text-lg font-semibold text-vino tabular-nums ring-8 ring-crema"
+                className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vino-suave font-display text-lg font-semibold text-vino tabular-nums ring-8 ring-crema-oscuro"
               >
                 {String(i + 1).padStart(2, "0")}
               </span>

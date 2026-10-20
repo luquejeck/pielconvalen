@@ -215,7 +215,7 @@ export default function TestDePiel({ productos }: { productos: Producto[] }) {
     : "";
 
   return (
-    <section id="test-piel" className="seccion border-t border-borde bg-crema">
+    <section id="test-piel" className="seccion border-t border-borde bg-crema-oscuro">
       <div className="contenedor">
         <div>
           <TituloSeccion

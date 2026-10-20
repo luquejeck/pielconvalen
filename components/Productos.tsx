@@ -48,7 +48,7 @@ export default async function Productos({
   return (
     <section
       id="productos"
-      className="border-t border-borde bg-crema-oscuro seccion"
+      className="border-t border-borde bg-crema seccion"
     >
       <div className="contenedor">
         {/* Que son originales, en una linea debajo del titulo: en la

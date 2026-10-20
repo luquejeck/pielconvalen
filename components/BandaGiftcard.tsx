@@ -19,7 +19,7 @@ import { LogoMarca } from "./Logo";
  */
 export default function BandaGiftcard() {
   return (
-    <section id="giftcards" className="border-t border-borde bg-crema">
+    <section id="giftcards" className="border-t border-borde bg-crema-oscuro">
       <div className="contenedor py-6 md:py-8">
         <div className="tarjeta mx-auto flex max-w-2xl flex-wrap items-center gap-x-5 gap-y-4 px-5 py-5 sm:flex-nowrap sm:px-6">
           {/* La giftcard en miniatura: el mismo degrade, el monograma y
