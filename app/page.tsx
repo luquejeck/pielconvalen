@@ -195,9 +195,6 @@ export default async function Home() {
         */}
         <Consultorio consultorio={CONSULTORIO} />
         <Tratamientos />
-        {/* Para quien no sabe que pedir: el test la deja justo arriba
-            del calendario, con una sugerencia en la mano. */}
-        <TestDePiel productos={productos} />
         <Reservas />
         <BandaGiftcard />
         <Productos consultorio={CONSULTORIO} productos={productos} />
@@ -208,6 +205,10 @@ export default async function Home() {
         {/* Al final de todo: es una seccion de consulta, no parte del
             recorrido. Quien la necesita la busca. */}
         <Preguntas consultorio={CONSULTORIO} />
+
+        {/* El test de piel, al final: es para quien recorrio todo y
+            todavia no sabe que pedir. La primera pantalla no lo nombra. */}
+        <TestDePiel productos={productos} />
       </main>
       <Footer consultorio={CONSULTORIO} />
       <BotonWhatsApp />

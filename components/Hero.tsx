@@ -95,19 +95,7 @@ export default function Hero({
           </a>
         </div>
 
-        {/* El tercer camino, para quien no sabe que pedir: no compite con
-            los dos botones, es un renglon que lleva al test. */}
-        <p style={{ animationDelay: "0.56s" }} className="animar-entrada mt-5">
-          <a
-            href="#test-piel"
-            className="group inline-flex items-center gap-1.5 text-lg font-medium text-vino underline decoration-vino/30 underline-offset-4 hover:decoration-vino"
-          >
-            ¿No sabés qué necesita tu piel? Hacé el test
-            <span aria-hidden className="transition-transform group-hover:translate-x-1">→</span>
-          </a>
-        </p>
-
-        <ul style={{ animationDelay: "0.64s" }} className="animar-entrada mt-8 flex flex-col items-center gap-1.5 text-lg text-tinta-suave sm:flex-row sm:justify-center sm:gap-6">
+        <ul style={{ animationDelay: "0.56s" }} className="animar-entrada mt-8 flex flex-col items-center gap-1.5 text-lg text-tinta-suave sm:flex-row sm:justify-center sm:gap-6">
           <li className="flex items-center gap-2">
             <IconoPin className="h-5 w-5 text-vino" />
             {CONSULTORIO.direccion}

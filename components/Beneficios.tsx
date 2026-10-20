@@ -23,9 +23,8 @@ export default function Beneficios({
   return (
     <section
       id="beneficios"
-      /* Rosado: el fondo alterna de a una seccion en toda la portada, y
-         sobre este tono las tarjetas blancas se despegan mejor. */
-      className="border-t border-borde bg-crema-oscuro seccion"
+      /* Crema: el fondo alterna de a una seccion en toda la portada. */
+      className="border-t border-borde bg-crema seccion"
     >
       <div className="contenedor">
         <TituloSeccion titulo="Qué vas a notar" />
