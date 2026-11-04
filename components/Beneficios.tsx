@@ -42,9 +42,9 @@ export default function Beneficios({
           {BENEFICIOS.map(({ Icono, titulo, texto }) => (
             <div
               key={titulo}
-              className="flex items-center gap-4 py-4 sm:flex-col sm:items-center sm:gap-3 sm:px-6 sm:py-6 sm:text-center"
+              className="beneficio group flex items-center gap-4 py-4 sm:flex-col sm:items-center sm:gap-3 sm:px-6 sm:py-6 sm:text-center"
             >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vino-suave text-vino sm:h-14 sm:w-14">
+              <span className="beneficio-icono flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vino-suave text-vino sm:h-14 sm:w-14">
                 <Icono className="h-6 w-6 sm:h-7 sm:w-7" />
               </span>
               <p className="text-lg leading-snug text-tinta-suave">

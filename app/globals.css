@@ -1120,3 +1120,313 @@ html[data-revelando] [data-revelar][data-visible=""] {
     transition: none;
   }
 }
+
+/* ------------------------------------------------------------------
+   MAS VIDA EN LA PORTADA (04-11-2026)
+
+   Todo lo de abajo es movimiento que acompaña, no que distrae: cosas
+   que se dibujan al aparecer, que responden al tocarlas o que dicen un
+   dato vivo. Con "reducir movimiento" queda todo quieto y en su estado
+   final.
+   ------------------------------------------------------------------ */
+
+@layer components {
+/* El boton principal: sube apenas al pasar el mouse y un brillo lo
+   cruza. Dice "esto se toca" sin cambiar de color ni de tamaño. */
+.boton-principal,
+.boton-secundario {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.boton-principal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.22) 50%,
+    transparent 70%
+  );
+  translate: -110% 0;
+  transition: translate 0.7s ease;
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .boton-principal:hover,
+  .boton-secundario:hover {
+    translate: 0 -2px;
+  }
+  .boton-principal:hover {
+    box-shadow: 0 12px 26px -10px rgb(93 10 52 / 0.55);
+  }
+  .boton-principal:hover::after {
+    translate: 110% 0;
+  }
+}
+
+.boton-principal,
+.boton-secundario {
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    translate 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+}
+
+/* El titulo del hero: entra con el tracking abierto y se cierra, como
+   un rotulo que se acomoda. */
+.titulo-hero {
+  animation:
+    aparecer 0.5s ease-out both,
+    titulo-cerrar 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes titulo-cerrar {
+  from {
+    letter-spacing: 0.04em;
+  }
+}
+
+/* El punto del "Próximo turno libre": verde de "esto te conviene",
+   con un halo que late. */
+.punto-vivo {
+  position: relative;
+  width: 0.625rem;
+  height: 0.625rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  background: var(--color-positivo);
+}
+
+.punto-vivo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-positivo);
+  animation: punto-latir 2s ease-out infinite;
+}
+
+@keyframes punto-latir {
+  from {
+    opacity: 0.6;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 2.6;
+  }
+}
+
+.proximo-turno {
+  animation: revelar 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+/* La flecha de bajar: sube y baja despacio. */
+.indicador-bajar {
+  animation: indicador-bajar 2.4s ease-in-out 1.5s infinite;
+}
+
+@keyframes indicador-bajar {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 6px;
+  }
+}
+
+/* LA CINTA DE GARANTIAS. Corre a velocidad de lectura (~40 s la
+   vuelta); se frena con el mouse encima, y los bordes se desvanecen
+   para que no parezca cortada. */
+.franja {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.franja-pista {
+  display: flex;
+  width: max-content;
+  animation: franja-correr 40s linear infinite;
+}
+
+.franja:hover .franja-pista {
+  animation-play-state: paused;
+}
+
+.franja-lista {
+  display: flex;
+  flex-shrink: 0;
+  gap: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@keyframes franja-correr {
+  to {
+    translate: -50% 0;
+  }
+}
+
+/* El trazo bajo cada titulo: se dibuja desde el centro cuando la
+   seccion aparece. Sin JavaScript se ve entero desde el principio. */
+.titulo-acento {
+  transition: scale 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.25s;
+}
+
+html[data-revelando] [data-revelar]:not([data-visible]) .titulo-acento {
+  scale: 0 1;
+}
+
+/* Como trabajo: la linea del recorrido se dibuja al aparecer, de
+   arriba abajo en el celular y de izquierda a derecha en monitor. */
+.recorrido-linea {
+  transform-origin: top;
+  transition: scale 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.2s;
+}
+
+@media (min-width: 768px) {
+  .recorrido-linea {
+    transform-origin: left;
+  }
+}
+
+html[data-revelando] #como-trabajo ol[data-revelar]:not([data-visible]) .recorrido-linea {
+  scale: 1 0;
+}
+
+@media (min-width: 768px) {
+  html[data-revelando] #como-trabajo ol[data-revelar]:not([data-visible]) .recorrido-linea {
+    scale: 0 1;
+  }
+}
+
+/* Que vas a notar: el icono se agranda apenas y gira al pasar por el
+   beneficio. */
+.beneficio-icono {
+  transition:
+    scale 0.35s cubic-bezier(0.3, 1.6, 0.5, 1),
+    rotate 0.35s ease,
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+@media (hover: hover) {
+  .beneficio:hover .beneficio-icono {
+    scale: 1.12;
+    rotate: -8deg;
+    background-color: var(--color-vino);
+    color: #fff;
+  }
+}
+
+/* El retrato: el marco de atras se corre un poco mas al pasar el mouse,
+   y la foto se levanta. */
+.retrato img,
+.retrato-marco {
+  transition: translate 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .retrato:hover img {
+    translate: -4px -4px;
+  }
+  .retrato:hover .retrato-marco {
+    translate: 1.5rem 1.5rem;
+  }
+}
+
+/* LA BARRA DE PROGRESO del encabezado y su sombra al bajar. Las dos
+   van atadas al scroll de la pagina con animation-timeline: cero
+   JavaScript y cero trabajo en cada scroll. Donde no hay soporte, el
+   encabezado queda como estaba. */
+.progreso-lectura {
+  display: none;
+}
+
+@supports (animation-timeline: scroll()) {
+  .progreso-lectura {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--color-vino);
+    transform-origin: left;
+    scale: 0 1;
+    animation: progreso-lectura linear both;
+    animation-timeline: scroll(root);
+  }
+
+  @keyframes progreso-lectura {
+    to {
+      scale: 1 1;
+    }
+  }
+
+  .encabezado {
+    animation: encabezado-sombra linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 120px;
+  }
+
+  @keyframes encabezado-sombra {
+    to {
+      box-shadow: 0 8px 24px -16px rgb(30 16 21 / 0.35);
+      background-color: rgb(250 245 246 / 0.96);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .titulo-hero,
+  .punto-vivo::after,
+  .proximo-turno,
+  .indicador-bajar {
+    animation: none;
+  }
+  .franja-pista {
+    animation: none;
+    width: auto;
+    justify-content: center;
+  }
+  /* Quieta, la copia sobra y la lista se acomoda en renglones. */
+  .franja-lista[aria-hidden] {
+    display: none;
+  }
+  .franja-lista {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 0.5rem;
+    padding-inline: 1.25rem;
+  }
+  .franja {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .boton-principal::after {
+    display: none;
+  }
+  .boton-principal:hover,
+  .boton-secundario:hover,
+  .beneficio:hover .beneficio-icono,
+  .retrato:hover img,
+  .retrato:hover .retrato-marco {
+    translate: none;
+    rotate: none;
+    scale: none;
+  }
+  .titulo-acento,
+  .recorrido-linea {
+    transition: none;
+  }
+}
