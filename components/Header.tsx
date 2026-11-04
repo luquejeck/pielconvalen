@@ -19,7 +19,11 @@ export default function Header({
   const reservar = enPortada ? "#reservar" : "/#reservar";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-borde bg-crema/90 backdrop-blur-md">
+    <header className="encabezado sticky top-0 z-40 border-b border-borde bg-crema/90 backdrop-blur-md">
+      {/* Cuanto falta: una linea vino que se llena al bajar. Va con
+          animation-timeline en CSS, sin JavaScript; donde el navegador
+          no lo sabe hacer, simplemente no aparece. */}
+      <span aria-hidden className="progreso-lectura" />
       <div className="contenedor flex h-16 items-center justify-between gap-3">
         <a href={inicio} className="flex min-w-0 items-center gap-2.5">
           <LogoMarca alto={26} />

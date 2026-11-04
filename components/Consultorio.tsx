@@ -76,13 +76,19 @@ export default function Consultorio({
             pagina, porque es la unica forma circular del sitio.
           */}
           {hayValen && (
+            <div className="retrato relative mx-auto w-56 lg:w-full">
             <Image
               src={fotoValen}
               alt={`${CONSULTORIO.profesional}, ${CONSULTORIO.profesion.toLowerCase()}`}
               sizes="(min-width: 1024px) 46vw, 14rem"
               placeholder="blur"
-              className="mx-auto aspect-square w-56 rounded-suave object-cover shadow-suave lg:w-full"
+              className="relative z-10 aspect-square w-full rounded-suave object-cover shadow-suave"
             />
+            {/* Un marco desplazado en vino suave detras de la foto: la
+                despega del fondo y le da el aire editorial de revista
+                sin sumar una imagen. Solo en pantalla grande. */}
+            <span aria-hidden className="retrato-marco absolute inset-0 hidden translate-x-4 translate-y-4 rounded-suave border-2 border-vino/25 bg-vino-suave lg:block" />
+            </div>
           )}
 
           <div className="text-center lg:text-left">

@@ -1,6 +1,7 @@
 import type { ConfiguracionWeb } from "@/lib/consultorio";
 import FondoImagen from "./FondoImagen";
-import { IconoPin, IconoReloj } from "./iconos";
+import { IconoFlecha, IconoPin, IconoReloj } from "./iconos";
+import ProximoTurno from "./ProximoTurno";
 
 export default function Hero({
   consultorio: CONSULTORIO,
@@ -30,8 +31,16 @@ export default function Hero({
         <span className="hero-luz hero-luz-2" />
       </div>
 
-      <div className="contenedor py-14 text-center md:py-16 xl:py-20">
-        <h1 className="animar-entrada text-5xl text-tinta sm:text-6xl xl:text-7xl">
+      {/* En pantalla grande el hero ocupa casi toda la primera vista y
+          el contenido queda al centro: antes medía 540 px sobre 900 y la
+          siguiente sección asomaba a media altura, sin aire. */}
+      <div className="contenedor flex flex-col justify-center py-14 text-center md:py-16 lg:min-h-[calc(82svh-4rem)] xl:py-20">
+        {/* El dato vivo: el próximo horario que se puede reservar. */}
+        <div className="animar-entrada mb-6">
+          <ProximoTurno />
+        </div>
+
+        <h1 className="animar-entrada titulo-hero text-5xl text-tinta sm:text-6xl lg:text-7xl xl:text-8xl">
           {CONSULTORIO.profesional}
         </h1>
 
@@ -106,6 +115,16 @@ export default function Hero({
           </li>
         </ul>
       </div>
+
+      {/* Invitación a bajar, solo en pantalla grande: en el celular la
+          sección siguiente ya asoma. */}
+      <a
+        href="#consultorio"
+        aria-label="Bajar a conocer a Valen"
+        className="indicador-bajar absolute bottom-6 left-1/2 hidden h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full border border-borde bg-papel/70 text-vino backdrop-blur-sm transition-colors hover:bg-papel lg:flex"
+      >
+        <IconoFlecha className="h-4 w-4 rotate-90" />
+      </a>
     </section>
   );
 }

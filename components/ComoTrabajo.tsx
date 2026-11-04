@@ -44,7 +44,7 @@ export default function ComoTrabajo({ agenda }: { agenda: Agenda }) {
         <ol className="relative mx-auto mt-8 grid max-w-2xl gap-8 md:max-w-none md:grid-cols-3 md:gap-10">
           <span
             aria-hidden
-            className="absolute top-2 bottom-2 left-[1.375rem] w-px bg-borde md:top-[1.375rem] md:right-[16%] md:bottom-auto md:left-[16%] md:h-px md:w-auto"
+            className="recorrido-linea absolute top-2 bottom-2 left-[1.375rem] w-0.5 rounded-full bg-vino/30 md:top-[1.75rem] md:right-[16%] md:bottom-auto md:left-[16%] md:h-0.5 md:w-auto"
           />
           {pasos.map(({ titulo, texto }, i) => (
             <li
@@ -53,7 +53,7 @@ export default function ComoTrabajo({ agenda }: { agenda: Agenda }) {
             >
               <span
                 aria-hidden
-                className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vino-suave font-display text-lg font-semibold text-vino tabular-nums ring-8 ring-crema-oscuro"
+                className="paso-numero relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-vino font-display text-lg font-semibold text-white tabular-nums shadow-boton ring-8 ring-crema-oscuro md:h-14 md:w-14 md:text-xl"
               >
                 {String(i + 1).padStart(2, "0")}
               </span>
@@ -64,7 +64,7 @@ export default function ComoTrabajo({ agenda }: { agenda: Agenda }) {
                     {titulo}
                   </h3>
                 )}
-                <p className="mt-1 text-lg leading-snug text-tinta-suave md:mx-auto md:max-w-xs">
+                <p className="mt-1 text-lg leading-snug text-tinta-suave md:mx-auto md:max-w-[22rem] md:text-pretty">
                   {texto}
                 </p>
               </div>

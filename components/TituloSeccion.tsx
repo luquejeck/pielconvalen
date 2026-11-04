@@ -23,8 +23,12 @@ export default function TituloSeccion({
       <Titulo className="text-4xl text-tinta sm:text-5xl">
         {titulo}
       </Titulo>
+      {/* Un trazo corto en vino bajo cada titulo: ata las diez
+          secciones con un mismo gesto y, al aparecer, se dibuja de
+          adentro hacia afuera (globals.css, .titulo-acento). */}
+      <span aria-hidden className="titulo-acento mx-auto mt-4 block h-[3px] w-12 rounded-full bg-vino" />
       {bajada && (
-        <p className="mt-2 text-xl leading-snug text-tinta-suave">{bajada}</p>
+        <p className="mt-4 text-xl leading-snug text-balance text-tinta-suave">{bajada}</p>
       )}
     </header>
   );

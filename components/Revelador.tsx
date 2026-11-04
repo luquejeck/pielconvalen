@@ -49,7 +49,13 @@ export default function Revelador() {
     const elementos: HTMLElement[] = [];
 
     const marcar = (el: HTMLElement, retraso = 0) => {
-      if (el.hasAttribute("data-revelar")) return;
+      /* Ya marcado (en desarrollo React corre el efecto dos veces): si
+         todavia no aparecio, se vuelve a observar. Antes se salteaba y
+         quedaba invisible para siempre. */
+      if (el.hasAttribute("data-revelar")) {
+        if (!el.hasAttribute("data-visible")) elementos.push(el);
+        return;
+      }
       el.setAttribute("data-revelar", "");
       if (retraso) el.style.setProperty("--retraso", `${retraso}s`);
       // Lo que ya se ve al cargar no se esconde: aparecer y desaparecer es peor que nada.
